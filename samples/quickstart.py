@@ -5,6 +5,7 @@ import backtrader as bt
 import datetime  # For datetime objects
 import os.path  # To manage paths
 import sys  # To find out the script name (in argv[0])
+from backtrader import indicators
 
 # Create a Stratey
 class TestStrategy(bt.Strategy):
@@ -16,15 +17,20 @@ class TestStrategy(bt.Strategy):
 
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
-        self.dataclose = self.datas[0].close
+        self.close= self.datas[0].close
         self.open = self.datas[0].open
         self.high= self.datas[0].high
         self.low= self.datas[0].low
+        self.atr = indicators.ATR(self.datas[0])
+        self.tr = indicators.TR(self.datas[0])
 
+    def is_doji(self):
+        return True if (abs(self.open - self.close) <= 0.02) and self.tr[0] > 3 * self.atr[0] else False 
 
     def next(self):
-        # Simply log the closing price of the series from the reference
-        self.log('Close, %.2f' % self.low[0])
+        if (self.is_doji()):
+            self.log('Doji spotted')
+
 
 if __name__ == '__main__':
     cerebro = bt.Cerebro()
