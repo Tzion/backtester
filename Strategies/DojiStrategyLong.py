@@ -8,7 +8,10 @@ import sys  # To find out the script name (in argv[0])
 from backtrader import indicators
 
 # Create a Stratey
-class TestStrategy(bt.Strategy):
+# signal - doji candle, buy - next day opens higher than doji close
+# stop - under the doji's low
+# profit - half portion at stop distance, second half 3 times than doji size
+class DojiLongStrategy(bt.Strategy):
 
     def log(self, txt, dt=None):
         ''' Logging function for this strategy'''
@@ -24,25 +27,41 @@ class TestStrategy(bt.Strategy):
         self.atr = indicators.ATR(self.datas[0])
         self.tr = indicators.TR(self.datas[0])
 
-    def is_doji(self):
-        return True if (abs(self.open - self.close) <= 0.02) and self.tr[0] > 3 * self.atr[0] else False 
+    def is_doji(self, index=0):
+        return True if (abs(self.open - self.close) <= 0.02) and self.tr[index] > 3 * self.atr[index] else False 
 
     def next(self):
-        if (self.is_doji()):
-            self.log('Doji spotted')
-            self.buy()
+        if self.position:
+            self.manage_position()
+            return
+        elif self.open_signal():
+            self.open_position()
+
+
+    def open_signal(self):
+        if self.is_doji(-1) and self.open[0] > self.open[-1]:
+            self.log('open signal')
+            return True
+
+    def open_position(self):
+        mainside = self.buy(exectype=bt.Order.Market, transmit=False)
+        lowside  = self.sell(price=self.low[-1], size=mainside.size, exectype=bt.Order.Stop, transmit=False, parent=mainside)
+        highside = self.sell(price=self.high[-1], size=mainside.size, exectype=bt.Order.Limit, transmit=True, parent=mainside)
+
+    def manage_position(self):
+        None # todo improve take profit-1 and 2
 
 
 if __name__ == '__main__':
     cerebro = bt.Cerebro()
 
     # Add a strategy
-    cerebro.addstrategy(TestStrategy)
+    cerebro.addstrategy(DojiLongStrategy)
 
     # Datas are in a subfolder of the samples. Need to find where the script is
     # because it could have been called from anywhere
     modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
-    datapath = os.path.join(modpath, '../data_feeds/CSV.csv')
+    datapath = os.path.join(modpath, '../data_feeds/AEP.csv')
 
     # Create a Data Feed
     data = bt.feeds.YahooFinanceCSVData(
