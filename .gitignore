@@ -2,3 +2,4 @@ cscope.out
 tags
 venv
 data_feeds
+.DS_Store
