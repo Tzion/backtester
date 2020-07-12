@@ -14,27 +14,30 @@ class DojiLongStrategy(bt.Strategy):
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
-        # Keep a reference to the "close" line in the data[0] dataseries
-        self.close= self.datas[0].close
-        self.open = self.datas[0].open
-        self.high= self.datas[0].high
-        self.low= self.datas[0].low
-        self.atr = indicators.ATR(self.datas[0])
-        self.tr = indicators.TR(self.datas[0])
+        self.close, self.open, self.high, self.low = [], [], [], []
+        self.atr, self.tr = [], []
+        for i,d in enumerate(self.datas):
+            self.close.append(d.close)
+            self.open.append(d.open)
+            self.high.append(d.high)
+            self.low.append(d.low)
+            self.atr.append(indicators.ATR(d))
+            self.tr.append(indicators.TR(d))
 
-    def is_doji(self, index=0):
-        return True if (abs(self.open - self.close) <= 0.02) and self.tr[index] > 3 * self.atr[index] else False 
+    def is_doji(self, i, j=0):
+        return True if (abs(self.open[i][j] - self.close[i][j]) <= 0.2) and self.tr[i][j] > 1 * self.atr[i][j] else False 
 
     def next(self):
-        if self.position:
-            self.manage_position()
-            return
-        elif self.open_signal():
-            self.open_position()
+        for i,data in enumerate(self.datas):
+            if self.position:
+                self.manage_position()
+                return
+            elif self.open_signal(i):
+                self.open_position()
 
 
-    def open_signal(self):
-        if self.is_doji(-1) and self.open[0] > self.open[-1]:
+    def open_signal(self, data_index):
+        if self.is_doji(data_index) and self.open[data_index][0] > self.open[data_index][-1]:
             self.log('open signal')
             return True
 
