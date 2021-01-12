@@ -1,6 +1,9 @@
 cscope.out
 tags
-venv
+v-env
 data_feeds
+data_feeds_bkp
 .DS_Store
 __pycache__
+.vscode
+.idea
