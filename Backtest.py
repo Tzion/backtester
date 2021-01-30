@@ -4,6 +4,7 @@ import os.path
 import sys
 from Strategies.DojiStrategyLong import DojiLongStrategy
 import matplotlib.pylab as pylab
+
 pylab.rcParams['figure.figsize'] = 30, 20  # that's default image size for this interactive session
 if __name__ == '__main__':
     cerebro = bt.Cerebro()
@@ -15,21 +16,17 @@ if __name__ == '__main__':
 
     modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
     dirpath = os.path.join(modpath, 'data_feeds')
-    files = os.listdir(dirpath)
-    print('adding {} data feeds'.format(len(files)))
-    for data in files:
+    stocks = os.listdir(dirpath)
+    print('adding {} data feeds'.format(len(stocks)))
+    for i, stock in enumerate(stocks):
+        if i >= 2 : continue
         feed = bt.feeds.GenericCSVData(
-            dataname=os.path.join(dirpath,data), fromdate=datetime.datetime(2015, 4, 4),
+            dataname=os.path.join(dirpath, stock), fromdate=datetime.datetime(2015, 4, 4),
             todate=datetime.datetime(2020, 3, 10), dtformat='%Y-%m-%d',
             high=1, low=2, open=3, close=4)
-        cerebro.adddata(feed)
-        if plotmaster is None:
-            plotmaster = feed
-        else:
-            feed.plotinfo.plotmaster = plotmaster
-        if toplot>=3:
-            feed.plotinfo.plot = False
-        toplot+=1
+        feed.plotinfo.plotmaster = None
+        feed.plotinfo.plot = False
+        cerebro.adddata(feed, stock)
 
     # Set our desired cash start
     cerebro.broker.setcash(100000.0)
@@ -39,6 +36,12 @@ if __name__ == '__main__':
     print('backtesting strategy')
     cerebro.run()
     print('ploting')
-    cerebro.plot(style='candlestick', barup='green')
+    for i,feed in enumerate(cerebro.datas):
+        if i>1: continue
+        feed.plotinfo.plotmaster = feed
+        feed.plotinfo.plot = True
+        cerebro.plot(style='candlestick', barup='green', numfigs=1)
+        feed.plotinfo.plot = False
+        feed.plotinfo.plotmaster = None
 
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
