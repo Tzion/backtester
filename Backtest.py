@@ -3,6 +3,8 @@ import datetime
 import os.path
 import sys
 from Strategies.DojiStrategyLong import DojiLongStrategy
+from Analyzers.BasicSradeStats import BasicTradeStats
+import backtrader.analyzers as btanalyzers
 import matplotlib.pylab as pylab
 
 pylab.rcParams['figure.figsize'] = 30, 20  # that's default image size for this interactive session
@@ -28,20 +30,26 @@ if __name__ == '__main__':
         feed.plotinfo.plot = False
         cerebro.adddata(feed, stock)
 
+    # Add analyzer
+    cerebro.addanalyzer(btanalyzers.SharpeRatio, _name='mysharpe')
+    cerebro.addanalyzer(BasicTradeStats, _name='basic_trade_stats')
+
     # Set our desired cash start
     cerebro.broker.setcash(100000.0)
 
     print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
     print('backtesting strategy')
-    cerebro.run()
+    strats = cerebro.run()
     print('ploting')
     for i,feed in enumerate(cerebro.datas):
         if i>1: continue
         feed.plotinfo.plotmaster = feed
         feed.plotinfo.plot = True
-        cerebro.plot(style='candlestick', barup='green', numfigs=1)
+        # cerebro.plot(style='candlestick', barup='green', numfigs=1)
         feed.plotinfo.plot = False
         feed.plotinfo.plotmaster = None
 
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    for each in strats[0].analyzers:
+        each.print()
