@@ -19,11 +19,13 @@ class BaseStrategy(bt.Strategy):
             else:
                 self.manage_position(stock)
 
-    #TODO define as abstract. also for manage_position
-    def check_signals(self, i):
+    def check_signals(self, stock):
         pass
 
-    def log(self, txt, dt=None):
+    def manage_position(self, stock):
+        pass
+
+    def log(self, stock, txt):
         ''' Logging function for this strategy'''
-        dt = dt or self.datas[0].datetime.date(0)
-        print('%s, %s' % (dt.isoformat(), txt))
+        date = stock.datetime.date(0)
+        print('%s @ %s: %s' % (stock._name, date.isoformat(), txt))

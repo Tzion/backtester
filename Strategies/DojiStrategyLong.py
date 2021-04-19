@@ -16,7 +16,7 @@ class DojiLongStrategy(BaseStrategy):
 
     def open_signal(self, stock):
         if is_doji(stock) and stock.open[0] > stock.open[-1]:
-            self.log('open signal')
+            self.log(stock, 'open signal')
             return True
 
     def open_position(self, stock):
