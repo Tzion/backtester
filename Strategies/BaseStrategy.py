@@ -1,4 +1,5 @@
 import backtrader as bt
+from backtrader import indicators
 
 """ 
 Base class for strategy of multiple feeds
@@ -7,14 +8,16 @@ class BaseStrategy(bt.Strategy):
 
 
     def __init__(self):
-        pass
+        for data in self.datas:
+            data.atr = indicators.ATR(data)
+            data.tr = indicators.TR(data)
 
     def next(self):
-        for i,data in enumerate(self.datas):
-            if self.getposition(data=self.datas[i]):
-                self.manage_position(i)
+        for stock in self.datas:
+            if not self.getposition(data=stock):
+                 self.check_signals(stock)
             else:
-                 self.check_signals(i)
+                self.manage_position(stock)
 
     #TODO define as abstract. also for manage_position
     def check_signals(self, i):
