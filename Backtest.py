@@ -30,8 +30,7 @@ if __name__ == '__main__':
         feed.plotinfo.plot = False
         cerebro.adddata(feed, stock)
 
-    # Add analyzer
-    cerebro.addanalyzer(btanalyzers.SharpeRatio, _name='mysharpe')
+    # analyzer
     cerebro.addanalyzer(BasicTradeStats, _name='basic_trade_stats')
 
     # Set our desired cash start
