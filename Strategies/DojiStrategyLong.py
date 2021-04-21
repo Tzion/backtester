@@ -6,7 +6,7 @@ from .BaseStrategy import BaseStrategy
 # stop - under the doji's low
 # profit - half portion at stop distance, second half 3 times than doji size
 class DojiLongStrategy(BaseStrategy):
-
+    
     def check_signals(self, stock):
         if self.open_signal(stock):
             self.open_position(stock)
@@ -27,5 +27,5 @@ class DojiLongStrategy(BaseStrategy):
             size=mainside.size, exectype=bt.Order.Limit, transmit=True, parent=mainside)
 
     global is_doji  # move to external file, or find candles utils
-    def is_doji(stock, j=0):
-        return abs(stock.open[j] - stock.close[j]) <= 0.2 and stock.tr[j] > 1 * stock.atr[j]
+    def is_doji(stock, bar_i=0):
+        return abs(stock.open[bar_i] - stock.close[bar_i]) <= 0.2 and stock.tr[bar_i] > 1 * stock.atr[bar_i]
