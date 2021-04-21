@@ -28,7 +28,7 @@ if __name__ == '__main__':
             high=1, low=2, open=3, close=4)
         feed.plotinfo.plotmaster = None
         feed.plotinfo.plot = False
-        cerebro.adddata(feed, stock)
+        cerebro.adddata(feed, name=stock.strip('.csv'))
 
     # analyzer
     cerebro.addanalyzer(BasicTradeStats, _name='basic_trade_stats')

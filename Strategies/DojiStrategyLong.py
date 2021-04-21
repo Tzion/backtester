@@ -16,14 +16,14 @@ class DojiLongStrategy(BaseStrategy):
 
     def open_signal(self, stock):
         if is_doji(stock) and stock.open[0] > stock.open[-1]:
-            self.log(stock, 'open signal')
+            self.log(stock, 'doji signal price %.2f' % stock.close[0])
             return True
 
     def open_position(self, stock):
-        mainside = self.buy(exectype=bt.Order.Market, transmit=False)
-        lowside  = self.sell(price=stock.low[-1], 
+        mainside = self.buy(data=stock, exectype=bt.Order.Market, transmit=False)
+        lowside  = self.sell(data=stock, price=stock.low[-1], 
             size=mainside.size, exectype=bt.Order.Stop, transmit=False, parent=mainside)
-        highside = self.sell(price=stock.high[-1], 
+        highside = self.sell(data=stock, price=stock.high[-1], 
             size=mainside.size, exectype=bt.Order.Limit, transmit=True, parent=mainside)
 
     global is_doji  # move to external file, or find candles utils

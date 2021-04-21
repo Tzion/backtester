@@ -4,8 +4,9 @@ from backtrader import indicators
 """ 
 Base class for strategy of multiple feeds
 """
-class BaseStrategy(bt.Strategy):
 
+
+class BaseStrategy(bt.Strategy):
 
     def __init__(self):
         for data in self.datas:
@@ -14,9 +15,8 @@ class BaseStrategy(bt.Strategy):
 
     def next(self):
         for stock in self.datas:
-            self.cur_stock = stock
             if not self.getposition(data=stock):
-                 self.check_signals(stock)
+                self.check_signals(stock)
             else:
                 self.manage_position(stock)
 
@@ -27,9 +27,10 @@ class BaseStrategy(bt.Strategy):
         pass
 
     def notify_order(self, order):
-        if order.status is bt.Order.Completed or order.status is bt.Order.Partial: 
-            self.log(self.cur_stock, "order %s: %s %s, price: %s, size: %s" % (order.getstatusname(), order.ordtypename(), order.getordername(), order.price, order.size))
-    
+        if order.status is bt.Order.Completed or order.status is bt.Order.Partial:
+            self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
+
     def notify_trade(self, trade):
         pass  # todo
 
