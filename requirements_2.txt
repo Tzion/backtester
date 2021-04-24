@@ -74,7 +74,7 @@ pytz==2019.1
 PyYAML==3.13
 quantiacsToolbox==3.0.1
 requests==2.21.0
-rsa==3.4.2
+rsa==4.1
 s3transfer==0.1.13
 scandir==1.10.0
 scipy==0.13.0b1
