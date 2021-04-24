@@ -23,7 +23,7 @@ class DojiLongStrategy(BaseStrategy):
         mainside = self.buy(data=stock, exectype=bt.Order.Market, transmit=False)
         lowside  = self.sell(data=stock, price=stock.low[-1], 
             size=mainside.size, exectype=bt.Order.Stop, transmit=False, parent=mainside)
-        highside = self.sell(data=stock, price=stock.high[-1], 
+        highside = self.sell(data=stock, price=stock.open[0] + stock.high[-1] - stock.low[-1], 
             size=mainside.size, exectype=bt.Order.Limit, transmit=True, parent=mainside)
 
     global is_doji  # move to external file, or find candles utils

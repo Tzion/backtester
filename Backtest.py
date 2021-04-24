@@ -16,8 +16,8 @@ def main():
     add_analyzer()
     global strategies
     strategies = backtest()
-    plot()
     show_statistics(strategies)
+    plot(2)
 
 
 def add_strategies():
@@ -51,14 +51,14 @@ def backtest():
     return strategies
 
 
-def plot():
-    pylab.rcParams['figure.figsize'] = 26, 14 # that's default image size for this interactive session
+def plot(max=1):
+    pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
     trades = strategies[0]._trades
     top_feeds = list(dict(sorted(trades.items(), key=lambda item : len(item[1][0]))))
-    print('ploting')
+    print('ploting top %d feeds' % max)
     for i, feed in enumerate(top_feeds):
-        if i >= 1:
-            continue
+        if i >= max:
+            break
         feed.plotinfo.plotmaster = feed
         feed.plotinfo.plot = True
         cerebro.plot(style='candlestick', barup='green', numfigs=1)
