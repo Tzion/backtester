@@ -18,5 +18,5 @@ for symbol in tickers:
             print('data feed of {} already exists, skipping'.format(symbol))
     except:
         lost.append(symbol)  
-if len(lost) is not 0:
+if not len(lost):
     print("\033[31mError downloading symbols: {}.\033[00m".format(lost))
