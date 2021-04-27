@@ -12,7 +12,7 @@ cerebro = bt.Cerebro()
 
 def main():
     add_strategies()
-    add_data()
+    add_data(10)
     add_analyzer()
     global strategies
     strategies = backtest()
@@ -24,10 +24,11 @@ def add_strategies():
     cerebro.addstrategy(DojiLongStrategy)
 
 
-def add_data(limit=-1):
+def add_data(limit=0):
     modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
     dirpath = os.path.join(modpath, 'data_feeds')
     stocks = os.listdir(dirpath)
+    stocks = stocks[:limit or len(stocks)]
     print('adding {} data feeds'.format(len(stocks)))
     for i, stock in enumerate(stocks):
         feed = bt.feeds.GenericCSVData(

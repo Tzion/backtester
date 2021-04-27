@@ -16,7 +16,8 @@ for symbol in tickers:
             feed.to_csv('./data_feeds/{}.csv'.format(symbol))
         else:
             print('data feed of {} already exists, skipping'.format(symbol))
-    except:
+    except Exception as e:
+        print(e)
         lost.append(symbol)  
-if not len(lost):
-    print("\033[31mError downloading symbols: {}.\033[00m".format(lost))
+if len(lost):
+    print("\033[31mError downloading {} symbols: {}.\033[00m".format(len(lost), lost))
