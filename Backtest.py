@@ -14,7 +14,7 @@ cerebro = bt.Cerebro()
 def main():
     # retrieve_forecasts_data()
     add_strategies()
-    add_data(10)
+    add_data(stocks=retrieve_stocks(), dirpath='ikf_stocks')
     add_analyzer()
     global strategies
     strategies = backtest()

@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 FORECASTS_FOLDER = './ikf_forecasts'
+TRADINGVIEW_CSV_FORMAT = lambda s: 'TASE_DLY_' + s.strip('.TA') + ', 1D.csv'
 
 def extract_data_from_file(file_path):
     def extract_from_sheet(sheet_name, keys):
@@ -30,9 +31,11 @@ def retrieve_forecasts_data(forecasts_folder=FORECASTS_FOLDER):
     return dataframe.sort_index(axis='index', level=0, sort_remaining=True)
 
 
-global ikf_forecasts
+ikf_forecasts = None
 
-def retrieve_stocks():
+def retrieve_stocks(adapter=TRADINGVIEW_CSV_FORMAT):
+    global ikf_forecasts
     if ikf_forecasts is None:
         ikf_forecasts = retrieve_forecasts_data()
-    return {i[2] for i in ikf_forecasts.index}
+    stocks = {i[2] for i in ikf_forecasts.index}
+    return list(stocks) if adapter is None else list(map(adapter,stocks))
