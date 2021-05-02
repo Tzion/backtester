@@ -6,28 +6,30 @@ from Strategies.DojiStrategyLong import DojiLongStrategy
 from Analyzers.BasicSradeStats import BasicTradeStats
 import backtrader.analyzers as btanalyzers
 import matplotlib.pylab as pylab
+from iknowfirst import retrieve_forecasts_data, retrieve_stocks
 
 
 cerebro = bt.Cerebro()
 
 def main():
+    # retrieve_forecasts_data()
     add_strategies()
     add_data(10)
     add_analyzer()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(2)
+    plot(0)
 
 
 def add_strategies():
     cerebro.addstrategy(DojiLongStrategy)
 
 
-def add_data(limit=0):
+def add_data(limit=0, stocks=None, dirpath='data_feeds'):
     modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
-    dirpath = os.path.join(modpath, 'data_feeds')
-    stocks = os.listdir(dirpath)
+    dirpath = os.path.join(modpath, dirpath)
+    stocks = stocks or os.listdir(dirpath)
     stocks = stocks[:limit or len(stocks)]
     print('adding {} data feeds'.format(len(stocks)))
     for i, stock in enumerate(stocks):
