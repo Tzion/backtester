@@ -35,11 +35,12 @@ def add_data(limit=0, stocks=None, dirpath='data_feeds'):
     for i, stock in enumerate(stocks):
         feed = bt.feeds.GenericCSVData(
             dataname=os.path.join(dirpath, stock), fromdate=datetime.datetime(2020, 12, 2),
-            todate=datetime.datetime(2021, 4, 27), dtformat='%Y-%m-%d', tformat='T%H:%M:%SZ',
+            todate=datetime.datetime(2021, 4, 27), dtformat='%Y-%m-%dT%H:%M:%SZ',
             high=2, low=3, open=1, close=4, volume=7)
+        feedi=3
         feed.plotinfo.plotmaster = None
         feed.plotinfo.plot = False
-        cerebro.adddata(feed, name=stock.strip('.csv'))
+        cerebro.adddata(feed, name=stock.replace('.csv',''))
 
 
 def add_analyzer():
@@ -73,7 +74,6 @@ def show_statistics(strategies):
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
     for each in strategies[0].analyzers:
         each.print()
-
 
 if __name__ == '__main__':
     main()
