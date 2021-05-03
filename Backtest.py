@@ -34,9 +34,9 @@ def add_data(limit=0, stocks=None, dirpath='data_feeds'):
     print('adding {} data feeds'.format(len(stocks)))
     for i, stock in enumerate(stocks):
         feed = bt.feeds.GenericCSVData(
-            dataname=os.path.join(dirpath, stock), fromdate=datetime.datetime(2015, 4, 4),
-            todate=datetime.datetime(2020, 3, 10), dtformat='%Y-%m-%d',
-            high=1, low=2, open=3, close=4)
+            dataname=os.path.join(dirpath, stock), fromdate=datetime.datetime(2020, 12, 2),
+            todate=datetime.datetime(2021, 4, 27), dtformat='%Y-%m-%d', tformat='T%H:%M:%SZ',
+            high=2, low=3, open=1, close=4, volume=7)
         feed.plotinfo.plotmaster = None
         feed.plotinfo.plot = False
         cerebro.adddata(feed, name=stock.strip('.csv'))
