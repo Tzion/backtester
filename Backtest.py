@@ -37,7 +37,6 @@ def add_data(limit=0, stocks=None, dirpath='data_feeds'):
             dataname=os.path.join(dirpath, stock), fromdate=datetime.datetime(2020, 12, 2),
             todate=datetime.datetime(2021, 4, 27), dtformat='%Y-%m-%dT%H:%M:%SZ',
             high=2, low=3, open=1, close=4, volume=7)
-        feedi=3
         feed.plotinfo.plotmaster = None
         feed.plotinfo.plot = False
         cerebro.adddata(feed, name=stock.replace('.csv',''))
