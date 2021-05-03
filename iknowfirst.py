@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 FORECASTS_FOLDER = './ikf_forecasts'
-TRADINGVIEW_CSV_FORMAT = lambda s: 'TASE_DLY_' + s.strip('.TA') + ', 1D.csv'
+TRADINGVIEW_CSV_FORMAT = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv'
 
 def extract_data_from_file(file_path):
     def extract_from_sheet(sheet_name, keys):
