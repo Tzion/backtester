@@ -1,6 +1,7 @@
 import backtrader as bt
 from backtrader import indicators
 from backtrader.feeds.csvgeneric import GenericCSVData
+from backtrader.trade import Trade
 
 """ 
 Base class for strategy of multiple feeds
@@ -33,7 +34,7 @@ class BaseStrategy(bt.Strategy):
                 order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
 
     def notify_trade(self, trade):
-        pass  # todo
+        pass
 
     def log(self, stock, txt):
         ''' logging function for this strategy'''

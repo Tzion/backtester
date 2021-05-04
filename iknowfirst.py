@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 FORECASTS_FOLDER = './ikf_forecasts'
-TRADINGVIEW_CSV_FORMAT = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv'
+forecasts = None
 
 def extract_data_from_file(file_path):
     def extract_from_sheet(sheet_name, keys):
@@ -20,22 +20,23 @@ def extract_data_from_file(file_path):
     return pd.concat(dataframes)
 
 def retrieve_forecasts_data(forecasts_folder=FORECASTS_FOLDER):
-    print("Retrieving forecasts data")
-    files = list(map(lambda file: forecasts_folder + '/' + file, os.listdir(forecasts_folder)))
-    dataframes = []
-    dates = []
-    for f in files:
-        dataframes.append(extract_data_from_file(f))
-        dates.append(datetime.strptime(f[f.find('TA35_')+5:-4],'%d_%b_%Y'))
-    dataframe = pd.concat(dataframes, keys=dates)
-    return dataframe.sort_index(axis='index', level=0, sort_remaining=True)
+    global forecasts
+    if forecasts is None:
+        print("Retrieving forecasts data")
+        files = list(map(lambda file: forecasts_folder + '/' + file, os.listdir(forecasts_folder)))
+        dataframes = []
+        dates = []
+        for f in files:
+            dataframes.append(extract_data_from_file(f))
+            dates.append(datetime.strptime(f[f.find('TA35_')+5:-4],'%d_%b_%Y'))
+        dataframe = pd.concat(dataframes, keys=dates)
+        forecasts = dataframe.sort_index(axis='index', level=0, sort_remaining=True)
+    return forecasts
 
 
-ikf_forecasts = None
 
-def retrieve_stocks(adapter=TRADINGVIEW_CSV_FORMAT):
-    global ikf_forecasts
-    if ikf_forecasts is None:
-        ikf_forecasts = retrieve_forecasts_data()
-    stocks = {i[2] for i in ikf_forecasts.index}
-    return list(stocks) if adapter is None else list(map(adapter,stocks))
+def retrieve_stocks():
+    global forecasts
+    if forecasts is None:
+        retrieve_forecasts_data()
+    return list({i[2] for i in forecasts.index})

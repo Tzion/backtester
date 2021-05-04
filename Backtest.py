@@ -1,3 +1,4 @@
+from Strategies.IkfStrategy import IkfStrategy
 import backtrader as bt
 import datetime
 import os.path
@@ -11,35 +12,37 @@ from iknowfirst import retrieve_forecasts_data, retrieve_stocks
 
 cerebro = bt.Cerebro()
 
+FILENAME_FORMAT = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv'
+
 def main():
-    # retrieve_forecasts_data()
     add_strategies()
-    add_data(stocks=retrieve_stocks(), dirpath='ikf_stocks')
+    add_data(limit=1, stocks=retrieve_stocks(), dirpath='ikf_stocks')
     add_analyzer()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(0)
+    plot(1)
 
 
 def add_strategies():
-    cerebro.addstrategy(DojiLongStrategy)
+    cerebro.addstrategy(IkfStrategy, forecasts=retrieve_forecasts_data())
 
 
 def add_data(limit=0, stocks=None, dirpath='data_feeds'):
     modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
     dirpath = os.path.join(modpath, dirpath)
     stocks = stocks or os.listdir(dirpath)
+    stocks=list(filter(lambda x:x=='BEZQ.TA', stocks)) ## todo for debugging
     stocks = stocks[:limit or len(stocks)]
-    print('adding {} data feeds'.format(len(stocks)))
+    print('adding {} data feeds'.format((stocks)))
     for i, stock in enumerate(stocks):
         feed = bt.feeds.GenericCSVData(
-            dataname=os.path.join(dirpath, stock), fromdate=datetime.datetime(2020, 12, 2),
+            dataname=os.path.join(dirpath, FILENAME_FORMAT(stock)), fromdate=datetime.datetime(2020, 12, 2),
             todate=datetime.datetime(2021, 4, 27), dtformat='%Y-%m-%dT%H:%M:%SZ',
             high=2, low=3, open=1, close=4, volume=7)
         feed.plotinfo.plotmaster = None
         feed.plotinfo.plot = False
-        cerebro.adddata(feed, name=stock.replace('.csv',''))
+        cerebro.adddata(feed, name=stock)
 
 
 def add_analyzer():
