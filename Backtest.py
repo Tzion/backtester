@@ -15,12 +15,12 @@ cerebro = bt.Cerebro()
 FILENAME_FORMAT = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv'
 
 def main():
-    add_strategies()
+    # add_strategies()
     add_data(limit=1, stocks=retrieve_stocks(), dirpath='ikf_stocks')
-    add_analyzer()
+    # add_analyzer()
     global strategies
     strategies = backtest()
-    show_statistics(strategies)
+    # show_statistics(strategies)
     plot(1)
 
 
@@ -32,7 +32,7 @@ def add_data(limit=0, stocks=None, dirpath='data_feeds'):
     modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
     dirpath = os.path.join(modpath, dirpath)
     stocks = stocks or os.listdir(dirpath)
-    stocks=list(filter(lambda x:x=='BEZQ.TA', stocks)) ## todo for debugging
+    # stocks=list(filter(lambda x:x=='BEZQ.TA', stocks)) ## todo for debugging
     stocks = stocks[:limit or len(stocks)]
     print('adding {} data feeds'.format((stocks)))
     for i, stock in enumerate(stocks):
@@ -60,7 +60,7 @@ def backtest():
 def plot(max=1):
     pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
     trades = strategies[0]._trades
-    top_feeds = list(dict(sorted(trades.items(), key=lambda item : len(item[1][0]))))
+    top_feeds = list(dict(sorted(trades.items(), key=lambda item : len(item[1][0])))) ## todo bug - sort based on the first trade only
     print('ploting top %d feeds' % max)
     for i, feed in enumerate(top_feeds):
         if i >= max:

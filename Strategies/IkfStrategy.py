@@ -34,7 +34,7 @@ class IkfStrategy(BaseStrategy):
         trades : AutoDictList = self._trades[self.data]  # self._trades[data] is {data: {order_id: [trades]}}
         open_trades = [t for t in itertools.chain(*self._trades[self.data].values()) if t.isopen]
         for t in open_trades:
-            if t.barlen >= 7 and not self.open_position(stock):
+            if (stock.datetime.date() - t.open_datetime().date()).days >= 7 and not self.open_position(stock):
                 self.sell(data=stock, exectype=bt.Order.Limit, price=stock.open[0])  # todo consider closing directly on the trade -  t.update()
         if len(open_trades) > 1:
             self.log(stock, 'Warning - more than one open position!')
