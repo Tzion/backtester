@@ -7,3 +7,4 @@ data_feeds_bkp
 __pycache__
 .vscode
 .idea
+*.pkl

@@ -3,8 +3,11 @@ import numpy as np
 import os
 from datetime import datetime
 
-FORECASTS_FOLDER = './ikf_forecasts'
+from pandas.core.accessor import CachedAccessor
+
+FORECASTS_FOLDER = './ikf_forecasts/'
 forecasts = None
+CACHE_FILE = 'cache.pkl'
 
 def extract_data_from_file(file_path):
     def extract_from_sheet(sheet_name, keys):
@@ -19,11 +22,14 @@ def extract_data_from_file(file_path):
     dataframes = extract_from_sheet('3-7-14days', ['3days', '7days', '14days']), extract_from_sheet('1-3-12months',['1months', '3months', '12months'])
     return pd.concat(dataframes)
 
-def retrieve_forecasts_data(forecasts_folder=FORECASTS_FOLDER):
+def retrieve_forecasts_data(forecasts_folder=FORECASTS_FOLDER, use_cache=True):
+    if use_cache :
+        load_from_cache()
     global forecasts
     if forecasts is None:
         print("Retrieving forecasts data")
         files = list(map(lambda file: forecasts_folder + '/' + file, os.listdir(forecasts_folder)))
+        files = list(filter(lambda name: name.endswith('.xls'), files))
         dataframes = []
         dates = []
         for f in files:
@@ -31,8 +37,22 @@ def retrieve_forecasts_data(forecasts_folder=FORECASTS_FOLDER):
             dates.append(datetime.strptime(f[f.find('TA35_')+5:-4],'%d_%b_%Y'))
         dataframe = pd.concat(dataframes, keys=dates)
         forecasts = dataframe.sort_index(axis='index', level=0, sort_remaining=True)
+    pd.to_pickle(forecasts, FORECASTS_FOLDER + CACHE_FILE)
     return forecasts
 
+def load_from_cache():
+    '''## todo check modification time and make sure to use relevant file
+    os.path.getmtime
+    os.path.getctime
+    pd.read_pickle(FORECASTS_FOLDER + CACHE_FILE)
+    '''
+    global forecasts
+    try:
+        cache = pd.read_pickle(FORECASTS_FOLDER + CACHE_FILE)
+        forecasts = cache
+        return True 
+    except FileNotFoundError as e:
+        return False
 
 
 def retrieve_stocks():
