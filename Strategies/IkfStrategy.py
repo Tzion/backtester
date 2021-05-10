@@ -3,6 +3,7 @@ import backtrader as bt
 from .BaseStrategy import BaseStrategy
 from backtrader.utils.autodict import AutoDictList
 import itertools
+from iknowfirst.IkfIndicator import IkfIndicator
 
 class IkfStrategy(BaseStrategy):
     """
@@ -11,8 +12,11 @@ class IkfStrategy(BaseStrategy):
     """
 
     def __init__(self, forecasts):
-        super().__init__()
-        self.forecasts = forecasts
+        self.forecasts = forecasts.stack().unstack(level=2, ).unstack().fillna(0)
+        self.add_forecast_indicator()
+        for stock in self.datas:
+            stock.strength = IkfIndicator(
+                forecast=self.forecasts.loc[:, '7days',:][stock._name]['strength'])
 
 
     def check_signals(self, stock):
@@ -38,3 +42,6 @@ class IkfStrategy(BaseStrategy):
                 self.sell(data=stock, exectype=bt.Order.Limit, price=stock.open[0])  # todo consider closing directly on the trade -  t.update()
         if len(open_trades) > 1:
             self.log(stock, 'Warning - more than one open position!')
+
+    def add_forecast_indicator(self):
+        pass
