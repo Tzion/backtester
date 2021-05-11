@@ -18,13 +18,12 @@ def extract_data_from_file(file_path):
             df_top = pd.DataFrame(data=df_top.iloc[1:].values.T, index=df_top.iloc[:1].values[0], columns=[
                                   'strength', 'predictability'])
             dataframes.append(df_top)
-            dataframe.index.set_names(['date', 'timeframe', 'stock'], inplace=True)
         return pd.concat(dataframes, keys=keys)
 
     dataframes = extract_from_sheet('3-7-14days', ['3days', '7days', '14days']), extract_from_sheet('1-3-12months',['1months', '3months', '12months'])
     return pd.concat(dataframes)
 
-def retrieve_forecasts_data(forecasts_folder=FORECASTS_FOLDER, use_cache=True):
+def retrieve_forecasts_data(forecasts_folder=FORECASTS_FOLDER, use_cache=True, filter_friday=True):
     if use_cache :
         load_from_cache()
     global forecasts
@@ -39,8 +38,9 @@ def retrieve_forecasts_data(forecasts_folder=FORECASTS_FOLDER, use_cache=True):
             dates.append(datetime.strptime(f[f.find('TA35_')+5:-4],'%d_%b_%Y'))
         dataframe = pd.concat(dataframes, keys=dates)
         forecasts = dataframe.sort_index(axis='index', level=0, sort_remaining=True)
-    pd.to_pickle(forecasts, FORECASTS_FOLDER + CACHE_FILE)
-    return forecasts
+        dataframe.index.set_names(['date', 'timeframe', 'stock'], inplace=True)
+    save_to_cache(forecasts)
+    return forecasts.loc[filter(lambda i: i[0].dayofweek != 4, forecasts.index)] if filter_friday else forecasts
 
 def load_from_cache():
     '''## todo check modification time and make sure to use relevant file
@@ -56,6 +56,8 @@ def load_from_cache():
     except FileNotFoundError as e:
         return False
 
+def save_to_cache(dataframe: pd.DataFrame):
+    pd.to_pickle(dataframe, FORECASTS_FOLDER + CACHE_FILE)
 
 def retrieve_stocks():
     global forecasts
