@@ -16,7 +16,25 @@ class IkfStrategy(BaseStrategy):
         self.add_forecast_indicator()
         for stock in self.datas:
             stock.strength = IkfIndicator(
-                forecast=self.forecasts.loc[:, '7days',:][stock._name]['strength'])
+                forecast=self.forecasts[stock._name])
+        
+
+    """"
+    TODO create unit test
+    r = forecasts['BEZQ.TA'].loc[:,'7days',:]
+    n = 0
+    def validate_data(self):
+        try:
+            assert not self.forecasts.loc[str(self.data0.datetime.date())].empty
+        except AssertionError as e:
+            print('Error for date %s' % self.data0.datetime.date())
+
+        try:
+            assert not r.loc[str(r.index[n])[:-9]].empty
+        except AssertionError as e:
+            print('Indicator Error for date %s' % str(self.r.index[self.n])[:-9])
+        n = n+1
+    """
 
 
     def check_signals(self, stock):
