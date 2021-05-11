@@ -21,7 +21,7 @@ def main():
     global strategies
     strategies = backtest()
     # show_statistics(strategies)
-    plot(1, only_trades=False)
+    plot(1,only_trades=False)
 
 
 def add_strategies():
@@ -37,7 +37,7 @@ def add_data(limit=0, stocks=None, dirpath='data_feeds'):
     print('adding {} data feeds'.format((stocks)))
     for i, stock in enumerate(stocks):
         feed = bt.feeds.GenericCSVData(
-            dataname=os.path.join(dirpath, FILENAME_FORMAT(stock)), fromdate=datetime.datetime(2020, 12, 10),
+            dataname=os.path.join(dirpath, FILENAME_FORMAT(stock)), fromdate=datetime.datetime(2020, 12, 3),
             todate=datetime.datetime(2021, 4, 27), dtformat='%Y-%m-%dT%H:%M:%SZ',
             high=2, low=3, open=1, close=4, volume=7)
         feed.plotinfo.plotmaster = None
