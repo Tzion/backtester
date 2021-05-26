@@ -16,12 +16,12 @@ FILENAME_FORMAT = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv'
 
 def main():
     add_strategies()
-    add_data(limit=1, stocks=retrieve_stocks(), dirpath='ikf_stocks')
+    add_data(limit=2, stocks=retrieve_stocks(), dirpath='ikf_stocks')
     # add_analyzer()
     global strategies
     strategies = backtest()
     # show_statistics(strategies)
-    plot(1,only_trades=False)
+    plot(2, only_trades=False)
 
 
 def add_strategies():
@@ -60,7 +60,7 @@ def backtest():
 def plot(max=1, only_trades=True):
     pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
     feeds = list(dict(sorted(strategies[0]._trades.items(), key=lambda item: len(
-        item[1][0])))) if only_trades else cerebro.datas
+        item[1][0]))))[:max] if only_trades else cerebro.datas[:max]
     print('ploting top %d feeds' % max)
     for i, feed in enumerate(feeds):
         if i >= max:

@@ -15,8 +15,12 @@ class IkfStrategy(BaseStrategy):
         self.forecasts = forecasts.stack().unstack(level=2, ).unstack().fillna(0)
         self.add_forecast_indicator()
         for stock in self.datas:
-            stock.strength = IkfIndicator(
-                forecast=self.forecasts[stock._name])
+            stock.strength = IkfIndicator(forecast=self.forecasts[stock._name])
+            stock.strength.plotinfo.subplot = True
+            stock.strength.plotinfo.plotmaster = stock
+            stock.strength.plotinfo.plot = True
+            stock.strength.plotinfo.plotabove = False
+            stock.strength.plotinfo.plotname = stock._name + 'ikf indicator'
         
 
     """"
