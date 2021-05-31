@@ -4,12 +4,11 @@ import pandas as pd
 class IkfIndicator(bt.Indicator):
    
     lines = ('strength', 'predictability')
-    params = (('timeframe', '7days'),)
+    params = (('forecast', '7days'),)
 
-    def __init__(self, forecast):
-        self.forecast = forecast
-        self.iter_strength = iter(forecast.loc[:,self.p.timeframe,:]['strength'])
-        self.iter_pred = iter(forecast.loc[:,self.p.timeframe,:]['predictability'])
+    def __init__(self):
+        self.iter_strength = iter(self.data.forecast.loc[:,self.p.forecast,:]['strength'])
+        self.iter_pred = iter(self.data.forecast.loc[:,self.p.forecast,:]['predictability'])
     
     def next(self):
         self.lines.strength[0] = next(self.iter_strength)
