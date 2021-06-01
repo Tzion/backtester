@@ -8,6 +8,8 @@ from Analyzers.BasicSradeStats import BasicTradeStats
 import backtrader.analyzers as btanalyzers
 import matplotlib.pylab as pylab
 from iknowfirst.iknowfirst import retrieve_forecasts_data, retrieve_stocks
+from backtrader_plotting import Bokeh
+from backtrader_plotting.schemes import Blackly, Tradimo
 
 
 cerebro = bt.Cerebro()
@@ -61,19 +63,28 @@ def set_plot_observers(plot):
     for observer in cerebro.runstrats[0][0].getobservers():
         observer.plotinfo.plot = plot
 
+def plot_observers(plotter):
+    set_plot_observers(True)
+    cerebro.plot(plotter)
 
-def plot(max=1, only_trades=True):
+def set_plotting(feed, on):
+    feed.plotinfo.plotmaster = feed
+    feed.plotinfo.plot = on  # todo create a wrapper for the feed (csvData) object with attributes like indicators
+    feed.indicator.plotinfo.plot = on
+
+
+def plot(max=1, only_trades=True, interactive_plots=True):
     pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
     feeds = list(dict(sorted(strategies[0]._trades.items(), key=lambda item: len(
         item[1][0]))))[:max] if only_trades else cerebro.datas[:max]
+    plotter = Bokeh(style='bar', scheme=Blackly()) if interactive_plots else None
     print('ploting top %d feeds' % max)
+    set_plot_observers(False)
     for i, feed in enumerate(feeds):
-        feed.plotinfo.plotmaster = feed
-        feed.plotinfo.plot = True
-        if i==1: set_plot_observers(False)
-        cerebro.plot(style='candlestick', barup='green', numfigs=1)
-        feed.plotinfo.plot = False
-        feed.plotinfo.plotmaster = None
+        set_plotting(feed, True)
+        cerebro.plot(plotter=plotter, style='candlestick', barup='green', numfigs=1)
+        set_plotting(feed, False)
+    plot_observers(plotter)
 
 
 def show_statistics(strategies):
