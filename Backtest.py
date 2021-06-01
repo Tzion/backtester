@@ -57,16 +57,20 @@ def backtest():
     return strategies
 
 
+def set_plot_observers(plot):
+    for observer in cerebro.runstrats[0][0].getobservers():
+        observer.plotinfo.plot = plot
+
+
 def plot(max=1, only_trades=True):
     pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
     feeds = list(dict(sorted(strategies[0]._trades.items(), key=lambda item: len(
         item[1][0]))))[:max] if only_trades else cerebro.datas[:max]
     print('ploting top %d feeds' % max)
     for i, feed in enumerate(feeds):
-        if i >= max:
-            break
         feed.plotinfo.plotmaster = feed
         feed.plotinfo.plot = True
+        if i==1: set_plot_observers(False)
         cerebro.plot(style='candlestick', barup='green', numfigs=1)
         feed.plotinfo.plot = False
         feed.plotinfo.plotmaster = None
