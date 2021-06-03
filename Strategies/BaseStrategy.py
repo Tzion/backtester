@@ -10,7 +10,10 @@ Base class for strategy of multiple feeds
 
 class BaseStrategy(bt.Strategy):
 
+
+
     def __init__(self):
+        self.stocks = dict()
         for data in self.datas:
             data.atr = indicators.ATR(data, period=7)
             data.tr = indicators.TR(data)

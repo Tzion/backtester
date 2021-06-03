@@ -18,12 +18,12 @@ FILENAME_FORMAT = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv'
 
 def main():
     add_strategies()
-    add_data(limit=2, stocks=retrieve_stocks(), dirpath='ikf_stocks')
+    add_data(limit=0, stocks=retrieve_stocks(), dirpath='ikf_stocks')
     # add_analyzer()
     global strategies
     strategies = backtest()
     # show_statistics(strategies)
-    plot(2, only_trades=False)
+    # plot(3, only_trades=False)
 
 
 def add_strategies():
@@ -70,7 +70,12 @@ def plot_observers(plotter):
 def set_plotting(feed, on):
     feed.plotinfo.plotmaster = feed
     feed.plotinfo.plot = on  # todo create a wrapper for the feed (csvData) object with attributes like indicators
-    feed.indicator.plotinfo.plot = on
+    feed.indicator1.plotinfo.plot = on
+    feed.indicator2.plotinfo.plot = on
+    feed.indicator3.plotinfo.plot = on
+    feed.indicator4.plotinfo.plot = on
+    feed.indicator5.plotinfo.plot = on
+    feed.indicator6.plotinfo.plot = on
 
 
 def plot(max=1, only_trades=True, interactive_plots=True):
@@ -84,7 +89,7 @@ def plot(max=1, only_trades=True, interactive_plots=True):
         set_plotting(feed, True)
         cerebro.plot(plotter=plotter, style='candlestick', barup='green', numfigs=1)
         set_plotting(feed, False)
-    plot_observers(plotter)
+    # plot_observers(plotter)
 
 
 def show_statistics(strategies):

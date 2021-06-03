@@ -4,6 +4,7 @@ from .BaseStrategy import BaseStrategy
 from backtrader.utils.autodict import AutoDictList
 import itertools
 from iknowfirst.IkfIndicator import IkfIndicator
+from iknowfirst.iknowfirst import retrieve_forecasts_data
 
 class IkfStrategy(BaseStrategy):
     """
@@ -16,9 +17,16 @@ class IkfStrategy(BaseStrategy):
         self.add_forecast_indicator()
         for data in self.datas:
             data.forecast = self.forecasts[data._name]
-            data.indicator = IkfIndicator(data, forecast='7days')
-            data.indicator.plotinfo.plot = False
-            data.indicator.plotinfo.plotname = 'ikf indicator (' + data._name + ')'
+            data.indicator1 = IkfIndicator(data, forecast='3days')
+            data.indicator2 = IkfIndicator(data, forecast='7days')
+            data.indicator3 = IkfIndicator(data, forecast='14days')
+            data.indicator4 = IkfIndicator(data, forecast='1months')
+            data.indicator5 = IkfIndicator(data, forecast='3months')
+            data.indicator6 = IkfIndicator(data, forecast='12months')
+        self.test_forecasts = retrieve_forecasts_data(filter_friday=False).stack().unstack(level=2,).unstack().fillna(0)
+
+    
+
         
 
     """"
@@ -65,3 +73,19 @@ class IkfStrategy(BaseStrategy):
 
     def add_forecast_indicator(self):
         pass
+
+    def next(self):
+        pass
+        self.validate_date()
+
+    def _addindicator(self,indcls):
+        print("running")
+
+    def validate_date(self):
+        for d in self.datas:
+            date = d.datetime.date()
+            try:
+                raw_value = self.forecasts.loc[str(date), d.indicator2.p.forecast][d._name].strength
+                assert raw_value == d.indicator2[0]
+            except AssertionError as e:
+                print('Indicator values mistmatch of %s or date %s', d._name, str(date))
