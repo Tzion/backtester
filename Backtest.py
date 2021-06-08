@@ -1,4 +1,4 @@
-from Strategies.IkfStrategy import IkfStrategy
+from Strategies import IkfStrategy
 import backtrader as bt
 import datetime
 import os.path
@@ -14,11 +14,12 @@ from backtrader_plotting.schemes import Blackly, Tradimo
 
 cerebro = bt.Cerebro()
 
-FILENAME_FORMAT = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv'
 
 def main():
     add_strategies()
-    add_data(limit=0, stocks=retrieve_stocks(), dirpath='ikf_stocks')
+    # add_data(limit=0, stocks=retrieve_stocks(), dirpath='ikf_stocks')
+    # add_data(limit=0, dirpath='data_feeds')
+    IkfStrategy.add_data(limit=0, dirpath='ikf_stocks', cerebro=cerebro)
     # add_analyzer()
     global strategies
     strategies = backtest()
@@ -27,26 +28,25 @@ def main():
 
 
 def add_strategies():
-    cerebro.addstrategy(IkfStrategy, forecasts=retrieve_forecasts_data())
+    cerebro.addstrategy(IkfStrategy.IkfStrategy, forecasts=retrieve_forecasts_data())
+    cerebro.addstrategy(DojiLongStrategy)
 
 
-def add_data(limit=0, stocks=None, dirpath='data_feeds'):
+def add_data(limit=0, dirpath='data_feeds'):
     modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
     dirpath = os.path.join(modpath, dirpath)
-    stocks = stocks or os.listdir(dirpath)
-    # stocks=list(filter(lambda x:x=='BEZQ.TA', stocks)) ## todo for debugging
+    stocks = os.listdir(dirpath)
     stocks = stocks[:limit or len(stocks)]
-    print('adding {} data feeds'.format((stocks)))
+    print('adding {} data feeds'.format(len(stocks)))
     for i, stock in enumerate(stocks):
         feed = bt.feeds.GenericCSVData(
-            dataname=os.path.join(dirpath, FILENAME_FORMAT(stock)), fromdate=datetime.datetime(2020, 12, 3),
-            todate=datetime.datetime(2021, 4, 27), dtformat='%Y-%m-%dT%H:%M:%SZ',
-            high=2, low=3, open=1, close=4, volume=7)
+            dataname=os.path.join(dirpath, stock), fromdate=datetime.datetime(2015, 4, 4),
+            todate=datetime.datetime(2020, 3, 10), dtformat='%Y-%m-%d',
+            high=1, low=2, open=3, close=4)
         feed.plotinfo.plotmaster = None
         feed.plotinfo.plot = False
-        cerebro.adddata(feed, name=stock)
-
-
+        cerebro.adddata(feed, name=stock.strip('.csv'))
+        
 def add_analyzer():
     cerebro.addanalyzer(BasicTradeStats, _name='basic_trade_stats')
 
