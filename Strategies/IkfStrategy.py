@@ -15,37 +15,18 @@ class IkfStrategy(BaseStrategy):
     def __init__(self):
         forecasts = retrieve_forecasts_data()
         self.forecasts = forecasts.stack().unstack(level=2, ).unstack().fillna(0)
-        self.add_forecast_indicator()
-        for data in self.datas:
-            data.forecast = self.forecasts[data._name]
-            data.indicator1 = IkfIndicator(data, forecast='3days')
-            data.indicator2 = IkfIndicator(data, forecast='7days')
-            data.indicator3 = IkfIndicator(data, forecast='14days')
-            data.indicator4 = IkfIndicator(data, forecast='1months')
-            data.indicator5 = IkfIndicator(data, forecast='3months')
-            data.indicator6 = IkfIndicator(data, forecast='12months')
         self.test_forecasts = retrieve_forecasts_data(filter_friday=False).stack().unstack(level=2,).unstack().fillna(0)
+        super().__init__()
 
     
-
-        
-
-    """"
-    TODO create unit test
-    r = forecasts['BEZQ.TA'].loc[:,'7days',:]
-    n = 0
-    def validate_data(self):
-        try:
-            assert not self.forecasts.loc[str(self.data0.datetime.date())].empty
-        except AssertionError as e:
-            print('Error for date %s' % self.data0.datetime.date())
-
-        try:
-            assert not r.loc[str(r.index[n])[:-9]].empty
-        except AssertionError as e:
-            print('Indicator Error for date %s' % str(self.r.index[self.n])[:-9])
-        n = n+1
-    """
+    def prepare(self, stock):
+        stock.forecast = self.forecasts[stock._name]
+        stock.indicator1 = IkfIndicator(stock, forecast='3days')
+        stock.indicator2 = IkfIndicator(stock, forecast='7days')
+        stock.indicator3 = IkfIndicator(stock, forecast='14days')
+        stock.indicator4 = IkfIndicator(stock, forecast='1months')
+        stock.indicator5 = IkfIndicator(stock, forecast='3months')
+        stock.indicator6 = IkfIndicator(stock, forecast='12months')
 
 
     def check_signals(self, data):
@@ -72,15 +53,10 @@ class IkfStrategy(BaseStrategy):
         if len(open_trades) > 1:
             self.log(data, 'Warning - more than one open position!')
 
-    def add_forecast_indicator(self):
-        pass
 
     def next(self):
         pass
         self.validate_date()
-
-    def _addindicator(self,indcls):
-        print("running")
 
     def validate_date(self):
         for d in self.datas:
@@ -90,3 +66,22 @@ class IkfStrategy(BaseStrategy):
                 assert raw_value == d.indicator2[0]
             except AssertionError as e:
                 print('Indicator values mistmatch of %s or date %s', d._name, str(date))
+
+""""
+TODO create unit test
+r = forecasts['BEZQ.TA'].loc[:,'7days',:]
+n = 0
+def validate_data(self):
+    try:
+        assert not self.forecasts.loc[str(self.data0.datetime.date())].empty
+    except AssertionError as e:
+        print('Error for date %s' % self.data0.datetime.date())
+
+    try:
+        assert not r.loc[str(r.index[n])[:-9]].empty
+    except AssertionError as e:
+        print('Indicator Error for date %s' % str(self.r.index[self.n])[:-9])
+    n = n+1
+"""
+
+

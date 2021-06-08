@@ -8,8 +8,6 @@ Base class for strategy of multiple feeds
 
 class BaseStrategy(bt.Strategy):
 
-
-
     def __init__(self):
         self.stocks = self.datas
         for stock in self.stocks:
