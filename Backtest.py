@@ -1,4 +1,5 @@
 from Strategies import IkfStrategy
+from iknowfirst.iknowfirst import retrieve_stocks
 import backtrader as bt
 from datetime import datetime
 import os.path
@@ -7,7 +8,6 @@ from Strategies.DojiStrategyLong import DojiLongStrategy
 from Analyzers.BasicSradeStats import BasicTradeStats
 import backtrader.analyzers as btanalyzers
 import matplotlib.pylab as pylab
-from iknowfirst.iknowfirst import retrieve_forecasts_data, retrieve_stocks
 from backtrader_plotting import Bokeh
 from backtrader_plotting.schemes import Blackly, Tradimo
 
@@ -16,11 +16,11 @@ cerebro = bt.Cerebro()
 
 
 def main():
-    add_strategies()
+    # add_strategies(DojiLongStrategy)
+    # add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
+    add_strategies(IkfStrategy.IkfStrategy)
     add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=0,
              dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='ikf_stocks', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, format_stockname= lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
-    # add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
-    # IkfStrategy.add_data(limit=0, dirpath='ikf_stocks', cerebro=cerebro)
     # add_analyzer()
     global strategies
     strategies = backtest()
@@ -28,9 +28,8 @@ def main():
     plot(3, only_trades=False)
 
 
-def add_strategies():
-    cerebro.addstrategy(IkfStrategy.IkfStrategy, forecasts=retrieve_forecasts_data())
-    # cerebro.addstrategy(DojiLongStrategy)
+def add_strategies(strategy: bt.Strategy):
+    cerebro.addstrategy(strategy)
 
 
 def add_data(start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-%d', dirpath='data_feeds', stock_names=None, high_idx=1, low_idx=2, open_idx=3, close_idx=4, volume_idx=5, format_stockname= lambda s:s):

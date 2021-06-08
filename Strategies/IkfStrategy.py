@@ -12,7 +12,8 @@ class IkfStrategy(BaseStrategy):
     sell after 7 days or until it's not in the 7days table anymore - according to the latest
     """
 
-    def __init__(self, forecasts):
+    def __init__(self):
+        forecasts = retrieve_forecasts_data()
         self.forecasts = forecasts.stack().unstack(level=2, ).unstack().fillna(0)
         self.add_forecast_indicator()
         for data in self.datas:
