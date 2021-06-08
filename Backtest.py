@@ -1,6 +1,6 @@
 from Strategies import IkfStrategy
 import backtrader as bt
-import datetime
+from datetime import datetime
 import os.path
 import sys
 from Strategies.DojiStrategyLong import DojiLongStrategy
@@ -17,33 +17,34 @@ cerebro = bt.Cerebro()
 
 def main():
     add_strategies()
-    # add_data(limit=0, stocks=retrieve_stocks(), dirpath='ikf_stocks')
-    # add_data(limit=0, dirpath='data_feeds')
-    IkfStrategy.add_data(limit=0, dirpath='ikf_stocks', cerebro=cerebro)
+    add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=0,
+             dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='ikf_stocks', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, format_stockname= lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
+    # add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
+    # IkfStrategy.add_data(limit=0, dirpath='ikf_stocks', cerebro=cerebro)
     # add_analyzer()
     global strategies
     strategies = backtest()
     # show_statistics(strategies)
-    # plot(3, only_trades=False)
+    plot(3, only_trades=False)
 
 
 def add_strategies():
     cerebro.addstrategy(IkfStrategy.IkfStrategy, forecasts=retrieve_forecasts_data())
-    cerebro.addstrategy(DojiLongStrategy)
+    # cerebro.addstrategy(DojiLongStrategy)
 
 
-def add_data(limit=0, dirpath='data_feeds'):
+def add_data(start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-%d', dirpath='data_feeds', stock_names=None, high_idx=1, low_idx=2, open_idx=3, close_idx=4, volume_idx=5, format_stockname= lambda s:s):
     modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
     dirpath = os.path.join(modpath, dirpath)
-    stocks = os.listdir(dirpath)
+    stocks = stock_names or os.listdir(dirpath)
     stocks = stocks[:limit or len(stocks)]
     print('adding {} data feeds'.format(len(stocks)))
     for i, stock in enumerate(stocks):
         feed = bt.feeds.GenericCSVData(
-            dataname=os.path.join(dirpath, stock), fromdate=datetime.datetime(2015, 4, 4),
-            todate=datetime.datetime(2020, 3, 10), dtformat='%Y-%m-%d',
-            high=1, low=2, open=3, close=4)
-        feed.plotinfo.plotmaster = None
+            dataname=os.path.join(dirpath, format_stockname(stock)), fromdate=start_date,
+            todate=end_date, dtformat=dtformat,
+            high=high_idx, low=low_idx, open=open_idx, close=close_idx, volume=volume_idx)
+        feed.plotinfo.plotmaster = None ## todo move to strat class
         feed.plotinfo.plot = False
         cerebro.adddata(feed, name=stock.strip('.csv'))
         

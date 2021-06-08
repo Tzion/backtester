@@ -89,24 +89,3 @@ class IkfStrategy(BaseStrategy):
                 assert raw_value == d.indicator2[0]
             except AssertionError as e:
                 print('Indicator values mistmatch of %s or date %s', d._name, str(date))
-
-
-import os, sys, datetime
-from iknowfirst.iknowfirst import retrieve_forecasts_data, retrieve_stocks
-
-FILENAME_FORMAT = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv'
-
-def add_data(*, limit=0, dirpath='ikf_stocks', cerebro):
-    modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
-    dirpath = os.path.join(modpath, dirpath)
-    stocks = retrieve_stocks()
-    stocks = stocks[:limit or len(stocks)]
-    print('adding {} data feeds'.format((stocks)))
-    for i, stock in enumerate(stocks):
-        feed = bt.feeds.GenericCSVData(
-            dataname=os.path.join(dirpath, FILENAME_FORMAT(stock)), fromdate=datetime.datetime(2020, 12, 3),
-            todate=datetime.datetime(2021, 4, 27), dtformat='%Y-%m-%dT%H:%M:%SZ',
-            high=2, low=3, open=1, close=4, volume=7)
-        feed.plotinfo.plotmaster = None
-        feed.plotinfo.plot = False
-        cerebro.adddata(feed, name=stock)
