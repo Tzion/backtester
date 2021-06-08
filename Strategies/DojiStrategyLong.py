@@ -1,12 +1,17 @@
 import backtrader as bt
 from .BaseStrategy import BaseStrategy
+from backtrader import Indicator, indicators
 
 # Create a Stratey
 # signal - doji candle, buy - next day opens higher than doji close
 # stop - under the doji's low
 # profit - half portion at stop distance, second half 3 times than doji size
 class DojiLongStrategy(BaseStrategy):
-    
+
+    def prepare(self, stock):
+        stock.tr = indicators.TR(stock)
+        stock.atr = indicators.ATR(stock, period=7)
+
     def check_signals(self, stock):
         if self.open_signal(stock):
             self.open_position(stock)
