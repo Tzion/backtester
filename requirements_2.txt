@@ -71,7 +71,7 @@ python-dateutil==2.7.3
 python-jsonrpc-server==0.3.4
 python-language-server==0.31.10
 pytz==2019.1
-PyYAML==3.13
+PyYAML==5.4
 quantiacsToolbox==3.0.1
 requests==2.21.0
 rsa==3.4.2
