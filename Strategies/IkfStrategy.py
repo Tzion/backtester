@@ -21,12 +21,13 @@ class IkfStrategy(BaseStrategy):
     
     def prepare(self, stock):
         stock.forecast = self.forecasts[stock._name]
-        stock.indicator1 = IkfIndicator(stock, forecast='3days')
-        stock.indicator2 = IkfIndicator(stock, forecast='7days')
-        stock.indicator3 = IkfIndicator(stock, forecast='14days')
-        stock.indicator4 = IkfIndicator(stock, forecast='1months')
-        stock.indicator5 = IkfIndicator(stock, forecast='3months')
-        stock.indicator6 = IkfIndicator(stock, forecast='12months')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='3days'), 'pre_3d')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'pre_7d')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='14days'), 'pre_14d')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pre_1m')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='3months'), 'pre_3m')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='12months'), 'pre_12m')
+
 
 
     def check_signals(self, data):
@@ -62,8 +63,8 @@ class IkfStrategy(BaseStrategy):
         for d in self.datas:
             date = d.datetime.date()
             try:
-                raw_value = self.forecasts.loc[str(date), d.indicator2.p.forecast][d._name].strength
-                assert raw_value == d.indicator2[0]
+                raw_value = self.forecasts.loc[str(date), d.pre_7d.p.forecast][d._name].strength
+                assert raw_value == d.pre_7d[0]
             except AssertionError as e:
                 print('Indicator values mistmatch of %s or date %s', d._name, str(date))
 
