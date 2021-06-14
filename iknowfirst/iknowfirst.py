@@ -5,7 +5,7 @@ from datetime import datetime
 
 from pandas.core.accessor import CachedAccessor
 
-FORECASTS_FOLDER = './ikf_forecasts/'
+FORECASTS_FOLDER = 'iknowfirst/ikf_forecasts/'
 forecasts = None
 CACHE_FILE = 'cache.pkl'
 
