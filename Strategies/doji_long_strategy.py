@@ -1,5 +1,5 @@
 import backtrader as bt
-from .BaseStrategy import BaseStrategy
+from .base_strategy import BaseStrategy
 from backtrader import Indicator, indicators
 
 # Create a Stratey

@@ -1,9 +1,8 @@
-
 import backtrader as bt
-from .BaseStrategy import BaseStrategy
+from .base_strategy import BaseStrategy
 from backtrader.utils.autodict import AutoDictList
 import itertools
-from iknowfirst.IkfIndicator import IkfIndicator
+from iknowfirst.ikf_indicator import IkfIndicator
 from iknowfirst.iknowfirst import retrieve_forecasts_data
 
 class IkfStrategy(BaseStrategy):

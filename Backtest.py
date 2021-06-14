@@ -1,10 +1,11 @@
-from Strategies import IkfStrategy
+from strategies.ikf_strategy import IkfStrategy
+from strategies.doji_long_strategy import DojiLongStrategy
 from iknowfirst.iknowfirst import retrieve_stocks
 import backtrader as bt
 from datetime import datetime
 import os.path
 import sys
-from Analyzers.BasicSradeStats import BasicTradeStats
+from analyzers.basic_trade_stats import BasicTradeStats
 import backtrader.analyzers as btanalyzers
 import matplotlib.pylab as pylab
 from backtrader_plotting import Bokeh
@@ -16,15 +17,15 @@ import globals as gb
 def main():
     global cerebro
     cerebro = gb.cerebro
-    # add_strategies(DojiLongStrategy)
-    # add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
-    add_strategies(IkfStrategy.IkfStrategy)
-    add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=5,
-             dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='ikf_stocks', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, format_stockname= lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
-    # add_analyzer()
+    add_strategies(DojiLongStrategy)
+    add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
+    # add_strategies(IkfStrategy)
+    # add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=5,
+            #  dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, format_stockname= lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
+    add_analyzer()
     global strategies
     strategies = backtest()
-    # show_statistics(strategies)
+    show_statistics(strategies)
     plot(strategies[0], limit=2, only_trades=False)
 
 
