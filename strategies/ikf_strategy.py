@@ -12,9 +12,8 @@ class IkfStrategy(BaseStrategy):
     """
 
     def __init__(self):
-        forecasts = retrieve_forecasts_data()
+        forecasts = retrieve_forecasts_data(filter_friday=False)
         self.forecasts = forecasts.stack().unstack(level=2, ).unstack().fillna(0)
-        self.test_forecasts = retrieve_forecasts_data(filter_friday=False).stack().unstack(level=2,).unstack().fillna(0)
         super().__init__()
 
     
@@ -56,17 +55,22 @@ class IkfStrategy(BaseStrategy):
 
     def next(self):
         pass
-        self.validate_date()
 
+"""
+# TODO create a test out of this code
     def validate_date(self):
         for d in self.datas:
             date = d.datetime.date()
-            try:
-                raw_value = self.forecasts.loc[str(date), d.pre_7d.p.forecast][d._name].strength
-                assert raw_value == d.pre_7d[0]
-            except AssertionError as e:
-                print('Indicator values mistmatch of %s or date %s', d._name, str(date))
+            for ind in d.indicators:
+                timeframe = ind.p.forecast
+                try:
+                    raw_value = self.forecasts.loc[str(date), timeframe][d._name].strength
+                    actual_value = ind[0]
+                    assert raw_value == actual_value
+                except AssertionError as e:
+                    print('Indicator values mistmatch of %s %s, at date %s, expected=%s, actual=%s'%(d._name, timeframe, str(date), raw_value, actual_value))
 
+"""
 """"
 TODO create unit test
 r = forecasts['BEZQ.TA'].loc[:,'7days',:]

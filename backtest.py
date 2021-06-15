@@ -17,12 +17,12 @@ import globals as gb
 def main():
     global cerebro
     cerebro = gb.cerebro
-    add_strategies(DojiLongStrategy)
-    add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
-    # add_strategies(IkfStrategy)
-    # add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=5,
-            #  dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, format_stockname= lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
-    add_analyzer()
+    # add_strategies(DojiLongStrategy)
+    # add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
+    add_strategies(IkfStrategy)
+    add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=1,
+             dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
+    # add_analyzer()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
@@ -33,7 +33,7 @@ def add_strategies(strategy: bt.Strategy):
     cerebro.addstrategy(strategy)
 
 
-def add_data(start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-%d', dirpath='data_feeds', stock_names=None, high_idx=1, low_idx=2, open_idx=3, close_idx=4, volume_idx=5, format_stockname= lambda s:s):
+def add_data(start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-%d', dirpath='data_feeds', stock_names=None, high_idx=1, low_idx=2, open_idx=3, close_idx=4, volume_idx=5, stock2file= lambda s:s):
     modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
     dirpath = os.path.join(modpath, dirpath)
     stocks = stock_names or os.listdir(dirpath)
@@ -41,7 +41,7 @@ def add_data(start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-
     print('adding {} data feeds'.format(len(stocks)))
     for i, stock in enumerate(stocks):
         feed = bt.feeds.GenericCSVData(
-            dataname=os.path.join(dirpath, format_stockname(stock)), fromdate=start_date,
+            dataname=os.path.join(dirpath, stock2file(stock)), fromdate=start_date,
             todate=end_date, dtformat=dtformat,
             high=high_idx, low=low_idx, open=open_idx, close=close_idx, volume=volume_idx, plot=False)
         cerebro.adddata(feed, name=stock.strip('.csv'))
