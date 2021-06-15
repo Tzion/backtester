@@ -7,13 +7,24 @@ class IkfIndicator(bt.Indicator):
     params = (('forecast', '7days'),)
 
     def __init__(self):
-        self.iter_strength = iter(self.data.forecast.loc[:,self.p.forecast,:]['strength'])
-        self.iter_pred = iter(self.data.forecast.loc[:,self.p.forecast,:]['predictability'])
-        self.plotinfo.plot = False
+        self.iter_strength = self.data.forecast.loc[:,self.p.forecast,:]['strength'].iteritems()
+        self.iter_pred = self.data.forecast.loc[:,self.p.forecast,:]['predictability'].iteritems()
         self.plotinfo.plotname = self.p.forecast + ' forecast (' + self.data._name + ')'
     
     def next(self):
-        self.lines.strength[0] = next(self.iter_strength)
-        self.lines.predictability[0] = next(self.iter_pred)*100
+        def proceed2date(date, iter):
+            cur = next(iter)
+            while date > cur[0]: # iter[0] contains the date
+                cur = next(iter)
+            assert cur[0] == date, "no forecasts data for date %s"%date
+            return cur
+
+        date = self.data.datetime.date() 
+        todays_strength = proceed2date(date, self.iter_strength)
+        self.lines.strength[0] = todays_strength[1]
+        todays_pred = proceed2date(date, self.iter_pred)
+        self.lines.predictability[0] = todays_pred[1]*100
+
+
 
 
