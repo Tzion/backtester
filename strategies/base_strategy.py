@@ -30,9 +30,9 @@ class BaseStrategy(bt.Strategy):
     def plot(self, limit=0, only_trades=True, interactive_plots=True):
         pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
         feeds = list(dict(sorted(self._trades.items(), key=lambda item: len(
-            item[1][0]))))[:limit] if only_trades else self.stocks[:limit]
+            item[1][0]))))[:limit] if only_trades else self.stocks[:limit or len(self.stocks)]
         plotter = Bokeh(style='bar', scheme=Blackly()) if interactive_plots else None
-        print('ploting top %d feeds' % limit)
+        print('ploting top %d feeds' % len(feeds))
         self.set_plot_for_observers(False)
         for i, feed in enumerate(feeds):
             self.set_plotting(feed, True)
