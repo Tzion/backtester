@@ -3,13 +3,14 @@ import pandas as pd
 
 class IkfIndicator(bt.Indicator):
    
-    lines = ('strength', 'predictability')
-    params = (('forecast', '7days'),)
+    lines = ('strength', 'predictability', 'strong_predictablity')
+    params = (('forecast', '7days'), ('predictability_threshold', '0.19'))
 
     def __init__(self):
         self.iter_strength = self.data.forecast.loc[:,self.p.forecast,:]['strength'].iteritems()
         self.iter_pred = self.data.forecast.loc[:,self.p.forecast,:]['predictability'].iteritems()
         self.plotinfo.plotname = self.p.forecast + ' forecast (' + self.data._name + ')'
+        self.plotinfo.plot = False
     
     def next(self):
         def proceed2date(date, iter):
@@ -24,6 +25,7 @@ class IkfIndicator(bt.Indicator):
         self.lines.strength[0] = todays_strength[1]
         todays_pred = proceed2date(date, self.iter_pred)
         self.lines.predictability[0] = todays_pred[1]*100
+        self.lines.strong_predictability[0] = 100 if todays_pred >= 0.19 else 0
 
 
 
