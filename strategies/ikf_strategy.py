@@ -1,6 +1,8 @@
 from datetime import datetime
 import backtrader as bt
 from backtrader.feed import CSVDataBase, CSVFeedBase
+from backtrader.position import Position
+from backtrader.trade import Trade
 from .base_strategy import BaseStrategy
 from backtrader.utils.autodict import AutoDictList
 import itertools
@@ -9,7 +11,11 @@ from iknowfirst.iknowfirst import retrieve_forecasts_data
 
 class IkfStrategy(BaseStrategy):
 
+    global pos_size
+
     def __init__(self):
+        global pos_size
+        pos_size = self.broker.cash/10
         forecasts = retrieve_forecasts_data(filter_friday=False)
         self.forecasts = forecasts.stack().unstack(level=2, ).unstack().fillna(0)
         super().__init__()
@@ -24,28 +30,28 @@ class IkfStrategy(BaseStrategy):
         # self.add_indicator(stock, IkfIndicator(stock, forecast='12months'), 'pre_12m')
 
 
-    def manage_position(self, stock):
-        trades : AutoDictList = self._trades[self.stock]  # self._trades[stock] is {stock: {order_id: [trades]}}
-        open_trades = [t for t in itertools.chain(*self._trades[self.stock].values()) if t.isopen]
+    def manage_position_old(self, stock):
+        trades : AutoDictList = self._trades[stock]  # self._trades[stock] is {stock: {order_id: [trades]}}
+        open_trades = [t for t in itertools.chain(*self._trades[stock].values()) if t.isopen]
         for t in open_trades:
-            if (stock.datetime.date() - t.open_datetime().date()).days >= 7 and not self.open_position(stock):
-                self.sell(stock=stock, exectype=bt.Order.Limit, price=stock.open[0])  # todo consider closing directly on the trade -  t.update()
+            if (stock.datetime.date() - t.open_datetime().date()).days >= 30 and not self.open_signal(stock):
+                self.sell(data=stock, exectype=bt.Order.Market, size=t.size)
         if len(open_trades) > 1:
             self.log(stock, 'Warning - more than one open position!')
     
-    def check_signals(self, data):
-        if self.open_signal(data):
-            self.open_position(data)
+    def check_signals(self, stock):
+        if self.open_signal(stock):
+            self.open_position(stock)
     
-    def open_signal(self, data):
+    def open_signal(self, stock):
         try:
-            if data._name in list(self.forecasts.loc[str(data.datetime.date()),'7days'].index):
+            if stock._name in list(self.forecasts.loc[str(stock.datetime.date()),'7days'].index):
                 return True
         except KeyError as e:
             pass # todo avoid the KeyError by quring the df differently. something like self.forecasts.loc[('2020-12-03','7days'),:].index
 
-    def open_position(self, data):
-        self.buy(data=data, exectype=bt.Order.Limit, price=data.open[0])
+    def open_position(self, stock):
+        self.buy(data=stock, exectype=bt.Order.Market, size=max(1, int(pos_size/stock.open[0]))) # TODO buy in the openning price of the current day (now it's the open price of the next day)
 
     '''
 use this in the other strategies 
@@ -111,17 +117,23 @@ def validate_data(self):
 """
 
 
-class OneMonthPredicationIkf(BaseStrategy):
+class OneMonthPredicationIkf(IkfStrategy):
 
     def prepare(self, stock):
+        super().prepare(stock)
         self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
 
     def check_signals(self, stock):
-        if self.pred_1m.strong_predictability > 0:
-            self.buy(data=stock, exectype=bt.Order.Limit, price=stock.open[0])
+        if self.open_signal(stock):
+            self.open_position(stock)
+    
+    def open_signal(self, stock):
+        return stock.pred_1m.strong_predictability[0] > 0
 
     def manage_position(self, stock):
-        pass
-
-
-
+        super().manage_position_old(stock)
+        return
+        position : Position = self.getposition(stock)
+        self.positions
+        if position.size > 0 and (stock.datetime.date() - position.datetime.date()).days >= 30:
+            self.sell(stock=stock, exectype=bt.Order.Limit, price=stock.open[0])

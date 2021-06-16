@@ -1,3 +1,4 @@
+from datetime import datetime
 import backtrader as bt
 from backtrader.feeds.csvgeneric import GenericCSVData
 from backtrader.trade import Trade
@@ -27,10 +28,11 @@ class BaseStrategy(bt.Strategy):
 
 
 
-    def plot(self, limit=0, only_trades=True, interactive_plots=True):
+    def plot(self, limit=0, only_trades=True, interactive_plots=True, plot_observers=True):
         pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
+        limit = limit or len(self.stocks)
         feeds = list(dict(sorted(self._trades.items(), key=lambda item: len(
-            item[1][0]))))[:limit] if only_trades else self.stocks[:limit or len(self.stocks)]
+            item[1][0]))))[:limit] if only_trades else self.stocks[:limit]
         plotter = Bokeh(style='bar', scheme=Blackly()) if interactive_plots else None
         print('ploting top %d feeds' % len(feeds))
         self.set_plot_for_observers(False)
@@ -38,7 +40,9 @@ class BaseStrategy(bt.Strategy):
             self.set_plotting(feed, True)
             gb.cerebro.plot(plotter=plotter, style='candlestick', barup='green', numfigs=1)
             self.set_plotting(feed, False)
-        self.plot_observers(plotter)
+        if plot_observers:
+            self.plot_observers(plotter)
+
 
     def set_plotting(self, feed, on):
         feed.plotinfo.plotmaster = feed
@@ -66,25 +70,32 @@ class BaseStrategy(bt.Strategy):
                 ind.plotinfo.plot = is_plot
 
 
+    def prepare(self, stock):
+        raise NotImplementedError
 
     def check_signals(self, stock):
-        pass
+        raise NotImplementedError
 
     def manage_position(self, stock):
-        pass
-
-    def prepare(self, stock):
-        pass
+        raise NotImplementedError
 
     def notify_order(self, order: bt.Order):
         if order.status is bt.Order.Completed or order.status is bt.Order.Partial:
             self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
                 order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
+        # else: # the same message for now
+        #     self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+        #         order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
 
-    def notify_trade(self, trade):
-        pass
+    def notify_trade(self, trade: bt.Trade):
+        if (trade.status <= 1): # created or open
+            self.log(trade.data, 'trade %s, execution price (MAYBE): %s, size: %s, date: %s' % ( #TODO remove MAYBE after validating the the price is the execution price
+                trade.status_names[trade.status], trade.price, trade.size, trade.open_datetime().date()))
+        else: 
+            self.log(trade.data, 'trade %s, pnl %s, size: %s, date: %s' % (
+                trade.status_names[trade.status], trade.pnl, trade.size, trade.close_datetime().date()))
 
     def log(self, stock, txt):
         ''' logging function for this strategy'''
-        date = stock.datetime.date(0)
+        date = stock.datetime.date()
         print('%s @ %s: %s' % (stock._name, date.isoformat(), txt))

@@ -1,4 +1,4 @@
-from strategies.ikf_strategy import IkfStrategy
+from strategies.ikf_strategy import IkfStrategy, OneMonthPredicationIkf
 from strategies.doji_long_strategy import DojiLongStrategy
 from iknowfirst.iknowfirst import retrieve_stocks
 import backtrader as bt
@@ -13,20 +13,22 @@ from backtrader_plotting.schemes import Blackly, Tradimo
 import globals as gb
 
 
+onemonthstocks =['HARL.TA', 'DSCT.TA', 'ORA.TA', 'TSEM.TA', 'ARPT.TA', 'MLSR.TA', 'OPK.TA', 'NVMI.TA', 'MTRX.TA',
+    'PHOE1.TA', 'ESLT.TA', 'AMOT.TA', 'SPEN.TA']
 
 def main():
     global cerebro
     cerebro = gb.cerebro
     # add_strategies(DojiLongStrategy)
     # add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
-    add_strategies(IkfStrategy)
-    add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=1,
-             dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
-    # add_analyzer()
+    add_strategies(OneMonthPredicationIkf)
+    add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=0,
+             dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=onemonthstocks, dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
+    add_analyzer()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=2, only_trades=False)
+    plot(strategies[0], limit=0, only_trades=True, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):
@@ -51,7 +53,7 @@ def add_analyzer():
 
 
 def backtest():
-    cerebro.broker.setcash(10000.0)
+    cerebro.broker.setcash(100000.0)
     print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
     print('backtesting strategy')
     strategies = cerebro.run()
