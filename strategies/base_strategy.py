@@ -1,7 +1,9 @@
 from datetime import datetime
+import itertools
 import backtrader as bt
 from backtrader.feeds.csvgeneric import GenericCSVData
 from backtrader.trade import Trade
+from backtrader.utils.autodict import AutoDictList
 import matplotlib.pylab as pylab
 from backtrader_plotting import Bokeh
 from backtrader_plotting.schemes import Blackly, Tradimo
@@ -109,3 +111,8 @@ class BaseStrategy(bt.Strategy):
         ''' logging function for this strategy'''
         date = stock.datetime.date()
         print('%s @ %s: %s' % (stock._name, date.isoformat(), txt))
+
+
+    def get_open_trades(self, stock):
+        trades : AutoDictList = self._trades[stock]  # self._trades[stock] is {data: {order_id: [trades]}}
+        return [t for t in itertools.chain(*self._trades[stock].values()) if t.isopen]
