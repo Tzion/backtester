@@ -21,7 +21,7 @@ def main():
     # add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
     add_strategies(Seven14_30DaysPrediction)
     add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=0,
-             dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=OneMonthPredicationIkf.active_stocks[:1], dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
+             dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=OneMonthPredicationIkf.active_stocks, dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
     add_analyzer()
     global strategies
     strategies = backtest()
