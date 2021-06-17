@@ -124,13 +124,17 @@ class OneMonthPredicationIkf(IkfStrategy):
         self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
         self.add_indicator(stock, IkfIndicator(stock, forecast='14days'), 'pred_14d')
         self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'pred_7d')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='3months'), 'pred_3m')
 
     def check_signals(self, stock):
         if self.open_signal(stock):
             self.open_position(stock)
     
     def open_signal(self, stock):
-        return stock.pred_1m.strong_predictability[0] > 0
+        try:
+            return stock.pred_1m.strong_predictability[0] > 0 and stock.pred_1m.strong_predictability[1] > 0 
+        except IndexError:
+            return False
 
     def manage_position(self, stock):
         super().manage_position_old(stock)
