@@ -63,6 +63,8 @@ class Seven14_30DaysPrediction(IkfStrategy):
         self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
         self.add_indicator(stock, IkfIndicator(stock, forecast='14days'), 'pred_14d')
         self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'pred_7d')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='3days'), 'pred_3d')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='3months'), 'pred_3m')
 
     def check_signals(self, stock):
         def strong(ind):

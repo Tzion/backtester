@@ -32,18 +32,21 @@ class BaseStrategy(bt.Strategy):
 
     def plot(self, limit=0, only_trades=True, interactive_plots=True, plot_observers=True):
         pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
-        limit = limit or len(self.stocks)
-        feeds = list(dict(sorted(self._trades.items(), key=lambda item: len(
-            item[1][0]))))[:limit] if only_trades else self.stocks[:limit]
+        # limit = limit or len(self.stocks)
+        # feeds = list(dict(sorted(self._trades.items(), key=lambda item: len(item[1][0]))))[:limit] if only_trades else self.stocks[:limit] # for sorted trades
         plotter = Bokeh(style='bar', scheme=Blackly()) if interactive_plots else None
-        print('ploting top %d feeds' % len(feeds))
+        print('ploting top %d feeds' % (limit or (only_trades and len(self._trades) or len(self.stocks))))
         self.set_plot_for_observers(False)
-        for i, feed in enumerate(feeds):
-            self.set_plotting(feed, True)
-            if not only_trades: self.set_plot_for_buysell_observer(True, i, feed) # this hack won't work for sorted trades - because of assumption over
+        printed = 0
+        for i, stock in enumerate(self.stocks):
+            if only_trades and stock not in self._trades:
+                continue
+            self.set_plotting(stock, True)
+            self.set_plot_for_buysell_observer(True, i, stock) # this hack won't work for sorted trades - because of assumption over
             gb.cerebro.plot(plotter=plotter, style='candlestick', barup='green', numfigs=1)
-            if not only_trades: self.set_plot_for_buysell_observer(False, i, feed) # this hack won't work for sorted trades - because of assumption over
-            self.set_plotting(feed, False)
+            printed += 1
+            self.set_plot_for_buysell_observer(False, i, stock) # this hack won't work for sorted trades - because of assumption over
+            self.set_plotting(stock, False)
         if plot_observers:
             self.plot_observers(plotter)
 
