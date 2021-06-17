@@ -28,5 +28,9 @@ class IkfIndicator(bt.Indicator):
         self.lines.strong_predictability[0] = 100 if todays_pred[1] >= 0.19 else 0
 
 
+    def forecast_in_days(self):
+        return FORECAST_IN_DAYS[self.params.forecast]
 
+
+FORECAST_IN_DAYS = {'3days': 3, '7days': 7, '14days': 14, '1months': 30, '3months': 90, '12months': 360}
 

@@ -1,4 +1,4 @@
-from strategies.ikf_strategy import IkfStrategy, OneMonthPredicationIkf
+from strategies.ikf_strategy import IkfStrategy, OneMonthPredicationIkf, Seven14_30DaysPrediction
 from strategies.doji_long_strategy import DojiLongStrategy
 from iknowfirst.iknowfirst import retrieve_stocks
 import backtrader as bt
@@ -13,17 +13,15 @@ from backtrader_plotting.schemes import Blackly, Tradimo
 import globals as gb
 
 
-onemonthstocks = ['HARL.TA', 'DSCT.TA', 'ORA.TA', 'TSEM.TA', 'ARPT.TA', 'MLSR.TA', 'OPK.TA', 'NVMI.TA', 'MTRX.TA',
-    'PHOE1.TA', 'ESLT.TA', 'AMOT.TA', 'SPEN.TA', 'BEZQ.TA', 'SAE.TA', 'ICL.TA']
 
 def main():
     global cerebro
     cerebro = gb.cerebro
     # add_strategies(DojiLongStrategy)
     # add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
-    add_strategies(OneMonthPredicationIkf)
+    add_strategies(Seven14_30DaysPrediction)
     add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=0,
-             dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=onemonthstocks, dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
+             dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=OneMonthPredicationIkf.active_stocks[:1], dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
     add_analyzer()
     global strategies
     strategies = backtest()

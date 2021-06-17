@@ -113,6 +113,9 @@ class BaseStrategy(bt.Strategy):
         print('%s @ %s: %s' % (stock._name, date.isoformat(), txt))
 
 
-    def get_open_trades(self, stock):
+    def get_open_trade(self, stock): #TODO handle trade management by my strategy
         trades : AutoDictList = self._trades[stock]  # self._trades[stock] is {data: {order_id: [trades]}}
-        return [t for t in itertools.chain(*self._trades[stock].values()) if t.isopen]
+        open_trades = [t for t in itertools.chain(*self._trades[stock].values()) if t.isopen]
+        if len(open_trades) > 1:
+            raise Exception('Warning - more than one open position for %s, trades: %s'%(stock, open_trades))
+        return open_trades[0]
