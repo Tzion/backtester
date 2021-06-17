@@ -41,6 +41,8 @@ class BaseStrategy(bt.Strategy):
         for i, stock in enumerate(self.stocks):
             if only_trades and stock not in self._trades:
                 continue
+            if limit and printed >= limit:
+                break
             self.set_plotting(stock, True)
             self.set_plot_for_buysell_observer(True, i, stock) # this hack won't work for sorted trades - because of assumption over
             gb.cerebro.plot(plotter=plotter, style='candlestick', barup='green', numfigs=1)
