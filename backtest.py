@@ -13,8 +13,8 @@ from backtrader_plotting.schemes import Blackly, Tradimo
 import globals as gb
 
 
-onemonthstocks =['HARL.TA', 'DSCT.TA', 'ORA.TA', 'TSEM.TA', 'ARPT.TA', 'MLSR.TA', 'OPK.TA', 'NVMI.TA', 'MTRX.TA',
-    'PHOE1.TA', 'ESLT.TA', 'AMOT.TA', 'SPEN.TA']
+onemonthstocks = ['HARL.TA', 'DSCT.TA', 'ORA.TA', 'TSEM.TA', 'ARPT.TA', 'MLSR.TA', 'OPK.TA', 'NVMI.TA', 'MTRX.TA',
+    'PHOE1.TA', 'ESLT.TA', 'AMOT.TA', 'SPEN.TA', 'BEZQ.TA', 'SAE.TA', 'ICL.TA']
 
 def main():
     global cerebro
@@ -28,7 +28,7 @@ def main():
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=0, only_trades=True, plot_observers=True, interactive_plots=True)
+    plot(strategies[0], limit=0, only_trades=False, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):
@@ -53,7 +53,7 @@ def add_analyzer():
 
 
 def backtest():
-    cerebro.broker.setcash(100000.0)
+    cerebro.broker.setcash(1000000.0)
     print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
     print('backtesting strategy')
     strategies = cerebro.run()

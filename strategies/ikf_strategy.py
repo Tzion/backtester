@@ -15,7 +15,7 @@ class IkfStrategy(BaseStrategy):
 
     def __init__(self):
         global pos_size
-        pos_size = self.broker.cash/10
+        pos_size = self.broker.cash/15
         forecasts = retrieve_forecasts_data(filter_friday=False)
         self.forecasts = forecasts.stack().unstack(level=2, ).unstack().fillna(0)
         super().__init__()
@@ -122,6 +122,8 @@ class OneMonthPredicationIkf(IkfStrategy):
     def prepare(self, stock):
         super().prepare(stock)
         self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='14days'), 'pred_14d')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'pred_7d')
 
     def check_signals(self, stock):
         if self.open_signal(stock):

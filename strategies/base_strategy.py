@@ -38,7 +38,9 @@ class BaseStrategy(bt.Strategy):
         self.set_plot_for_observers(False)
         for i, feed in enumerate(feeds):
             self.set_plotting(feed, True)
+            if not only_trades: self.set_plot_for_buysell_observer(True, i, feed) # this hack won't work for sorted trades - because of assumption over
             gb.cerebro.plot(plotter=plotter, style='candlestick', barup='green', numfigs=1)
+            if not only_trades: self.set_plot_for_buysell_observer(False, i, feed) # this hack won't work for sorted trades - because of assumption over
             self.set_plotting(feed, False)
         if plot_observers:
             self.plot_observers(plotter)
@@ -56,6 +58,14 @@ class BaseStrategy(bt.Strategy):
     def set_plot_for_observers(self, is_plot):
         for observer in self.getobservers():
             observer.plotinfo.plot = is_plot
+
+    # hacky function to turn on the buy-sell observer of the stock that is about to plot
+    def set_plot_for_buysell_observer(self, plot_on, index, stock):
+        observer = self.getobservers()[index+1]
+        if observer.data._name != stock._name:
+            raise Exception("trying to plot buy-sell observer of wrong stock")
+        observer.plotinfo.plot = plot_on
+        
 
     @staticmethod
     def add_indicator(stock, indicator, attr_name):
@@ -83,9 +93,9 @@ class BaseStrategy(bt.Strategy):
         if order.status is bt.Order.Completed or order.status is bt.Order.Partial:
             self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
                 order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
-        # else: # the same message for now
-        #     self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
-        #         order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
+        else: # the same message for now
+            self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
 
     def notify_trade(self, trade: bt.Trade):
         if (trade.status <= 1): # created or open
