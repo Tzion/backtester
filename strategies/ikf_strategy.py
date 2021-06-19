@@ -59,17 +59,17 @@ class Seven14_30DaysPrediction(IkfStrategy):
     def prepare(self, stock):
         super().prepare(stock)
         global pos_size
-        pos_size = self.broker.cash/8
-        self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'pred_7d')
-        self.add_indicator(stock, IkfIndicator(stock, forecast='3days'), 'pred_3d')
-        self.add_indicator(stock, IkfIndicator(stock, forecast='14days'), 'pred_14d')
+        pos_size = self.broker.cash/12
+        # self.add_indicator(stock, IkfIndicator(stock, forecast='3days'), 'pred_3d')
+        # self.add_indicator(stock, IkfIndicator(stock, forecast='14days'), 'pred_14d')
+        # self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'pred_7d')
         self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
         self.add_indicator(stock, IkfIndicator(stock, forecast='3months'), 'pred_3m')
 
     def check_signals(self, stock):
         def strong(ind):
             try:
-                return ind.strong_predictability[0] > 0 and ind.strong_predictability[1] > 0
+                return ind.strong_predictability[0] > 0 #and ind.strong_predictability[1] > 0
             except IndexError:
                 return False
         strongs = list(filter(strong, stock.indicators))
@@ -89,9 +89,13 @@ class Seven14_30DaysPrediction(IkfStrategy):
     def manage_position(self, stock):
         trade = self.get_open_trade(stock)
         cur_duration = (self.datetime.date() - trade.open_datetime().date()).days
-        if  cur_duration >= stock.long_period:
+        if  cur_duration >= stock.long_period: # and not self.is_strong_signal(stock):
             self.sell(stock, trade.size, exectype=Order.Market)
         if cur_duration >= stock.short_period and not stock.profit_taken:
             self.sell(stock, int(trade.size/2), exectype=Order.Market)
             stock.profit_taken = True
 
+    def is_strong_signal(self, stock):
+        for ind in stock.indicators:
+            if ind.strong_predictability[0]:
+                return True

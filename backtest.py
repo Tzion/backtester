@@ -26,7 +26,7 @@ def main():
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=0, only_trades=True, plot_observers=True, interactive_plots=True)
+    plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):
