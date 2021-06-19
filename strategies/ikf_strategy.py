@@ -1,8 +1,11 @@
 import backtrader as bt
+from backtrader import indicators
+from backtrader import indicator
 from backtrader.order import Order
 from .base_strategy import BaseStrategy
 from iknowfirst.ikf_indicator import IkfIndicator
 from iknowfirst.iknowfirst import retrieve_forecasts_data
+from backtrader import math
 
 class IkfStrategy(BaseStrategy):
 
@@ -99,3 +102,37 @@ class Seven14_30DaysPrediction(IkfStrategy):
         for ind in stock.indicators:
             if ind.strong_predictability[0]:
                 return True
+
+
+class Sma5And30DaysForecasts(IkfStrategy):
+    
+    def prepare(self, stock):
+        super().prepare(stock)
+        # self.add_indicator(stock, indicators.SMA(stock, period=5), 'sma5')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
+        self.add_indicator(stock, SimpleMovingAverage1(stock, period=5), 'strn_sma5')
+
+    def check_signals(self, stock):
+        if self.is_possitive_signal(stock):
+            self.buy(stock, max(1, int(pos_size/stock.open[0])), exectype=Order.Market)
+
+    def manage_position(self, stock):
+        if not self.is_possitive_signal(stock):
+            self.close(stock)
+
+    def is_possitive_signal(self, stock):
+        return
+        stock.close[0] >= stock.sma5[0] and stock.strn_sma5[0 > stock.strn_sma5[-1]]
+
+class SimpleMovingAverage1(indicator.Indicator):
+    lines = ('sma',)
+    params = (('period', 5),)
+
+    def __init__(self):
+        # self.addminperiod(self.params.period)
+        self.size=1 # workaround because the get with fixed size returns the same slice of the array (in next())
+
+    def next(self):
+        datasum = math.fsum(self.data.pred_1m.strength.get(size=self.size)[:self.p.period])
+        self.size+= 1
+        self.lines.sma[0] = datasum / self.p.period
