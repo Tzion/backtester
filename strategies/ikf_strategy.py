@@ -20,7 +20,7 @@ class IkfStrategy(BaseStrategy):
 
 
 
-class OneMonthPredicationIkf(IkfStrategy):
+class OneTimeframeForecast(IkfStrategy):
 
     active_stocks = ['HARL.TA', 'DSCT.TA', 'ORA.TA', 'TSEM.TA', 'ARPT.TA', 'MLSR.TA', 'OPK.TA', 'NVMI.TA', 'MTRX.TA',
         'PHOE1.TA', 'ESLT.TA', 'AMOT.TA', 'SPEN.TA', 'BEZQ.TA', 'SAE.TA', 'ICL.TA']
@@ -55,7 +55,7 @@ class OneMonthPredicationIkf(IkfStrategy):
             self.log(stock, 'Warning - more than one open position!')
 
 
-class Seven14_30DaysPrediction(IkfStrategy):
+class TwoTimeframesForecast(IkfStrategy):
 
     global pos_size # TODO use sizer
 
@@ -108,9 +108,10 @@ class Sma5And30DaysForecasts(IkfStrategy):
     
     def prepare(self, stock):
         super().prepare(stock)
-        # self.add_indicator(stock, indicators.SMA(stock, period=5), 'sma5')
+        self.add_indicator(stock, indicators.SMA(stock, period=5), 'sma5', subplot=True)
         self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
-        self.add_indicator(stock, SimpleMovingAverage1(stock, period=5), 'strn_sma5')
+        self.add_indicator(stock, SimpleMovingAverage1(stock, period=5), 'strn_sma5_my')
+        self.add_indicator(stock, indicators.SMA(stock.pred_1m, period=5), 'strn_sma5', subplot=True)
 
     def check_signals(self, stock):
         if self.is_possitive_signal(stock):
@@ -121,8 +122,7 @@ class Sma5And30DaysForecasts(IkfStrategy):
             self.close(stock)
 
     def is_possitive_signal(self, stock):
-        return
-        stock.close[0] >= stock.sma5[0] and stock.strn_sma5[0 > stock.strn_sma5[-1]]
+        stock.close[0] >= stock.sma5[0] and stock.strn_sma5[0] > stock.strn_sma5[-1]
 
 class SimpleMovingAverage1(indicator.Indicator):
     lines = ('sma',)
@@ -130,9 +130,9 @@ class SimpleMovingAverage1(indicator.Indicator):
 
     def __init__(self):
         # self.addminperiod(self.params.period)
-        self.size=1 # workaround because the get with fixed size returns the same slice of the array (in next())
+        self.count = 1 # workaround because the get with fixed size returns the same slice of the array (in next())
 
     def next(self):
-        datasum = math.fsum(self.data.pred_1m.strength.get(size=self.size)[:self.p.period])
-        self.size+= 1
+        datasum = math.fsum(self.data.pred_1m.strength.get(size=self.count)[:self.p.period])
+        self.count += 1
         self.lines.sma[0] = datasum / self.p.period
