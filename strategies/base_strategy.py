@@ -78,9 +78,10 @@ class BaseStrategy(bt.Strategy):
     def add_indicator(stock, indicator, attr_name, subplot=None):
         stock.indicators = stock.indicators if hasattr(stock, 'indicators') else []
         stock.indicators.append(indicator)
-        setattr(stock, attr_name, indicator)
         if subplot is not None:
-            getattr(stock, attr_name).plotinfo.subplot = subplot
+            indicator.plotinfo.subplot = subplot
+        indicator.plotinfo.plot = False
+        setattr(stock, attr_name, indicator)
     
     @staticmethod
     def set_plot_for_indicators(stock, is_plot):
