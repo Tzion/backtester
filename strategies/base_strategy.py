@@ -7,6 +7,7 @@ from backtrader.utils.autodict import AutoDictList
 import matplotlib.pylab as pylab
 from backtrader_plotting import Bokeh
 from backtrader_plotting.schemes import Blackly, Tradimo
+from backtrader import observers
 import globals as gb
 
 
@@ -34,7 +35,7 @@ class BaseStrategy(bt.Strategy):
         pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
         # limit = limit or len(self.stocks)
         # feeds = list(dict(sorted(self._trades.items(), key=lambda item: len(item[1][0]))))[:limit] if only_trades else self.stocks[:limit] # for sorted trades
-        plotter = Bokeh(style='bar', scheme=Blackly()) if interactive_plots else None
+        plotter = Bokeh(style='bar', scheme=Tradimo()) if interactive_plots else None
         print('ploting top %d feeds' % (limit or (only_trades and len(self._trades) or len(self.stocks))))
         self.set_plot_for_observers(False)
         printed = 0
@@ -50,7 +51,7 @@ class BaseStrategy(bt.Strategy):
             self.set_plot_for_buysell_observer(False, i, stock) # this hack won't work for sorted trades - because of assumption over
             self.set_plotting(stock, False)
         if plot_observers:
-            self.plot_observers(plotter)
+            self.plot_observers(plotter, only_trades)
 
 
     def set_plotting(self, feed, on):
@@ -58,12 +59,14 @@ class BaseStrategy(bt.Strategy):
         feed.plotinfo.plot = on  # todo create a wrapper for the feed (csvData) object with attributes like indicators
         self.set_plot_for_indicators(feed, on)
     
-    def plot_observers(self, plotter):
-        self.set_plot_for_observers(True)
+    def plot_observers(self, plotter, only_trades):
+        self.set_plot_for_observers(True, only_trades)
         gb.cerebro.plot(plotter)
 
-    def set_plot_for_observers(self, is_plot):
+    def set_plot_for_observers(self, is_plot, only_trades=False):
         for observer in self.getobservers():
+            if only_trades and not observer.data in self._trades and type(observer) and not observer.plotinfo.subplot:
+                continue
             observer.plotinfo.plot = is_plot
 
     # hacky function to turn on the buy-sell observer of the stock that is about to plot
@@ -99,17 +102,23 @@ class BaseStrategy(bt.Strategy):
     def manage_position(self, stock):
         raise NotImplementedError
 
-    def notify_order(self, order: bt.Order):
-        if order.status is bt.Order.Completed or order.status is bt.Order.Partial:
-            self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
-                order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
-        else: # the same message for now
-            self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
-                order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
+    def notify_order(self, order: bt.Order, verbose=0):
+        if verbose:
+            if order.status is bt.Order.Completed or order.status is bt.Order.Partial:
+                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
+            else: # the same message for now
+                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
+        else:
+            if order.status in [bt.Order.Rejected, bt.Order.Margin]:
+                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
 
-    def notify_trade(self, trade: bt.Trade):
+
+    def notify_trade(self, trade: bt.Trade, verbose=0):
         if (trade.status <= 1): # created or open
-            self.log(trade.data, 'trade %s, execution price (MAYBE): %s, size: %s, date: %s' % ( #TODO remove MAYBE after validating the the price is the execution price
+            self.log(trade.data, 'trade %s, execution price: %s, size: %s, date: %s' % (
                 trade.status_names[trade.status], trade.price, trade.size, trade.open_datetime().date()))
         else: 
             self.log(trade.data, 'trade %s, pnl %s, size: %s, date: %s' % (
@@ -121,7 +130,7 @@ class BaseStrategy(bt.Strategy):
         print('%s @ %s: %s' % (stock._name, date.isoformat(), txt))
 
 
-    def get_open_trade(self, stock): #TODO handle trade management by my strategy
+    def get_opened_trade(self, stock): #TODO handle trade management by my strategy
         trades : AutoDictList = self._trades[stock]  # self._trades[stock] is {data: {order_id: [trades]}}
         open_trades = [t for t in itertools.chain(*self._trades[stock].values()) if t.isopen]
         if len(open_trades) > 1:
