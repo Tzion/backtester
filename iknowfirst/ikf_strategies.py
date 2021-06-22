@@ -4,7 +4,7 @@ from backtrader import indicator
 from backtrader.order import Order
 from strategies.base_strategy import BaseStrategy
 from iknowfirst.ikf_indicator import IkfIndicator
-from iknowfirst.iknowfirst import retrieve_forecasts_data
+from iknowfirst.iknowfirst import get_forecast_of, retrieve_forecasts_data
 
 class IkfStrategy(BaseStrategy):
 
@@ -58,10 +58,10 @@ class TwoTimeframesForecast(IkfStrategy):
         global pos_size
         pos_size = self.broker.cash/12
         # self.add_indicator(stock, IkfIndicator(stock, forecast='3days'), 'pred_3d')
-        # self.add_indicator(stock, IkfIndicator(stock, forecast='14days'), 'pred_14d')
+        self.add_indicator(stock, IkfIndicator(stock, forecast='14days'), 'pred_14d')
         # self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'pred_7d')
         self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
-        self.add_indicator(stock, IkfIndicator(stock, forecast='3months'), 'pred_3m')
+        # self.add_indicator(stock, IkfIndicator(stock, forecast='3months'), 'pred_3m')
 
     def check_signals(self, stock):
         def strong(ind):
@@ -168,3 +168,26 @@ class EndOfMonthEntry(IkfStrategy):
 
     def is_around_end_of_month(self):
         return 0 <= self.datetime.date().day <= 31
+
+
+class Top3(IkfStrategy):
+
+    global pos_size
+
+    def prepare(self, stock):
+        super().prepare(stock)
+        global pos_size
+        pos_size = self.broker.cash/7
+        super().prepare(stock)
+        self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'ind1')
+
+    
+    def check_signals(self, stock):
+        top3 = get_forecast_of(stock.datetime.date(), stock.ind1.p.forecast)
+        if stock in top3 and stock.ind1.strong_predictability[1]:
+            self.buy(stock, max(1, int(pos_size/stock.open[0])), exectype=Order.Market)
+        pass
+
+    def manage_position(self, stock):
+        trade = self.get_opened_trade(stock)
+        cur_duration = (self.datetime.date() - trade.open_datetime().date()).days

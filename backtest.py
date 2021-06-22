@@ -1,4 +1,4 @@
-from iknowfirst.ikf_strategies import EndOfMonthEntry, OneTimeframeForecast, TwoTimeframesForecast, Sma5And30DaysForecasts
+from iknowfirst.ikf_strategies import EndOfMonthEntry, OneTimeframeForecast, Top3, TwoTimeframesForecast, Sma5And30DaysForecasts
 from strategies.doji_long_strategy import DojiLongStrategy
 from iknowfirst.iknowfirst import retrieve_stocks
 import backtrader as bt
@@ -18,7 +18,7 @@ def main():
     cerebro = gb.cerebro
     # add_strategies(DojiLongStrategy)
     # add_data(start_date=datetime(2015, 4, 4), end_date=datetime(2020, 3, 10), limit=10, dirpath='data_feeds')
-    add_strategies(EndOfMonthEntry)
+    add_strategies(Top3)
     add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 4, 27), limit=0,
              dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
             #  dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=['PHOE1.TA'], dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
