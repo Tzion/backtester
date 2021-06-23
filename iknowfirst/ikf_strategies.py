@@ -174,20 +174,46 @@ class Top3(IkfStrategy):
 
     global pos_size
 
+    def __init__(self):
+        self.forecasts_timeframe = '14days'
+        super().__init__()
+
     def prepare(self, stock):
         super().prepare(stock)
         global pos_size
-        pos_size = self.broker.cash/7
+        pos_size = self.broker.cash/10
         super().prepare(stock)
-        self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'ind1')
+        self.add_indicator(stock, IkfIndicator(stock, forecast=self.forecasts_timeframe), 'ind1')
+
+    def next(self):
+        try:
+            tomorrows_forecast = get_forecast_of(self.data.datetime.date(1), self.forecasts_timeframe)
+        except IndexError:
+            return # skip the last day
+        self.abs_strength = tomorrows_forecast.apply(
+            abs, axis=1).sort_values(by=['strength'], ascending=False)
+        super().next()
 
     
     def check_signals(self, stock):
-        top3 = get_forecast_of(stock.datetime.date(), stock.ind1.p.forecast)
-        if stock in top3 and stock.ind1.strong_predictability[1]:
-            self.buy(stock, max(1, int(pos_size/stock.open[0])), exectype=Order.Market)
-        pass
+        try: 
+            if self.positive_signal(stock):
+                self.buy(stock, max(1, int(pos_size/stock.open[0])), exectype=Order.Market)
+                # print('%s in top 3. top stocks of %s: %s'%(stock._name, self.data.datetime.date(1), self.top_strength)) # for debugging
+        except IndexError:
+                pass
+
+    def positive_signal(self, stock):
+        return self.is_in_top3(stock) and stock.ind1.strong_predictability[1] and stock.ind1.strength[1] > 0
+
+
+    def is_in_top3(self, stock):
+        top3 = self.abs_strength[:3]
+        if stock._name in top3.index:
+            return True
 
     def manage_position(self, stock):
         trade = self.get_opened_trade(stock)
         cur_duration = (self.datetime.date() - trade.open_datetime().date()).days
+        if cur_duration >= stock.ind1.forecast_in_days() and not stock.ind1.strong_predictability[1] and stock.ind1.strength[1] > 0:
+            self.close(stock)

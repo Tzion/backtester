@@ -43,7 +43,7 @@ def retrieve_forecasts_data(forecasts_folder=FORECASTS_FOLDER, use_cache=True, f
             dataframes.append(extract_data_from_file(f))
             dates.append(datetime.strptime(f[f.find('TA35_')+5:-4],'%d_%b_%Y'))
         dataframe = pd.concat(dataframes, keys=dates)
-        forecasts = dataframe.sort_index(axis='index', level=0, sort_remaining=False)
+        forecasts = dataframe.sort_index(axis='index', level=None, sort_remaining=True)
         dataframe.index.set_names(['date', 'timeframe', 'stock'], inplace=True)
     save_to_cache(forecasts)
     return forecasts.loc[filter(lambda i: i[0].dayofweek != 4, forecasts.index)] if filter_friday else forecasts

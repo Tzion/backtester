@@ -29,8 +29,68 @@ class BaseStrategy(bt.Strategy):
             else:
                 self.manage_position(stock)
 
+    @staticmethod
+    def add_indicator(stock, indicator, attr_name, subplot=None):
+        stock.indicators = stock.indicators if hasattr(stock, 'indicators') else []
+        stock.indicators.append(indicator)
+        if subplot is not None:
+            indicator.plotinfo.subplot = subplot
+        indicator.plotinfo.plot = False
+        setattr(stock, attr_name, indicator)
+    
+    @staticmethod
+    def set_plot_for_indicators(stock, is_plot):
+        if hasattr(stock, 'indicators'):
+            for ind in stock.indicators:
+                ind.plotinfo.plot = is_plot
+
+    # TODO rename to prepare_stock
+    def prepare(self, stock):
+        raise NotImplementedError
+
+    def check_signals(self, stock):
+        raise NotImplementedError
+
+    def manage_position(self, stock):
+        raise NotImplementedError
+
+    def notify_order(self, order: bt.Order, verbose=0):
+        if verbose:
+            if order.status is bt.Order.Completed or order.status is bt.Order.Partial:
+                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
+            else: # the same message for now
+                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
+        else:
+            if order.status in [bt.Order.Rejected, bt.Order.Margin]:
+                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
 
 
+    def notify_trade(self, trade: bt.Trade, verbose=0):
+        if (trade.status <= 1): # created or open
+            self.log(trade.data, 'trade %s, execution price: %s, size: %s, date: %s' % (
+                trade.status_names[trade.status], trade.price, trade.size, trade.open_datetime().date()))
+        else: 
+            self.log(trade.data, 'trade %s, pnl %s, size: %s, date: %s' % (
+                trade.status_names[trade.status], trade.pnl, trade.size, trade.close_datetime().date()))
+
+    def log(self, stock, txt):
+        ''' logging function for this strategy'''
+        date = stock.datetime.date()
+        print('%s @ %s: %s' % (stock._name, date.isoformat(), txt))
+
+
+    def get_opened_trade(self, stock): #TODO handle trade management by my strategy
+        trades : AutoDictList = self._trades[stock]  # self._trades[stock] is {data: {order_id: [trades]}}
+        open_trades = [t for t in itertools.chain(*self._trades[stock].values()) if t.isopen]
+        if len(open_trades) > 1:
+            raise Exception('Warning - more than one open position for %s, trades: %s'%(stock, open_trades))
+        return open_trades[0]
+
+
+    # TODO the are of plotting need refactoring       
     def plot(self, limit=0, only_trades=True, interactive_plots=True, plot_observers=True):
         pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
         # limit = limit or len(self.stocks)
@@ -76,63 +136,3 @@ class BaseStrategy(bt.Strategy):
             raise Exception("trying to plot buy-sell observer of wrong stock")
         observer.plotinfo.plot = plot_on
         
-
-    @staticmethod
-    def add_indicator(stock, indicator, attr_name, subplot=None):
-        stock.indicators = stock.indicators if hasattr(stock, 'indicators') else []
-        stock.indicators.append(indicator)
-        if subplot is not None:
-            indicator.plotinfo.subplot = subplot
-        indicator.plotinfo.plot = False
-        setattr(stock, attr_name, indicator)
-    
-    @staticmethod
-    def set_plot_for_indicators(stock, is_plot):
-        if hasattr(stock, 'indicators'):
-            for ind in stock.indicators:
-                ind.plotinfo.plot = is_plot
-
-
-    def prepare(self, stock):
-        raise NotImplementedError
-
-    def check_signals(self, stock):
-        raise NotImplementedError
-
-    def manage_position(self, stock):
-        raise NotImplementedError
-
-    def notify_order(self, order: bt.Order, verbose=0):
-        if verbose:
-            if order.status is bt.Order.Completed or order.status is bt.Order.Partial:
-                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
-                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
-            else: # the same message for now
-                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
-                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
-        else:
-            if order.status in [bt.Order.Rejected, bt.Order.Margin]:
-                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
-                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
-
-
-    def notify_trade(self, trade: bt.Trade, verbose=0):
-        if (trade.status <= 1): # created or open
-            self.log(trade.data, 'trade %s, execution price: %s, size: %s, date: %s' % (
-                trade.status_names[trade.status], trade.price, trade.size, trade.open_datetime().date()))
-        else: 
-            self.log(trade.data, 'trade %s, pnl %s, size: %s, date: %s' % (
-                trade.status_names[trade.status], trade.pnl, trade.size, trade.close_datetime().date()))
-
-    def log(self, stock, txt):
-        ''' logging function for this strategy'''
-        date = stock.datetime.date()
-        print('%s @ %s: %s' % (stock._name, date.isoformat(), txt))
-
-
-    def get_opened_trade(self, stock): #TODO handle trade management by my strategy
-        trades : AutoDictList = self._trades[stock]  # self._trades[stock] is {data: {order_id: [trades]}}
-        open_trades = [t for t in itertools.chain(*self._trades[stock].values()) if t.isopen]
-        if len(open_trades) > 1:
-            raise Exception('Warning - more than one open position for %s, trades: %s'%(stock, open_trades))
-        return open_trades[0]
