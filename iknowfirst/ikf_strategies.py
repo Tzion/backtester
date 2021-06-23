@@ -183,11 +183,11 @@ class Top3(IkfStrategy):
         global pos_size
         pos_size = self.broker.cash/10
         super().prepare(stock)
-        self.add_indicator(stock, IkfIndicator(stock, forecast=self.forecasts_timeframe), 'ind1')
+        stock.ind1 = self.add_indicator(stock, IkfIndicator(stock, forecast=self.forecasts_timeframe))
 
     def next(self):
         try:
-            tomorrows_forecast = get_forecast_of(self.data.datetime.date(1), self.forecasts_timeframe)
+            tomorrows_forecast = get_forecast_of(self.data.datetime.date(1), self.forecasts_timeframe) # shift forecasts by 1 because forecasts are received day before and infra let us buy the next day only
         except IndexError:
             return # skip the last day
         self.abs_strength = tomorrows_forecast.apply(
@@ -204,8 +204,7 @@ class Top3(IkfStrategy):
                 pass
 
     def positive_signal(self, stock):
-        return self.is_in_top3(stock) and stock.ind1.strong_predictability[1] and stock.ind1.strength[1] > 0
-
+        return self.is_in_top3(stock) and stock.ind1.is_positive()
 
     def is_in_top3(self, stock):
         top3 = self.abs_strength[:3]
@@ -215,5 +214,5 @@ class Top3(IkfStrategy):
     def manage_position(self, stock):
         trade = self.get_opened_trade(stock)
         cur_duration = (self.datetime.date() - trade.open_datetime().date()).days
-        if cur_duration >= stock.ind1.forecast_in_days() and not stock.ind1.strong_predictability[1] and stock.ind1.strength[1] > 0:
+        if cur_duration >= stock.ind1.forecast_in_days() and not stock.ind1.is_positive(high_pred=False):
             self.close(stock)
