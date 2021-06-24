@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 import os
 from datetime import datetime
+from typing import Optional
 
-from pandas.core.accessor import CachedAccessor
 
 FORECASTS_FOLDER = 'iknowfirst/ikf_forecasts/'
-forecasts = None
+forecasts : pd.DataFrame = None
 CACHE_FILE = 'cache.pkl'
 
 def extract_data_from_file(file_path):
@@ -72,9 +72,9 @@ def retrieve_stocks():
     return list({i[2] for i in forecasts.index})
 
 
-def get_forecast_of(date, timeframe=None):
+def get_forecast_on(date, timeframe=None) -> Optional[pd.DataFrame]:
     global forecasts
     if timeframe: 
         return forecasts.loc[str(date), timeframe] 
     else:
-        return forecasts.loc[str(date)]
+        return forecasts.loc[str(date),]

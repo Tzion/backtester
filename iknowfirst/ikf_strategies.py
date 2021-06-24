@@ -4,19 +4,31 @@ from backtrader import indicator
 from backtrader.order import Order
 from strategies.base_strategy import BaseStrategy
 from iknowfirst.ikf_indicator import IkfIndicator
-from iknowfirst.iknowfirst import get_forecast_of, retrieve_forecasts_data
+from iknowfirst.iknowfirst import get_forecast_on, retrieve_forecasts_data
 
+'''
+Strategies based on I-Know-First forecasts.
+The reference to the forecasts is shifted 1 day ahead - because the backtrader infra execute orders on next day's
+bar, and because the forecast with titled date is received the night before.
+'''
 class IkfStrategy(BaseStrategy):
-
 
     def __init__(self):
         forecasts = retrieve_forecasts_data(filter_friday=False)
         self.forecasts = forecasts.stack().unstack(level=2, ).unstack().fillna(0)
         super().__init__()
 
-    def prepare(self, stock):
-        stock.forecast = self.forecasts[stock._name]
+    def next(self):
+        try:
+            # shift forecasts by 1 because forecasts are received day before and infra let us buy the next day only
+            self.daily_forecast = get_forecast_on(self.data.datetime.date(1)).sort_values(by=['strength'], ascending=False)
+        except IndexError:
+            return # skip the last day
+        super().next()
 
+    def prepare_stock(self, stock):
+        stock.forecast = self.forecasts[stock._name]
+    
 
 
 class OneTimeframeForecast(IkfStrategy):
@@ -26,8 +38,8 @@ class OneTimeframeForecast(IkfStrategy):
 
     global pos_size # TODO use sizer
 
-    def prepare(self, stock):
-        super().prepare(stock)
+    def prepare_stock(self, stock):
+        super().prepare_stock(stock)
         global pos_size
         pos_size = self.broker.cash/15
         self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
@@ -53,8 +65,8 @@ class TwoTimeframesForecast(IkfStrategy):
 
     global pos_size # TODO use sizer
 
-    def prepare(self, stock):
-        super().prepare(stock)
+    def prepare_stock(self, stock):
+        super().prepare_stock(stock)
         global pos_size
         pos_size = self.broker.cash/12
         # self.add_indicator(stock, IkfIndicator(stock, forecast='3days'), 'pred_3d')
@@ -105,11 +117,11 @@ class Sma5And30DaysForecasts(IkfStrategy):
     
     global pos_size # TODO use sizer
 
-    def prepare(self, stock):
-        super().prepare(stock)
+    def prepare_stock(self, stock):
+        super().prepare_stock(stock)
         global pos_size
         pos_size = self.broker.cash/10
-        super().prepare(stock)
+        super().prepare_stock(stock)
         self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
         self.add_indicator(stock, indicators.SMA(stock.pred_1m.strength, period=5), 'sma5_1m_strength', subplot=True)
         self.add_indicator(stock, indicators.SMA(stock.pred_1m.strength, period=30), 'sma30_1m_strength', subplot=True)
@@ -133,11 +145,11 @@ class Sma5And30DaysForecasts(IkfStrategy):
 class EndOfMonthEntry(IkfStrategy):
     global pos_size
 
-    def prepare(self, stock):
-        super().prepare(stock)
+    def prepare_stock(self, stock):
+        super().prepare_stock(stock)
         global pos_size
         pos_size = self.broker.cash/7
-        super().prepare(stock)
+        super().prepare_stock(stock)
         self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
         # self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'pred_7d')
         self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'ind2')
@@ -178,22 +190,15 @@ class Top3(IkfStrategy):
         self.forecasts_timeframe = '14days'
         super().__init__()
 
-    def prepare(self, stock):
-        super().prepare(stock)
+    def prepare_stock(self, stock):
+        super().prepare_stock(stock)
         global pos_size
         pos_size = self.broker.cash/10
-        super().prepare(stock)
+        super().prepare_stock(stock)
         stock.ind1 = self.add_indicator(stock, IkfIndicator(stock, forecast=self.forecasts_timeframe))
 
-    def next(self):
-        try:
-            tomorrows_forecast = get_forecast_of(self.data.datetime.date(1), self.forecasts_timeframe) # shift forecasts by 1 because forecasts are received day before and infra let us buy the next day only
-        except IndexError:
-            return # skip the last day
-        self.abs_strength = tomorrows_forecast.apply(
-            abs, axis=1).sort_values(by=['strength'], ascending=False)
-        super().next()
-
+    def on_next_bar(self):
+        self.daily_forecast_abs = self.daily_forecast.loc[self.forecasts_timeframe].apply(abs, axis=1).sort_values(by=['strength'], ascending=False)
     
     def check_signals(self, stock):
         try: 
@@ -207,7 +212,7 @@ class Top3(IkfStrategy):
         return self.is_in_top3(stock) and stock.ind1.is_positive()
 
     def is_in_top3(self, stock):
-        top3 = self.abs_strength[:3]
+        top3 = self.daily_forecast_abs[:3]
         if stock._name in top3.index:
             return True
 

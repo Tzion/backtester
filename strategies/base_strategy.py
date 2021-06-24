@@ -19,10 +19,12 @@ class BaseStrategy(bt.Strategy):
 
     def __init__(self):
         self.stocks = self.datas
+        self.prepare_strategy()
         for stock in self.stocks:
-            self.prepare(stock)
+            self.prepare_stock(stock)
  
     def next(self):
+        self.on_next_bar()
         for stock in self.stocks:
             if not self.getposition(data=stock):
                 self.check_signals(stock)
@@ -45,10 +47,24 @@ class BaseStrategy(bt.Strategy):
         if hasattr(stock, 'indicators'):
             for ind in stock.indicators:
                 ind.plotinfo.plot = is_plot
+    
+    def prepare_strategy(self):
+        '''
+        do setup (if needed) in the strategy level before the backtest starting
+        '''
+        pass
 
-    # TODO rename to prepare_stock
-    def prepare(self, stock):
+    def prepare_stock(self, stock):
+        '''
+        do setup needed per each stock before the backtest starting - called once per stock
+        '''
         raise NotImplementedError
+
+    def on_next_bar(self):
+        '''
+        called each bar before backtesing that bar
+        '''
+        pass
 
     def check_signals(self, stock):
         raise NotImplementedError

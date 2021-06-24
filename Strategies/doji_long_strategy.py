@@ -8,7 +8,7 @@ from backtrader import Indicator, indicators
 # profit - half portion at stop distance, second half 3 times than doji size
 class DojiLongStrategy(BaseStrategy):
 
-    def prepare(self, stock):
+    def prepare_stock(self, stock):
         stock.tr = indicators.TR(stock)
         stock.atr = indicators.ATR(stock, period=7)
 
