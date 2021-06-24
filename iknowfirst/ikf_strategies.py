@@ -52,7 +52,7 @@ class OneTimeframeForecast(IkfStrategy):
             self.buy(data=stock, exectype=bt.Order.Market, size=max(1, int(pos_size/stock.open[0]))) # TODO buy in the openning price of the current day (now it's the open price of the next day)
     
     def open_signal(self, stock):
-        return stock.pred_1m.strong_predictability[1] > 0
+        return stock.pred_1m.is_positive()
 
     def manage_position(self, stock):
         trade = self.get_opened_trade(stock)
