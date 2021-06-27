@@ -161,13 +161,13 @@ class Top3(IkfStrategy):
     global pos_size
 
     def __init__(self):
-        self.forecasts_timeframe = '14days'
+        self.forecasts_timeframe = '3months'
         super().__init__()
 
     def prepare_stock(self, stock):
         super().prepare_stock(stock)
         global pos_size
-        pos_size = self.broker.cash/10
+        pos_size = self.broker.cash/7
         super().prepare_stock(stock)
         stock.ind1 = self.add_indicator(stock, IkfIndicator(stock, forecast=self.forecasts_timeframe))
 
@@ -193,5 +193,7 @@ class Top3(IkfStrategy):
     def manage_position(self, stock):
         trade = self.get_opened_trade(stock)
         cur_duration = (self.datetime.date() - trade.open_datetime().date()).days
-        if cur_duration >= stock.ind1.forecast_in_days() and not stock.ind1.is_positive(high_pred=False):
+        if cur_duration >= stock.ind1.forecast_in_days() :#and not stock.ind1.is_positive(high_pred=False):
+            self.close(stock)
+        if str(self.datetime.date()) == '2021-04-25': ## TODO find better way to close all trades on the last day
             self.close(stock)
