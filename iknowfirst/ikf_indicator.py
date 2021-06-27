@@ -33,8 +33,11 @@ class IkfIndicator(bt.Indicator):
     def forecast_in_days(self):
         return FORECAST_IN_DAYS[self.params.forecast]
 
-    def is_positive(self, high_pred=True):
-        return self.l.strength[1] > 0 and (not high_pred or self.l.predictability[1] >= float(self.p.predictability_threshold)*PRED_FACTOR)
+    def is_positive(self, ago=0, high_pred=True):
+        try:
+            return self.l.strength[1-ago] > 0 and (not high_pred or self.l.predictability[1-ago] >= float(self.p.predictability_threshold)*PRED_FACTOR)
+        except IndexError:
+            return False
 
 
 FORECAST_IN_DAYS = {'3days': 3, '7days': 7, '14days': 14, '1months': 30, '3months': 90, '12months': 360}
