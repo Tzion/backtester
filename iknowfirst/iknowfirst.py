@@ -45,7 +45,7 @@ def retrieve_forecasts_data(forecasts_folder=FORECASTS_FOLDER, use_cache=True, f
         dataframe = pd.concat(dataframes, keys=dates)
         forecasts = dataframe.sort_index(axis='index', level=None, sort_remaining=True)
         dataframe.index.set_names(['date', 'timeframe', 'stock'], inplace=True)
-    forecasts.drop_duplicates(keep='first', inplace=True)
+        forecasts = forecasts[~forecasts.index.duplicated(keep='first')]
     save_to_cache(forecasts)
     return forecasts.loc[filter(lambda i: i[0].dayofweek != 4, forecasts.index)] if filter_friday else forecasts
 
