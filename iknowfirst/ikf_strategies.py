@@ -66,9 +66,9 @@ class TwoTimeframesForecast(IkfStrategy):
         global pos_size
         pos_size = self.broker.cash/12
         # self.add_indicator(stock, IkfIndicator(stock, forecast='3days'), 'pred_3d')
-        stock.ind1 = self.add_indicator(stock, IkfIndicator(stock, forecast='14days'), 'pred_14d')
+        stock.ind1 = self.add_indicator(stock, IkfIndicator(stock, forecast='3months'))
         # self.add_indicator(stock, IkfIndicator(stock, forecast='7days'), 'pred_7d')
-        self.add_indicator(stock, IkfIndicator(stock, forecast='1months'), 'pred_1m')
+        stock.ind2 = self.add_indicator(stock, IkfIndicator(stock, forecast='1months'))
         # self.add_indicator(stock, IkfIndicator(stock, forecast='3months'), 'pred_3m')
 
     def check_signals(self, stock):
@@ -132,14 +132,14 @@ class EndOfMonthEntry(IkfStrategy):
     def prepare_stock(self, stock):
         super().prepare_stock(stock)
         global pos_size
-        pos_size = self.broker.cash/10
+        pos_size = self.broker.cash/13
         super().prepare_stock(stock)
-        stock.ind1 = self.add_indicator(stock, IkfIndicator(stock, forecast='1months'))
-        stock.ind2 = self.add_indicator(stock, IkfIndicator(stock, forecast='14days'))
+        stock.ind1 = self.add_indicator(stock, IkfIndicator(stock, forecast='3months'))
+        stock.ind2 = self.add_indicator(stock, IkfIndicator(stock, forecast='1months'))
         stock.avg_ind2 = self.add_indicator(stock, indicators.SMA(stock.ind2.strong_predictability, period=7), subplot=True)
 
     def check_signals(self, stock):
-        if self.is_around_end_of_month() and stock.ind1.is_positive() :
+        if self.is_around_end_of_month() and stock.ind1.is_positive(high_pred=False) :
             self.buy(stock, max(1, int(pos_size/stock.open[0])), exectype=Order.Market)
             stock.hold_for = stock.ind2.forecast_in_days()
 
