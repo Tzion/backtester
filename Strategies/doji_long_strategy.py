@@ -1,5 +1,6 @@
 import backtrader as bt
 from .base_strategy import BaseStrategy
+from backtrader import talib
 from backtrader import Indicator, indicators
 
 # Create a Stratey
@@ -8,9 +9,17 @@ from backtrader import Indicator, indicators
 # profit - half portion at stop distance, second half 3 times than doji size
 class DojiLongStrategy(BaseStrategy):
 
+    global pos_size
+
+
     def prepare_stock(self, stock):
-        stock.tr = indicators.TR(stock)
-        stock.atr = indicators.ATR(stock, period=7)
+        global pos_size
+        pos_size = self.broker.cash/7
+        stock.doji = talib.CDLDOJISTAR(stock.open, stock.high, stock.low, stock.close)
+        stock.doji.plotinfo.plot = False
+        stock.ma_short = indicators.EMA(stock, period=3)
+        stock.ma_long = indicators.EMA(stock, period=8)
+
 
     def check_signals(self, stock):
         if self.open_signal(stock):
@@ -20,17 +29,12 @@ class DojiLongStrategy(BaseStrategy):
         None # todo improve take profit-1 and 2
 
     def open_signal(self, stock):
-        if is_doji(stock) and stock.open[0] > stock.open[-1]:
-            self.log(stock, 'doji signal price %.2f' % stock.close[0])
+        if stock.doji[0] and stock.open[1] > stock.close[0] and stock.ma_short[0] < stock.ma_short[-1] and stock.close[1] > stock.ma_long[1]:
             return True
 
     def open_position(self, stock):
-        mainside = self.buy(data=stock, exectype=bt.Order.Market, transmit=False)
-        lowside  = self.sell(data=stock, price=stock.low[-1], 
-            size=mainside.size, exectype=bt.Order.Stop, transmit=False, parent=mainside)
-        highside = self.sell(data=stock, price=stock.open[0] + stock.high[-1] - stock.low[-1], 
-            size=mainside.size, exectype=bt.Order.Limit, transmit=True, parent=mainside)
-
-    global is_doji  # move to external file, or find candles utils
-    def is_doji(stock, bar_i=0):
-        return abs(stock.open[bar_i] - stock.close[bar_i]) <= 0.2 and stock.tr[bar_i] > 1 * stock.atr[bar_i]
+        entry = self.buy(data=stock, exectype=bt.Order.Market, transmit=False, size=max(1, int(pos_size/stock.open[0])))
+        stoplost  = self.sell(data=stock, price=stock.low[0], 
+            size=entry.size, exectype=bt.Order.Stop, transmit=False, parent=entry)
+        takeprofit = self.sell(data=stock, price=stock.open[1] + stock.high[0] - stock.low[0], 
+            size=entry.size, exectype=bt.Order.Limit, transmit=True, parent=entry)
