@@ -9,6 +9,7 @@ from backtrader_plotting import Bokeh
 from backtrader_plotting.schemes import Blackly, Tradimo
 from backtrader import observers
 import globals as gb
+from money_mgmt.sizers import PortionSizer
 
 
 """ 
@@ -19,11 +20,13 @@ class BaseStrategy(bt.Strategy):
 
     def __init__(self):
         self.stocks = self.datas
+        self.setsizer(PortionSizer())
         self.prepare_strategy()
         for stock in self.stocks:
             self.prepare_stock(stock)
  
     def next(self):
+        # TODO redesign
         self.on_next_bar()
         for stock in self.stocks:
             if not self.getposition(data=stock):
@@ -48,6 +51,7 @@ class BaseStrategy(bt.Strategy):
             for ind in stock.indicators:
                 ind.plotinfo.plot = is_plot
     
+    # TODO no need of this - use the already defined Strategy.start() method by the super class
     def prepare_strategy(self):
         '''
         do setup (if needed) in the strategy level before the backtest starting
@@ -60,6 +64,7 @@ class BaseStrategy(bt.Strategy):
         '''
         raise NotImplementedError
 
+    # TODO  rename/ remove / redesign (take in care the use-case as in ikf_stratigies.Top3)
     def on_next_bar(self):
         '''
         called each bar before backtesing that bar

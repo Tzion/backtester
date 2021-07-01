@@ -18,15 +18,15 @@ def main():
     global cerebro
     cerebro = gb.cerebro
     add_strategies(rsi_strategy.RsiAndMovingAverageStrategy)
-    add_data(start_date=datetime(2016, 7, 13), end_date=datetime(2021, 6, 29), limit=1, dirpath='etf_data_feeds')
-    # add_strategies(EndOfMonthEntry)
+    add_data(start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), limit=59, dirpath='data_feeds')
+    # add_strategies(Top3)
     # add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 6, 28), limit=0,
             #  dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
     add_analyzer()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=10, only_trades=True, plot_observers=True, interactive_plots=True)
+    # plot(strategies[0], limit=2, only_trades=True, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):

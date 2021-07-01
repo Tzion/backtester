@@ -11,11 +11,11 @@ class RsiAndMovingAverageStrategy(BaseStrategy):
     
     def check_signals(self, stock):
         if stock.rsi[0] < 30 and stock.close[0] > stock.sma[0]:
-            self.buy(stock, size=0.5*self.broker.cash/stock.open[1], exectype=Order.Market)
+            self.buy(stock, exectype=Order.Market)
     
     def manage_position(self, stock):
         trade = self.get_opened_trade(stock)
-        if stock.rsi[0] > 40 or trade.barlen > stock.rsi.p.period:
+        if stock.rsi[0] > 40 or (len(self.data) - trade.baropen) > stock.rsi.p.period:
             self.close(stock)
 
     
