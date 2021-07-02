@@ -5,9 +5,8 @@ attrs==21.2.0
 autopep8==1.5.6
 backcall==0.2.0
 backtrader==1.9.76.123
-backtrader-plotting==1.1.0
 bleach==3.3.0
-bokeh==2.0.2
+bokeh==2.1.1
 certifi==2020.12.5
 cffi==1.14.5
 chardet==4.0.0
