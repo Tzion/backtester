@@ -21,13 +21,15 @@ class HighsLowsStructure(BaseStrategy):
     params = (
         ('atr_period', 20),
         ('highs_period', 63),
-        ('entry_period', 10),
+        ('lows_period', 20),
+        ('entry_period', 20),
         ('ma_period', 25)
     )
 
     def prepare_stock(self, stock):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
-        stock.highest_high = talib.MAX(stock, timeperiod=self.p.highs_period)
+        stock.highs= talib.MAX(stock, timeperiod=self.p.highs_period)
+        stock.lows = talib.MIN(stock, timeperiod=self.p.lows_period)
         stock.ma = talib.SMA(stock, timeperiod=self.p.ma_period)
         stock.entry_order = None
         
@@ -36,10 +38,10 @@ class HighsLowsStructure(BaseStrategy):
     def check_signals(self, stock):
         if stock.entry_order and stock.entry_order.active():
             stock.bars_from_signal += 1
-            if stock.bars_from_signal >= self.p.entry_period:
+            if stock.bars_from_signal >= self.p.entry_period or stock.low[0] < stock.lows[-1]:
                 stock.entry_order.cancel()
         # elif stock.ma[0]-stock.ma[-1] > 0 and stock.close[0] > stock.highest_high[-1]:
-        elif stock.high[0] > stock.highest_high[-1]:
+        elif stock.high[0] > stock.highs[-1]:
             entry = self.buy(stock, exectype=Order.Limit, price=stock.low[0]-2*stock.atr[0], transmit=False)
             stoploss = self.sell(stock, exectype=Order.Stop, price=stock.low[0] - 4*stock.atr[0], parent=entry, transmit=False)
             takeprofit = stoploss = self.sell(stock, exectype=Order.Limit, price=stock.close[0], parent=entry, transmit=True)
@@ -50,3 +52,5 @@ class HighsLowsStructure(BaseStrategy):
     def manage_position(self, stock):
         pass
         
+    def notify_order(self, order, verbose=0):
+        super().notify_order(order, verbose)
