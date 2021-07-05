@@ -9,12 +9,8 @@ from backtrader import Indicator, indicators
 # profit - half portion at stop distance, second half 3 times than doji size
 class DojiLongStrategy(BaseStrategy):
 
-    global pos_size
-
 
     def prepare_stock(self, stock):
-        global pos_size
-        pos_size = self.broker.cash/7
         stock.doji = talib.CDLDOJISTAR(stock.open, stock.high, stock.low, stock.close)
         stock.doji.plotinfo.plot = False
         stock.ma_short = indicators.EMA(stock, period=3)
@@ -33,7 +29,7 @@ class DojiLongStrategy(BaseStrategy):
             return True
 
     def open_position(self, stock):
-        entry = self.buy(data=stock, exectype=bt.Order.Market, transmit=False, size=max(1, int(pos_size/stock.open[0])))
+        entry = self.buy(data=stock, exectype=bt.Order.Market, transmit=False,)
         stoplost  = self.sell(data=stock, price=stock.low[0], 
             size=entry.size, exectype=bt.Order.Stop, transmit=False, parent=entry)
         takeprofit = self.sell(data=stock, price=stock.open[1] + stock.high[0] - stock.low[0], 
