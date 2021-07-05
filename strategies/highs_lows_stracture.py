@@ -21,33 +21,69 @@ class HighsLowsStructure(BaseStrategy):
     params = (
         ('atr_period', 20),
         ('highs_period', 63),
-        ('lows_period', 20),
-        ('entry_period', 20),
-        ('ma_period', 25)
+        ('lows_period', 63),
+        ('entry_period', 10),
+        ('ma_period', 63)
     )
 
     def prepare_stock(self, stock):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
         stock.highs= talib.MAX(stock, timeperiod=self.p.highs_period)
         stock.lows = talib.MIN(stock, timeperiod=self.p.lows_period)
-        stock.ma = talib.SMA(stock, timeperiod=self.p.ma_period)
-        stock.entry_order = None
-        
+        stock.long_ma = talib.SMA(stock, timeperiod=self.p.highs_period)
+        stock.short_ma = talib.SMA(stock, timeperiod=self.p.entry_period)
+        stock.entry = None
 
-    
     def check_signals(self, stock):
-        if stock.entry_order and stock.entry_order.active():
-            stock.bars_from_signal += 1
-            if stock.bars_from_signal >= self.p.entry_period or stock.low[0] < stock.lows[-1]:
-                stock.entry_order.cancel()
-        # elif stock.ma[0]-stock.ma[-1] > 0 and stock.close[0] > stock.highest_high[-1]:
-        elif stock.high[0] > stock.highs[-1]:
-            entry = self.buy(stock, exectype=Order.Limit, price=stock.low[0]-2*stock.atr[0], transmit=False)
-            stoploss = self.sell(stock, exectype=Order.Stop, price=stock.low[0] - 4*stock.atr[0], parent=entry, transmit=False)
-            takeprofit = stoploss = self.sell(stock, exectype=Order.Limit, price=stock.close[0], parent=entry, transmit=True)
-            stock.entry_order = entry
-            stock.bars_from_signal = 0
+        if self.entry_pending(stock):
+            stock.bars_since_order += 1
+            if self.entry_period_passed(stock) or self.opposite_breakout(stock):
+                stock.entry.cancel()
+        else:
+            self.update_orientation(stock)
+            if self.breakout(stock):
+                self.send_orders(stock)
     
+    def entry_pending(self, stock):
+        return stock.entry and stock.entry.active()
+    
+    def entry_period_passed(self, stock):
+        return stock.bars_since_order >= self.p.entry_period
+
+    def send_orders(self, stock):
+        if stock.uptrend: # long
+            stock.entry = self.buy(stock, exectype=Order.Limit, price=stock.low[0] - 2*stock.atr[0], transmit=False)
+            stock.stoploss = self.sell(stock, exectype=Order.Stop, price=stock.low[0] - 4*stock.atr[0], parent=stock.entry, transmit=False)
+            stock.takeprofit = self.sell(stock, exectype=Order.Limit, price=stock.high[0], parent=stock.entry, transmit=True)
+        else: #short
+            stock.entry = self.sell(stock, exectype=Order.Limit, price=stock.high[0] + 2*stock.atr[0], transmit=False)
+            stock.stoploss = self.buy(stock, exectype=Order.Stop, price=stock.high[0] + 4*stock.atr[0], parent=stock.entry, transmit=False)
+            stock.takeprofit = self.buy(stock, exectype=Order.Limit, price=stock.low[0], parent=stock.entry, transmit=True)
+        stock.bars_since_order = 0
+
+    def breakout(self, stock):
+        if stock.uptrend:
+            return stock.high[0] > stock.highs[-1]
+        else:
+            return stock.low[0] < stock.lows[-1]
+
+    def opposite_breakout(self, stock):
+        if stock.uptrend:
+            return stock.low[0] < stock.lows[-1]
+        else:
+            return stock.high[0] > stock.highs[-1]
+
+    def breakout1(self, stock, uptrend):
+        if uptrend:
+            return stock.low[0] < stock.lows[-1]
+        else:
+            return stock.high[0] > stock.highs[-1]
+    
+    def update_orientation(self, stock):
+        if stock.long_ma[0] > stock.long_ma[-self.p.ma_period]:
+            stock.uptrend = True
+        else:
+            stock.uptrend = False
 
     def manage_position(self, stock):
         pass
