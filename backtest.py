@@ -1,3 +1,4 @@
+from strategies.highs_lows_stracture import HighsLowsStructure
 from iknowfirst.ikf_strategies import EndOfMonthEntry, OneTimeframeForecast, Top3, TwoTimeframesForecast, Sma5And30DaysForecasts
 from strategies import rsi_strategy, doji_long_strategy
 from iknowfirst.iknowfirst import retrieve_stocks
@@ -11,14 +12,16 @@ import matplotlib.pylab as pylab
 from backtrader_plotting import Bokeh
 import globals as gb
 import strategies
+import numpy as np
 
 
 
 def main():
     global cerebro
     cerebro = gb.cerebro
-    add_strategies(rsi_strategy.RsiAndMovingAverageStrategy)
-    add_data(start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), limit=59, dirpath='data_feeds')
+    add_strategies(HighsLowsStructure)
+    add_data(random=True,start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), limit=7, dirpath='data_feeds')
+    # add_data(start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['CARR.csv'],limit=0, dirpath='data_feeds')
     # add_strategies(Top3)
     # add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 6, 28), limit=0,
             #  dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
@@ -26,17 +29,19 @@ def main():
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    # plot(strategies[0], limit=2, only_trades=True, plot_observers=True, interactive_plots=True)
+    plot(strategies[0], limit=0, only_trades=True, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):
     cerebro.addstrategy(strategy)
 
 
-def add_data(start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-%d', dirpath='data_feeds', stock_names=None, high_idx=1, low_idx=2, open_idx=3, close_idx=4, volume_idx=5, stock2file= lambda s:s):
+def add_data(start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-%d', dirpath='data_feeds', stock_names=None, high_idx=1, low_idx=2, open_idx=3, close_idx=4, volume_idx=5, stock2file= lambda s:s, random=False):
     modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
     dirpath = os.path.join(modpath, dirpath)
     stocks = stock_names or os.listdir(dirpath)
+    if random:
+        stocks = np.random.permutation(stocks)
     stocks = stocks[:limit or len(stocks)]
     print('adding {} data feeds'.format(len(stocks)))
     for i, stock in enumerate(stocks):
@@ -51,7 +56,7 @@ def add_analyzer():
 
 
 def backtest():
-    cerebro.broker.setcash(1000000.0)
+    cerebro.broker.setcash(10000.0)
     print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
     print('backtesting strategy')
     strategies = cerebro.run()
