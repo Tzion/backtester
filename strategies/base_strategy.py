@@ -93,11 +93,11 @@ class BaseStrategy(bt.Strategy):
 
     def notify_trade(self, trade: bt.Trade, verbose=0):
         if (trade.status <= 1): # created or open
-            self.log(trade.data, 'trade %s, execution price: %s, size: %s, date: %s' % (
+            self.log(trade.data, 'trade %s, execution price: %.2f, size: %s, date: %s' % (
                 trade.status_names[trade.status], trade.price, trade.size, trade.open_datetime().date()))
         else: 
-            self.log(trade.data, 'trade %s, pnl %s, size: %s, date: %s' % (
-                trade.status_names[trade.status], trade.pnl, trade.size, trade.close_datetime().date()))
+            self.log(trade.data, 'trade %s, execution price: %.2f, pnl %.0f, holding: %s, date: %s' % (
+                trade.status_names[trade.status], trade.price, trade.pnl, trade.size, trade.close_datetime().date()))
 
     def log(self, stock, txt):
         ''' logging function for this strategy'''
