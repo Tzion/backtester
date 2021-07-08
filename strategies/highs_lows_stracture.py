@@ -1,6 +1,7 @@
 from strategies.base_strategy import BaseStrategy
 from backtrader import talib
 from backtrader.order import Order
+from enum import Enum
 
 class HighsLowsStructure(BaseStrategy):
     '''
@@ -25,6 +26,8 @@ class HighsLowsStructure(BaseStrategy):
         ('entry_period', 10),
         ('ma_period', 63)
     )
+    
+
 
     def prepare_stock(self, stock):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
@@ -33,6 +36,7 @@ class HighsLowsStructure(BaseStrategy):
         stock.long_ma = talib.SMA(stock, timeperiod=self.p.highs_period)
         stock.short_ma = talib.SMA(stock, timeperiod=self.p.entry_period)
         stock.entry = None
+        stock.direction = None
 
     def check_signals(self, stock):
         if self.entry_pending(stock):
@@ -40,7 +44,7 @@ class HighsLowsStructure(BaseStrategy):
             if self.entry_period_passed(stock) or self.opposite_breakout(stock):
                 stock.entry.cancel()
         else:
-            self.update_orientation(stock)
+            self.update_direction(stock)
             if self.breakout(stock):
                 self.send_orders(stock)
     
@@ -51,42 +55,46 @@ class HighsLowsStructure(BaseStrategy):
         return stock.bars_since_order >= self.p.entry_period
 
     def send_orders(self, stock):
-        if stock.uptrend: # long
+        if stock.direction is Direction.LONG:
             stock.entry = self.buy(stock, exectype=Order.Limit, price=stock.low[0] - 2*stock.atr[0], transmit=False)
             stock.stoploss = self.sell(stock, exectype=Order.Stop, price=stock.low[0] - 4*stock.atr[0], parent=stock.entry, transmit=False)
             stock.takeprofit = self.sell(stock, exectype=Order.Limit, price=stock.high[0], parent=stock.entry, transmit=True)
-        else: #short
+        if stock.direction is Direction.SHORT:
             stock.entry = self.sell(stock, exectype=Order.Limit, price=stock.high[0] + 2*stock.atr[0], transmit=False)
             stock.stoploss = self.buy(stock, exectype=Order.Stop, price=stock.high[0] + 4*stock.atr[0], parent=stock.entry, transmit=False)
             stock.takeprofit = self.buy(stock, exectype=Order.Limit, price=stock.low[0], parent=stock.entry, transmit=True)
         stock.bars_since_order = 0
 
     def breakout(self, stock):
-        if stock.uptrend:
+        if stock.direction is Direction.LONG:
             return stock.high[0] > stock.highs[-1]
-        else:
+        if stock.direction is Direction.SHORT:
             return stock.low[0] < stock.lows[-1]
 
     def opposite_breakout(self, stock):
-        if stock.uptrend:
+        if stock.direction is Direction.LONG:
             return stock.low[0] < stock.lows[-1]
-        else:
+        if stock.direction is Direction.SHORT:
             return stock.high[0] > stock.highs[-1]
 
-    def breakout1(self, stock, uptrend):
-        if uptrend:
+    def breakout1(self, stock, direction):
+        if direction is Direction.LONG:
             return stock.low[0] < stock.lows[-1]
-        else:
+        if direction is Direction.SHORT:
             return stock.high[0] > stock.highs[-1]
     
-    def update_orientation(self, stock):
+    def update_direction(self, stock):
         if stock.long_ma[0] > stock.long_ma[-self.p.ma_period]:
-            stock.uptrend = True
+            stock.direction = Direction.LONG
         else:
-            stock.uptrend = False
+            stock.direction = Direction.SHORT
 
     def manage_position(self, stock):
         pass
         
     def notify_order(self, order, verbose=0):
         super().notify_order(order, verbose)
+
+class Direction(Enum):
+    SHORT = -1
+    LONG = 1
