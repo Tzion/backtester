@@ -33,6 +33,8 @@ class HighsLowsStructure(BaseStrategy):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
         stock.highs= talib.MAX(stock, timeperiod=self.p.highs_period)
         stock.lows = talib.MIN(stock, timeperiod=self.p.lows_period)
+        stock.highs_trend= talib.MAX(stock, timeperiod=self.p.atr_period)
+        stock.lows_trend = talib.MIN(stock, timeperiod=self.p.atr_period)
         stock.long_ma = talib.SMA(stock, timeperiod=self.p.highs_period)
         stock.short_ma = talib.SMA(stock, timeperiod=self.p.entry_period)
         stock.entry = None
@@ -66,6 +68,7 @@ class HighsLowsStructure(BaseStrategy):
         stock.bars_since_order = 0
 
     def breakout(self, stock):
+        # TODO try to use close price instead of high/low
         if stock.direction is Direction.LONG:
             return stock.high[0] > stock.highs[-1]
         if stock.direction is Direction.SHORT:
@@ -77,17 +80,14 @@ class HighsLowsStructure(BaseStrategy):
         if stock.direction is Direction.SHORT:
             return stock.high[0] > stock.highs[-1]
 
-    def breakout1(self, stock, direction):
-        if direction is Direction.LONG:
-            return stock.low[0] < stock.lows[-1]
-        if direction is Direction.SHORT:
-            return stock.high[0] > stock.highs[-1]
-    
     def update_direction(self, stock):
+        # TODO improve this!
         if stock.long_ma[0] > stock.long_ma[-self.p.ma_period]:
             stock.direction = Direction.LONG
-        else:
+        elif stock.long_ma[0] < stock.long_ma[-self.p.ma_period]:
             stock.direction = Direction.SHORT
+        else:
+            stock.direction = None
 
     def manage_position(self, stock):
         pass
