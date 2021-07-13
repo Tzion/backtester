@@ -11,6 +11,16 @@ class PortionSizer(bt.Sizer):
         if not position:
             size = account / data.close[0] * (self.percents / 100)
         else:
-            size = position.size # should I return -1*size to indicate that it's opposite direction?
+            size = position.size
 
-        return int(size)
+        return size
+
+
+class LongOnlyPortionSizer(PortionSizer):
+    '''
+    Do not use on bracket orders
+    '''
+    def _getsizing(self, comminfo, cash, data, isbuy):
+        if not isbuy and not self.broker.getposition(data):
+            return 0
+        return super()._getsizing(comminfo, cash, data, isbuy)
