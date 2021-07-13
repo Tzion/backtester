@@ -19,9 +19,17 @@ class HighsLowsStructure(BaseStrategy):
     Stop loss - buy price - 2*ATR
     Shut off strategy when volatility is too high (VIX at top 25% values of last 100 candles)
 
-    Based on https://youtu.be/QKCDt2QnmeM
+    Inspired by https://youtu.be/QKCDt2QnmeM
     AmyBrokers code: https://drive.google.com/file/d/1kou9AiNnq1MKUhfUIw71PADeKOliWka2/view
 
+    Latest backtesting status: the trades are centerilzed around few months around the end of 2018 till
+    the begining of 2019. win rate is about 50%.
+    Improvements required:
+    1. take profits 1 and 2
+    2. decide Long/Short direction
+    3. stop logic - trades go the right direction cannot loose money
+    4. adjust the submitted orders during the entry period - update prices according to changes in the ATR
+    5. adjust ask prices according to candle signals (for example possitive candle occurs around the asked price - support of opening position even for higher price)
     '''
 
     params = (
@@ -32,9 +40,7 @@ class HighsLowsStructure(BaseStrategy):
         ('ma_period', 63)
     )
     
-    allowed_directions = [Direction.LONG,]
-    skip_dates = ['2018-09-27', '2018-09-28', '2018-10-01','2018-10-02', '2018-10-03', '20128-10-04', '2018-10-05', '2018-10-06', '20128-10-07', '2018-10-08', '2018-10-09', '20128-10-11'] # TODO get rid of
-    # skip_dates = []
+    allowed_directions = [Direction.SHORT, Direction.LONG]
 
     def prepare_stock(self, stock):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
@@ -48,8 +54,6 @@ class HighsLowsStructure(BaseStrategy):
         stock.direction = None
 
     def check_signals(self, stock):
-        if str(self.datetime.date()) in self.skip_dates:
-            return
         if self.entry_pending(stock):
             stock.bars_since_order += 1
             if self.entry_period_passed(stock) or self.opposite_breakout(stock):
