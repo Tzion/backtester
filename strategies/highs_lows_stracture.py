@@ -1,7 +1,12 @@
+from money_mgmt.sizers import LongOnlyPortionSizer, PortionSizer
 from strategies.base_strategy import BaseStrategy
 from backtrader import talib
 from backtrader.order import Order
 from enum import Enum
+
+class Direction(Enum):
+    SHORT = -1
+    LONG = 1
 
 class HighsLowsStructure(BaseStrategy):
     '''
@@ -27,7 +32,9 @@ class HighsLowsStructure(BaseStrategy):
         ('ma_period', 63)
     )
     
-
+    allowed_directions = [Direction.LONG,]
+    skip_dates = ['2018-09-27', '2018-09-28', '2018-10-01','2018-10-02', '2018-10-03', '20128-10-04', '2018-10-05', '2018-10-06', '20128-10-07', '2018-10-08', '2018-10-09', '20128-10-11'] # TODO get rid of
+    # skip_dates = []
 
     def prepare_stock(self, stock):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
@@ -41,12 +48,16 @@ class HighsLowsStructure(BaseStrategy):
         stock.direction = None
 
     def check_signals(self, stock):
+        if str(self.datetime.date()) in self.skip_dates:
+            return
         if self.entry_pending(stock):
             stock.bars_since_order += 1
             if self.entry_period_passed(stock) or self.opposite_breakout(stock):
                 stock.entry.cancel()
         else:
             self.update_direction(stock)
+            if stock.direction not in self.allowed_directions:
+                return
             if self.breakout(stock):
                 self.send_orders(stock)
     
@@ -65,6 +76,7 @@ class HighsLowsStructure(BaseStrategy):
             stock.entry = self.sell(stock, exectype=Order.Limit, price=stock.high[0] + 2*stock.atr[0], transmit=False)
             stock.stoploss = self.buy(stock, exectype=Order.Stop, price=stock.high[0] + 4*stock.atr[0], parent=stock.entry, transmit=False)
             stock.takeprofit = self.buy(stock, exectype=Order.Limit, price=stock.low[0], parent=stock.entry, transmit=True)
+        self.log(stock, "orders sent, %s trade. asked price: %.2f, take-profit: %.2f, stop-loss: %.2f"%(stock.direction, stock.entry.price, stock.takeprofit.price, stock.stoploss.price))
         stock.bars_since_order = 0
 
     def breakout(self, stock):
@@ -94,7 +106,3 @@ class HighsLowsStructure(BaseStrategy):
         
     def notify_order(self, order, verbose=0):
         super().notify_order(order, verbose)
-
-class Direction(Enum):
-    SHORT = -1
-    LONG = 1
