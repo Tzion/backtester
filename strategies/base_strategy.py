@@ -80,24 +80,24 @@ class BaseStrategy(bt.Strategy):
     def notify_order(self, order: bt.Order, verbose=0):
         if verbose:
             if order.status is bt.Order.Completed or order.status is bt.Order.Partial:
-                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                self.log(order.data, "order %s: %s %s, price: %.2f, size: %.1f" % (
                     order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
             else: # the same message for now
-                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                self.log(order.data, "order %s: %s %s, price: %.2f, size: %.1f" % (
                     order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
         else:
             if order.status in [bt.Order.Rejected, bt.Order.Margin]:
-                self.log(order.data, "order %s: %s %s, price: %.2f, size: %s" % (
+                self.log(order.data, "order %s: %s %s, price: %.2f, size: %.1f" % (
                     order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
 
 
     def notify_trade(self, trade: bt.Trade, verbose=0):
         if (trade.status <= 1): # created or open
-            self.log(trade.data, 'trade %s, execution price: %.2f, size: %s, date: %s' % (
-                trade.status_names[trade.status], trade.price, trade.size, trade.open_datetime().date()))
+            self.log(trade.data, '%s trade %s, price: %.2f, size: %.1f, date: %s' % (
+                'long' if trade.size>0 else 'short', trade.status_names[trade.status], trade.price, trade.size, trade.open_datetime().date()))
         else: 
-            self.log(trade.data, 'trade %s, execution price: %.2f, pnl %.0f, holding: %s, date: %s' % (
-                trade.status_names[trade.status], trade.price, trade.pnl, trade.size, trade.close_datetime().date()))
+            self.log(trade.data, 'trade %s, pnl %.0f, holding: %s, date: %s' % (
+                trade.status_names[trade.status], trade.pnl, trade.size, trade.close_datetime().date()))
 
     def log(self, stock, txt):
         ''' logging function for this strategy'''
