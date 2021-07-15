@@ -1,4 +1,5 @@
-from backtrader import indicators
+from globals import *
+from backtrader import indicators, signal
 from backtrader.indicator import LinePlotterIndicator
 from money_mgmt.sizers import LongOnlyPortionSizer, PortionSizer
 from strategies.base_strategy import BaseStrategy
@@ -130,7 +131,7 @@ class HighLowsStructureImproved(BaseStrategy):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
         stock.highest = talib.MAX(stock.high, timeperiod=self.p.highs_period)
         stock.highs_breakout = HighestHighBreakoutSignal(high=stock.high, highest=stock.highest)
-        stock.buy_level = 
+        stock.buy_level = BuyLevel(signal=stock.highs_breakout, level=stock.low)# valid_for=self.p.entry_period)
 
         stock.entry, stock.stoploss, stock.takeprofit = None, None, None
         stock.bars_since_signal = None
@@ -165,6 +166,31 @@ class HighLowsStructureImproved(BaseStrategy):
         super().notify_order(order, verbose)
 
 
+class BuyLevel(bt.Indicator):
+    lines = ('buy_level',)
+    # params = (('forecast', '7days'), ('predictability_threshold', '0.19'))
+    # params = (('length', '10'))
+    plotinfo = dict(plot=True, subplot=False)
+    plotlines = dict(buy_level=dict(color='deepskyblue', linewidth=9.0, linestyle='-'))
+    # params = (('signal',), ('level',)),# ('valid_for', 1),),
+    # params = (('signal')),# ('valid_for'))
+
+    def __init__(self, signal, level):
+        self.signal = signal
+        self.level = level
+
+
+    def once(self, start, end):
+        for i in range(start,end):
+            for j in range(i-20, i): # TODO put this into param
+                if not math.isnan(self.signal[j]):
+                    self.lines.buy_level[i] = self.level[j]
+                    break
+
+            # if math.isnan(self.lines.buy_level[i]) and not math.isnan(self.signal[i]):
+            #     for j in range(i, i+10):
+            #         self.lines.buy_level[j] = self.level[i]
+
 class HighestHighBreakoutSignal(bt.Indicator):
     lines = ('breakout',)
     plotinfo = dict(plot=True, subplot=False, plotlinelabels=True)
@@ -175,6 +201,8 @@ class HighestHighBreakoutSignal(bt.Indicator):
     def __init__(self, high, highest):
         self.high = high
         self.highest = highest
+        # TODO Potential bug with the left most value on the chart
+        # self.addminperiod(1)
 
     def once(self, start, end):
         for i in range(start, end):
