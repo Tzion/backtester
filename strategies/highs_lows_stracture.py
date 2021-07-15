@@ -128,8 +128,10 @@ class HighLowsStructureImproved(BaseStrategy):
 
     def prepare_stock(self, stock):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
-        stock.highs= talib.MAX(stock.high, timeperiod=self.p.highs_period)
-        stock.highs_breakout = HighestHighBreakoutSignal(period=self.p.highs_period)
+        stock.highest = talib.MAX(stock.high, timeperiod=self.p.highs_period)
+        stock.highs_breakout = HighestHighBreakoutSignal(high=stock.high, highest=stock.highest)
+        stock.buy_level = 
+
         stock.entry, stock.stoploss, stock.takeprofit = None, None, None
         stock.bars_since_signal = None
 
@@ -153,7 +155,7 @@ class HighLowsStructureImproved(BaseStrategy):
         
 
     def buy_signal(self, stock):
-        return stock.high[0] > stock.highs[-1]
+        return stock.high[0] > stock.highest[-1]
         
 
     def manage_position(self, stock):
@@ -165,14 +167,16 @@ class HighLowsStructureImproved(BaseStrategy):
 
 class HighestHighBreakoutSignal(bt.Indicator):
     lines = ('breakout',)
-    params = (('period', 63),)
     plotinfo = dict(plot=True, subplot=False, plotlinelabels=True)
     plotlines = dict(breakout=dict(
         marker='d', markersize=8.0, color='springgreen')
         )
+    
+    def __init__(self, high, highest):
+        self.high = high
+        self.highest = highest
 
-    def __init__(self):
-        self.highest = indicators.Highest(self.data.high, period=self.p.period, plot=False)
+    def once(self, start, end):
+        for i in range(start, end):
+            self.lines.breakout[i] = self.high[i] if self.high[i] > self.highest[i-1] else float('nan')  # If I'm getting out-of-index beacuase of the -1 add this to init: 'self.addminperiod(1)'
 
-    def next(self):
-        self.lines.breakout[0] =  self.data.high[0] if self.data.high[0] > self.highest[-1] else float('nan')
