@@ -1,6 +1,9 @@
+from backtrader import indicators
+from backtrader.indicator import LinePlotterIndicator
 from money_mgmt.sizers import LongOnlyPortionSizer, PortionSizer
 from strategies.base_strategy import BaseStrategy
 from backtrader import talib
+import backtrader as bt
 from backtrader.order import Order
 from enum import Enum
 
@@ -30,6 +33,8 @@ class HighsLowsStructure(BaseStrategy):
     3. stop logic - trades go the right direction cannot loose money
     4. adjust the submitted orders during the entry period - update prices according to changes in the ATR
     5. adjust ask prices according to candle signals (for example possitive candle occurs around the asked price - support of opening position even for higher price)
+    6. trade in the trend of the market only
+    7. use VIX to filter trades
     '''
 
     params = (
@@ -110,3 +115,102 @@ class HighsLowsStructure(BaseStrategy):
         
     def notify_order(self, order, verbose=0):
         super().notify_order(order, verbose)
+
+
+
+class HighLowsStructureImproved(BaseStrategy):
+
+    params = (
+        ('atr_period', 20),
+        ('highs_period', 63),
+        ('entry_period', 10),
+    )
+
+    def next(self):
+        for stock in self.stocks:
+            if self.getposition(stock):
+                self.manage_position(stock)
+            else:
+                self.update_orders(stock)
+                if not stock.entry:
+                    self.check_signals(stock)
+
+    def prepare_stock(self, stock):
+        stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
+        # stock.highs= talib.MAX(stock.high, timeperiod=self.p.highs_period)
+        stock.highs= indicators.Highest(stock.high, period=self.p.highs_period, plot=True, subplot=False)
+        # stock.buy_level = stock.low - 2 * stock.atr
+        # LinePlotterIndicator(stock.buy_level, name='buy_level', subplot=True, plotmaster=stock)
+        stock.breakout = stock.high - stock.low > 2.3
+        stock.buy_signal = BuySignal(high=stock.high, highs=stock.highs)
+        stock.entry, stock.stoploss, stock.takeprofit = None, None, None
+        stock.bars_since_signal = None
+
+    def check_signals(self, stock):
+        if self.buy_signal(stock):
+            return
+            stock.entry = self.buy(stock, exectype=Order.Limit, price=stock.buy_level[0], transmit=False)
+            stock.stoploss = self.sell(stock, exectype=Order.Stop, price=stock.low[0] - 4*stock.atr[0], parent=stock.entry, transmit=False)
+            stock.takeprofit = self.sell(stock, exectype=Order.Limit, price=stock.high[0], parent=stock.entry, transmit=True)
+            stock.bars_since_signal = 0
+    
+    def update_orders(self, stock):
+        if stock.entry: 
+            if stock.entry.alive():
+                # stock.entry.cancel()
+                # stock.entry = self.buy(stock, exectype=Order.Limit, price=stock.buy_level[0], transmit=False)
+                stock.bars_since_signal += 1
+            else:
+                stock.entry, stock.stoploss, stock.takeprofit = None, None, None
+                stock.bars_since_signal = None
+        
+
+    def buy_signal(self, stock):
+        # return stock.high[0] > stock.highs[-1]
+        return False
+        
+
+    def manage_position(self, stock):
+        pass
+
+    def notify_order(self, order, verbose=0):
+        super().notify_order(order, verbose)
+
+
+import globals as gb
+import matplotlib.pylab as pylab
+from backtrader_plotting import Bokeh
+from backtrader_plotting.schemes import Blackly, Tradimo
+
+class HighsBreakoutStrategy(bt.Strategy):
+
+    params = (
+        ('highest_period', 63),
+    )
+
+    def __init__(self):
+        self.data.highest = indicators.Highest(self.data.high, period=self.p.highest_period, plot=True, subplot=False)
+        self.data.highest_high_breakout = HighestHighBreakoutSignal(high=self.data.high, highest=self.data.highest)
+    
+
+    def plot(self, limit=0, only_trades=True, interactive_plots=True, plot_observers=True):
+        self.data.plotinfo.plot = True
+        pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
+        plotter = Bokeh(style='bar', scheme=Tradimo()) if interactive_plots else None
+        print('ploting top %d feeds' % (limit or (only_trades and len(self._trades) or len(self.stocks))))
+        gb.cerebro.plot(plotter=plotter, style='candlestick', barup='green', numfigs=1)
+
+
+class HighestHighBreakoutSignal(bt.Indicator):
+    lines = ('breakout',)
+    plotinfo = dict(plot=True, subplot=False, plotlinelabels=True)
+    plotlines = dict(breakout=dict(
+        marker='d', markersize=8.0, color='springgreen')
+        )
+
+    def __init__(self, high, highest):
+        self.high=high
+        self.highest = indicators.Highest(self.data.high, period=63, plot=True, subplot=False)
+
+    def next(self):
+        self.lines.breakout[0] =  self.high[0] if self.high[0] > self.highest[-1] else float('nan')
