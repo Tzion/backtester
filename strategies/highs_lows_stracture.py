@@ -173,7 +173,9 @@ class HighLowsStructureImproved(BaseStrategy):
             tp1_size = size/2
             tp2_size = size - tp1_size
             # stock.entry, stock.stoploss, stock.takeprofit = self.buy_bracket(stock, price=stock.buy_level[0], stopprice=stock.stop_level[0], limitprice=stock.close[0])
-            stock.entry, stock.stoploss, stock.takeprofit = self.buy_bracket(stock, price=stock.buy_level[0], stopprice=stock.stop_level[0], limitprice=stock.close[0], limitargs={'size':tp1_size})
+            stock.entry = self.buy(stock, exectype=Order.Limit, price=stock.buy_level[0], transmit=False)
+            stock.stoploss = self.sell(stock, exectype=Order.StopTrailLimit, price=stock.stop_level[0], trailamount=2*stock.atr[0], parent=stock.entry, transmit=False)
+            stock.takeprofit = self.sell(stock, exectype=Order.Limit, price=stock.close[0], parent=stock.entry, transmit=True, size=tp1_size)
             stock.bars_since_signal = 0
     
     def update_orders(self, stock):
@@ -198,6 +200,13 @@ class HighLowsStructureImproved(BaseStrategy):
 
     def notify_order(self, order, verbose=1):
         super().notify_order(order, verbose)
+        stock = order.data
+        if order == stock.takeprofit and order.status is bt.Order.Completed:
+            self.cancel(stock.stoploss)
+            stock.stoploss = self.sell(stock, exectype=Order.StopTrailLimit, price=stock.stop_level[0], trailamount=1.5*stock.atr[0])
+            stock.takeprofit = self.sell(stock, exectype=Order.Limit, price=stock.close[0], oco=stock.stoploss)
+            
+
 
 
 class BuyLevel(bt.Indicator):
