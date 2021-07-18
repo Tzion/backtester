@@ -132,11 +132,11 @@ class HighLowsStructureImproved(BaseStrategy):
     def prepare_stock(self, stock):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
         stock.highest = talib.MAX(stock.high, timeperiod=self.p.highs_period)
-        stock.highs_breakout = HighestHighBreakoutSignal(high=stock.high, highest=stock.highest)
+        stock.highs_breakout = HighestHighBreakoutSignal(high=stock.high, highest=stock.highest, plotmaster=stock)
         # stock.highs_breakout = visualizers.SingleMarker(signals=stock.highest(-1) > stock.high, level=stock.high)
         # stock.highs_breakout2 = visualizers.SingleMarker(signals=stock.high[0]>stock.highest[-1], level=stock.high, marker='*', color='yellow')
-        stock.buy_level = visualizers.PartialLevel(signal=stock.highs_breakout, level=stock.low-2*stock.atr, length=self.p.entry_period)
-        stock.stop_level = visualizers.PartialLevel(signal=stock.highs_breakout, level=stock.low-3.5*stock.atr, color='salmon', length=self.p.entry_period)
+        stock.buy_level = visualizers.PartialLevel(signal=stock.highs_breakout, level=stock.low-2*stock.atr, plotmaster=stock,length=self.p.entry_period)
+        stock.stop_level = visualizers.PartialLevel(signal=stock.highs_breakout, level=stock.low-3.5*stock.atr, plotmaster=stock,color='salmon', length=self.p.entry_period)
         # stock.tp1 = visualizers.PartialLevel(signal=stock.low <= stock.buy_level, level=stock.high+2*stock.atr, color='seagreen')
         stock.entry, stock.stoploss, stock.takeprofit = None, None, None
         stock.bars_since_signal = None
@@ -163,19 +163,15 @@ class HighLowsStructureImproved(BaseStrategy):
         if stock.bars_since_signal > self.p.entry_period:
             stock.entry.cancel()
         if stock.open[1] < stock.stop_level[0]:
-            self.log(stock,'canceling')
+            self.log(stock,'canceling - price opened below the stop')
             self.cancel(stock.entry)
             stock.entry = None
 
     def check_signals(self, stock):
         if stock.highs_breakout[0] > 0:
-            size = self.getsizing(stock)
-            tp1_size = size/2
-            tp2_size = size - tp1_size
-            # stock.entry, stock.stoploss, stock.takeprofit = self.buy_bracket(stock, price=stock.buy_level[0], stopprice=stock.stop_level[0], limitprice=stock.close[0])
             stock.entry = self.buy(stock, exectype=Order.Limit, price=stock.buy_level[0], transmit=False)
-            stock.stoploss = self.sell(stock, exectype=Order.StopTrailLimit, price=stock.stop_level[0], trailamount=2*stock.atr[0], parent=stock.entry, transmit=False)
-            stock.takeprofit = self.sell(stock, exectype=Order.Limit, price=stock.close[0], parent=stock.entry, transmit=True, size=tp1_size)
+            stock.stoploss = self.sell(stock, exectype=Order.StopTrail, price=stock.stop_level[0]+2*stock.atr[0], trailamount=2*stock.atr[0], parent=stock.entry, transmit=False)
+            stock.takeprofit = self.sell(stock, exectype=Order.Limit, price=stock.close[0], parent=stock.entry, transmit=True, size=self.getsizing(stock)/2)
             stock.bars_since_signal = 0
     
     def update_orders(self, stock):
@@ -203,8 +199,8 @@ class HighLowsStructureImproved(BaseStrategy):
         stock = order.data
         if order == stock.takeprofit and order.status is bt.Order.Completed:
             self.cancel(stock.stoploss)
-            stock.stoploss = self.sell(stock, exectype=Order.StopTrailLimit, price=stock.stop_level[0], trailamount=1.5*stock.atr[0])
-            stock.takeprofit = self.sell(stock, exectype=Order.Limit, price=stock.close[0], oco=stock.stoploss)
+            stock.stoploss = self.sell(stock, exectype=Order.StopTrail, price=stock.low[0]-stock.atr[0], trailamount=1.5*stock.atr[0])
+            stock.takeprofit2 = self.sell(stock, exectype=Order.Limit, price=stock.high[0]+2*stock.atr[0], oco=stock.stoploss)
             
 
 
