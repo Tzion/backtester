@@ -34,6 +34,7 @@ class BaseStrategy(bt.Strategy):
             else:
                 self.manage_position(stock)
 
+
     @staticmethod
     def add_indicator(stock, indicator, attr_name=None, subplot=None):
         stock.indicators = stock.indicators if hasattr(stock, 'indicators') else []

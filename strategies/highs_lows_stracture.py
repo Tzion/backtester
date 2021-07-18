@@ -7,6 +7,7 @@ from backtrader import talib
 import backtrader as bt
 from backtrader.order import Order
 from enum import Enum
+from custom_indicators import visualizers
 
 class Direction(Enum):
     SHORT = -1
@@ -127,21 +128,52 @@ class HighLowsStructureImproved(BaseStrategy):
         ('entry_period', 10),
     )
 
+
     def prepare_stock(self, stock):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
         stock.highest = talib.MAX(stock.high, timeperiod=self.p.highs_period)
         stock.highs_breakout = HighestHighBreakoutSignal(high=stock.high, highest=stock.highest)
-        stock.buy_level = BuyLevel(signal=stock.highs_breakout, level=stock.low-2*stock.atr)# valid_for=self.p.entry_period)
-
+        # stock.highs_breakout = visualizers.SingleMarker(signals=stock.highest(-1) > stock.high, level=stock.high)
+        # stock.highs_breakout2 = visualizers.SingleMarker(signals=stock.high[0]>stock.highest[-1], level=stock.high, marker='*', color='yellow')
+        stock.buy_level = visualizers.PartialLevel(signal=stock.highs_breakout, level=stock.low-2*stock.atr, length=self.p.entry_period)
+        stock.stop_level = visualizers.PartialLevel(signal=stock.highs_breakout, level=stock.low-3.5*stock.atr, color='salmon', length=self.p.entry_period)
+        # stock.tp1 = visualizers.PartialLevel(signal=stock.low <= stock.buy_level, level=stock.high+2*stock.atr, color='seagreen')
         stock.entry, stock.stoploss, stock.takeprofit = None, None, None
         stock.bars_since_signal = None
+        stock.open.forward()
+
+    def next(self):
+        for stock in self.stocks:
+            self.next_stock(stock)
+    
+    def next_stock(self, stock):
+        if self.getposition(stock):
+            self.manage_position(stock)
+            return
+        if self.waiting_for_signal(stock):
+            self.check_signals(stock)
+        else:
+            self.validate_conditions(stock)
+
+    def waiting_for_signal(self,stock):
+        return stock.entry is None
+
+    def validate_conditions(self, stock):
+        stock.bars_since_signal += 1
+        if stock.bars_since_signal > self.p.entry_period:
+            stock.entry.cancel()
+        if stock.open[1] < stock.stop_level[0]:
+            self.log(stock,'canceling')
+            self.cancel(stock.entry)
+            stock.entry = None
 
     def check_signals(self, stock):
-        return False
-        if self.buy_signal(stock):
-            stock.entry = self.buy(stock, exectype=Order.Limit, price=stock.buy_level[0], transmit=False)
-            stock.stoploss = self.sell(stock, exectype=Order.Stop, price=stock.low[0] - 4*stock.atr[0], parent=stock.entry, transmit=False)
-            stock.takeprofit = self.sell(stock, exectype=Order.Limit, price=stock.high[0], parent=stock.entry, transmit=True)
+        if stock.highs_breakout[0] > 0:
+            size = self.getsizing(stock)
+            tp1_size = size/2
+            tp2_size = size - tp1_size
+            # stock.entry, stock.stoploss, stock.takeprofit = self.buy_bracket(stock, price=stock.buy_level[0], stopprice=stock.stop_level[0], limitprice=stock.close[0])
+            stock.entry, stock.stoploss, stock.takeprofit = self.buy_bracket(stock, price=stock.buy_level[0], stopprice=stock.stop_level[0], limitprice=stock.close[0], limitargs={'size':tp1_size})
             stock.bars_since_signal = 0
     
     def update_orders(self, stock):
@@ -160,9 +192,11 @@ class HighLowsStructureImproved(BaseStrategy):
         
 
     def manage_position(self, stock):
+        stock.bars_since_signal = None
+        stock.entry = None
         pass
 
-    def notify_order(self, order, verbose=0):
+    def notify_order(self, order, verbose=1):
         super().notify_order(order, verbose)
 
 
