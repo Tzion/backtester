@@ -160,10 +160,8 @@ class HighLowsStructureImproved(BaseStrategy):
 
     def validate_conditions(self, stock):
         stock.bars_since_signal += 1
-        if stock.bars_since_signal > self.p.entry_period:
-            stock.entry.cancel()
-        if stock.open[1] < stock.stop_level[0]:
-            self.log(stock,'canceling - price opened below the stop')
+        if stock.open[1] < stock.stop_level[0] or stock.bars_since_signal > self.p.entry_period:
+            self.log(stock,'canceling - %s'%('price opened below the stop' if stock.open[1] < stock.stop_level[0] else None))
             self.cancel(stock.entry)
             stock.entry = None
 
