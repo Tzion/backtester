@@ -151,7 +151,8 @@ class HighLowsStructureImproved(BaseStrategy):
             self.manage_position(stock)
             return
         if self.waiting_for_signal(stock):
-            self.check_signals(stock)
+            if self.check_signals(stock):
+                self.validate_conditions(stock)
         else:
             self.validate_conditions(stock)
 
@@ -160,7 +161,7 @@ class HighLowsStructureImproved(BaseStrategy):
 
     def validate_conditions(self, stock):
         stock.bars_since_signal += 1
-        if stock.open[1] < stock.stop_level[0] or stock.bars_since_signal > self.p.entry_period:
+        if stock.open[1] < stock.stop_level[0] or stock.bars_since_signal > self.p.entry_period or stock.open[1] - stock.close[0] > stock.atr[0]:
             self.log(stock,'canceling - %s'%('price opened below the stop' if stock.open[1] < stock.stop_level[0] else None))
             self.cancel(stock.entry)
             stock.entry = None
@@ -171,6 +172,7 @@ class HighLowsStructureImproved(BaseStrategy):
             stock.stoploss = self.sell(stock, exectype=Order.StopTrail, price=stock.stop_level[0]+2*stock.atr[0], trailamount=2*stock.atr[0], parent=stock.entry, transmit=False)
             stock.takeprofit = self.sell(stock, exectype=Order.Limit, price=stock.close[0], parent=stock.entry, transmit=True, size=self.getsizing(stock)/2)
             stock.bars_since_signal = 0
+            return True
     
     def update_orders(self, stock):
         if stock.entry: 
@@ -192,7 +194,7 @@ class HighLowsStructureImproved(BaseStrategy):
         stock.entry = None
         pass
 
-    def notify_order(self, order, verbose=1):
+    def notify_order(self, order, verbose=0):
         super().notify_order(order, verbose)
         stock = order.data
         if order == stock.takeprofit and order.status is bt.Order.Completed:
