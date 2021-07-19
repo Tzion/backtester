@@ -1,5 +1,6 @@
 from .trade_phase_strategy import TradePhase, TradePhaseStrategy
 
+# TODO move to test area
 
 class TradePhaseStrategyTest(TradePhaseStrategy):
     def __init__(self):
