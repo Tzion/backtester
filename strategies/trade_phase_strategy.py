@@ -1,12 +1,12 @@
+from __future__ import annotations
 from globals import *
-from . import *
+
 
 class TradePhaseStrategy(bt.Strategy):
 
     feeds = []
 
-    def __init__(self, initial_state_cls):
-    # def __init__(self, initial_state_cls:type[TradePhase]): TODO I want to have type hinting - becuase of cyrcular dependencies it didnt work!!!
+    def __init__(self, initial_state_cls : type[TradePhase]):
         self.feeds = self.datas
         for feed in self.feeds:
             feed.state : TradePhase = initial_state_cls(self, feed)
