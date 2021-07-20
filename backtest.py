@@ -1,5 +1,5 @@
+from strategies.highs_lows_stracture import HighLowsStructureImproved, HighestHighsBreakoutStrategy, HighsLowsStructure
 from test.trade_phase_strategy_test import TradePhaseStrategyTest
-from strategies.highs_lows_stracture import HighLowsStructureImproved, HighsLowsStructure
 from iknowfirst.ikf_strategies import EndOfMonthEntry, OneTimeframeForecast, Top3, TwoTimeframesForecast, Sma5And30DaysForecasts
 from strategies import rsi_strategy, doji_long_strategy
 from iknowfirst.iknowfirst import retrieve_stocks
@@ -20,10 +20,10 @@ import numpy as np
 def main():
     global cerebro
     cerebro = gb.cerebro
-    add_strategies(TradePhaseStrategyTest)
+    add_strategies(HighestHighsBreakoutStrategy)
     # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), limit=100, dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['VNO.csv','ORCL.csv','RL.csv','MPWR.csv','UDR.csv','INTU.csv','BAX.csv','TEL.csv','GS.csv','JBHT.csv','PHM.csv','CCL.csv','WAT.csv','HD.csv',], dirpath='data_feeds')
-    add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['HD.csv',], dirpath='data_feeds')
+    add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['VNO.csv','ORCL.csv','RL.csv','MPWR.csv','UDR.csv','INTU.csv','BAX.csv','TEL.csv','GS.csv','JBHT.csv','PHM.csv','CCL.csv','WAT.csv','HD.csv',], dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['HD.csv',], dirpath='data_feeds')
     # add_data(start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['DAL.csv', 'PNW.csv', 'AMP.csv', 'LOW.csv','ADM.csv','RTX.csv','CSX.csv','NCLH.csv','PAYC.csv',],limit=0, dirpath='data_feeds')
     # add_strategies(Top3)
     # add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 6, 28), limit=0,
@@ -32,7 +32,7 @@ def main():
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=0, only_trades=True, plot_observers=True, interactive_plots=True)
+    # plot(strategies[0], limit=0, only_trades=True, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):

@@ -8,6 +8,7 @@ import backtrader as bt
 from backtrader.order import Order
 from enum import Enum
 from custom_indicators import visualizers
+from strategies.trade_phase_strategy import TradeStateStrategy, TradeState
 
 class Direction(Enum):
     SHORT = -1
@@ -298,3 +299,22 @@ class HighestHighBreakoutSignal(bt.Indicator):
     
 #     def chagne_state(self, state):
 #         self.state = state
+
+
+class HighestHighsBreakoutStrategy(TradeStateStrategy):
+    params = (
+        ('atr_period', 20),
+        ('highs_period', 63),
+        ('entry_period', 10),
+    )
+    def __init__(self):
+        super().__init__(self.NoTrade)
+    
+
+    def prepare_feed(self, feed):
+        feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period)
+        feed.highest = talib.MAX(feed.high, timeperiod=self.p.highs_period)
+
+    class NoTrade(TradeState):
+        def next(self, feed):
+            pass
