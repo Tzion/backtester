@@ -1,9 +1,10 @@
-from strategies.trade_phase_strategy import TradeState, TradeStateStrategy
+from strategies.trade_state_strategy import TradeState, TradeStateStrategy
 
 
 class TradePhaseStrategyTest(TradeStateStrategy):
-    def __init__(self):
-        super().__init__(TradePhaseTest)
+
+    def initial_state_cls(self):
+        return TradePhaseTest
 
 
 class TradePhaseTest(TradeState):

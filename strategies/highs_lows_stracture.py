@@ -8,7 +8,7 @@ import backtrader as bt
 from backtrader.order import Order
 from enum import Enum
 from custom_indicators import visualizers
-from strategies.trade_phase_strategy import TradeStateStrategy, TradeState
+from strategies.trade_state_strategy import TradeStateStrategy, TradeState
 
 class Direction(Enum):
     SHORT = -1
@@ -307,14 +307,17 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
         ('highs_period', 63),
         ('entry_period', 10),
     )
-    def __init__(self):
-        super().__init__(self.NoTrade)
     
+    def initial_state_cls(self) -> type[TradeState]:
+        return self.NoTrade
 
     def prepare_feed(self, feed):
         feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period)
         feed.highest = talib.MAX(feed.high, timeperiod=self.p.highs_period)
+        feed.highs_breakout = HighestHighBreakoutSignal(high=feed.high, highest=feed.highest, plotmaster=feed)
+        # feed.buy_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-2*feed.atr, plotmaster=feed,length=self.p.entry_period)
+        # feed.stop_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-3.5*feed.atr, plotmaster=feed,color='salmon', length=self.p.entry_period)
 
     class NoTrade(TradeState):
-        def next(self, feed):
+        def next(self):
             pass
