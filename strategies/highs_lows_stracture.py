@@ -190,9 +190,9 @@ class HighLowsStructureImproved(BaseStrategy):
         
 
     def manage_position(self, stock):
+        pass
         stock.bars_since_signal = None
         stock.entry = None
-        pass
 
     def notify_order(self, order, verbose=0):
         super().notify_order(order, verbose)
@@ -239,3 +239,62 @@ class HighestHighBreakoutSignal(bt.Indicator):
         for i in range(start, end):
             self.lines.breakout[i] = self.high[i] if self.high[i] > self.highest[i-1] else float('nan')  # If I'm getting out-of-index beacuase of the -1 add this to init: 'self.addminperiod(1)'
 
+
+# class TradeState:
+#     '''
+#     state 1 - no entry order
+#         check for signals
+#         when a signal receive - send commands
+#     state 2 - entry order was sent
+#         check for abortion signals
+#         if a signal receive - cancel commands
+#     state 3 - entry order was executed
+#         check for exit signals
+#         when signal receive - exit
+#     '''
+#     stock : Stock
+#     def __init__(self, stock):
+#         self.stock = stock
+
+#     def check_signal(self):
+#         pass
+
+# class NoTrade(TradeState):
+#     def check_signal(self):
+#         if self.highs_breakout():
+#             self.send_orders()
+    
+#     def highs_breakout(self):
+#         return self.stock.highs[0] > self.stock.highest
+#         # bring from conditions module
+
+#     def send_orders(self):
+#         order = self.send_braket()
+#         self.stock.changes_state(OrderSent(self.stock, order))
+
+# class OrderSent(TradeState):
+#     self.bars = 0 
+#     self.order
+
+#     def __init__(self, stock, order):
+#         super().__init__(stock)
+#         self.order = order
+        
+#     def check_signal(self):
+#         self.bar += 1
+#         if self.bars > 10:
+#             self.abort()
+        
+#     def abort(self):
+#         self.orders.cancel()
+#         self.stock.change_state(NoTrade(self.stock))
+
+
+# class Stock():
+#     state : TradeState
+
+#     def next(self):
+#         state.check_signals()
+    
+#     def chagne_state(self, state):
+#         self.state = state

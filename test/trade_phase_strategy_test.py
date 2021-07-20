@@ -1,5 +1,6 @@
 from strategies.trade_phase_strategy import TradePhase, TradePhaseStrategy
 
+# TODO move to test area
 
 class TradePhaseStrategyTest(TradePhaseStrategy):
     def __init__(self):
@@ -9,5 +10,4 @@ class TradePhaseStrategyTest(TradePhaseStrategy):
 class TradePhaseTest(TradePhase):
 
     def next(self):
-        # TODO what are you testing here?
         print('next() Trade Phase Test for feed %s'%self.feed._name)
