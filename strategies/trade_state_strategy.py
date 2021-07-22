@@ -19,11 +19,6 @@ class TradeState():
     def next(self):
         NotImplementedError
 
-    def change_state(self, new_state : TradeState):
-        self.feed.state = new_state
-
-
-
 
 class TradeStateStrategy(bt.Strategy):
 
@@ -39,6 +34,9 @@ class TradeStateStrategy(bt.Strategy):
     @abstractmethod
     def initial_state_cls(self): #TODO define the first state as the default
         pass
+
+    def change_state(self, old_state : TradeState, new_state : TradeState):
+        old_state.feed.state = new_state
 
     def next(self):
         for feed in self.feeds:

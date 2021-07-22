@@ -5,7 +5,7 @@ from money_mgmt.sizers import LongOnlyPortionSizer, PortionSizer
 from strategies.base_strategy import BaseStrategy
 from backtrader import talib
 import backtrader as bt
-from backtrader.order import Order
+from backtrader.order import Order, OrderBase
 from enum import Enum
 from custom_indicators import visualizers
 from strategies.trade_state_strategy import TradeStateStrategy, TradeState
@@ -317,6 +317,11 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
         feed.highs_breakout = HighestHighBreakoutSignal(high=feed.high, highest=feed.highest, plotmaster=feed)
         feed.buy_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-2*feed.atr, plotmaster=feed,length=self.p.entry_period)
         feed.stop_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-3.5*feed.atr, plotmaster=feed,color='salmon', length=self.p.entry_period)
+    
+    def notify_order(self, order):
+        # TODO use the new logger
+        pass
+
 
     class NoTrade(TradeState):
         def next(self):
@@ -324,17 +329,20 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
                 entry = self.strategy.buy(self.feed, exectype=Order.Limit, price=self.feed.buy_level[0], transmit=False)
                 stoploss = self.strategy.sell(self.feed, exectype=Order.StopTrail, price=self.feed.stop_level[0]+2*self.feed.atr[0], trailamount=2*self.feed.atr[0], parent=entry, transmit=False)
                 takeprofit = self.strategy.sell(self.feed, exectype=Order.Limit, price=self.feed.close[0], parent=entry, transmit=True, size=self.strategy.getsizing(self.feed)/2)
-                # self.change_state(HighestHighsBreakoutStrategy.EntrySignal(entry, stoploss, takeprofit))
+                self.strategy.change_state(self, HighestHighsBreakoutStrategy.EntrySignal(self.strategy, self.feed, entry, stoploss, takeprofit))
 
     class EntrySignal(TradeState):
-        def __init__(self, strategy, entry_order, stoploss_order, take_profit_order):
-            # super().__init__(strategy)
-            self.entry_order = entry_order
-            self.stoploss_order = stoploss_order
-            self.take_profit_order = take_profit_order
+        def __init__(self, strategy, feed, entry: Order, stoploss: Order, takeprofit: Order):
+            super().__init__(strategy, feed)
+            self.entry  = entry
+            self.stoploss = stoploss
+            self.takeprofit = takeprofit
             self.bars = 0
         
         def next(self):
             self.bars += 1
-            if self.bars > self.strategy.p.enrty_period:
-                self.strategy.cancel(self.entry_order)
+            if self.bars > self.strategy.p.entry_period:
+                self.strategy.cancel(self.entry)
+    
+    # class OpenPosition(TradeState):
+
