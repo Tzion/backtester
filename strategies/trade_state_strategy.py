@@ -7,9 +7,27 @@ from backtrader_plotting import Bokeh
 from backtrader_plotting.schemes import Blackly, Tradimo
 import globals as gb
 
+class TradeState():
+
+    strategy : TradeStateStrategy
+
+    def __init__(self, strategy : TradeStateStrategy, feed):
+        self.strategy = strategy
+        self.feed = feed
+    
+    @abstractmethod
+    def next(self):
+        NotImplementedError
+
+    def change_state(self, new_state : TradeState):
+        self.feed.state = new_state
+
+
+
 
 class TradeStateStrategy(bt.Strategy):
 
+# TODO once we have asset class - it should hold the state of the trade (and also the feed data - Asset.state, Asset.data/feed
     feeds = []
 
     def __init__(self):
@@ -30,6 +48,12 @@ class TradeStateStrategy(bt.Strategy):
     def prepare_feed(self, feed):
         pass
 
+
+
+
+
+
+    
     # TODO the are of plotting need refactoring       
     def plot(self, limit=0, only_trades=True, interactive_plots=True, plot_observers=True):
         pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
@@ -76,18 +100,5 @@ class TradeStateStrategy(bt.Strategy):
             raise Exception("trying to plot buy-sell observer of wrong stock")
         observer.plotinfo.plot = plot_on
 
-
-
-class TradeState():
-
-    strategy : TradeStateStrategy
-
-    def __init__(self, strategy : TradeStateStrategy, feed):
-        self.strategy = strategy
-        self.feed = feed
-    
-    @abstractmethod
-    def next(self):
-        NotImplementedError
 
 

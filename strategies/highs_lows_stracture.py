@@ -315,9 +315,26 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
         feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period)
         feed.highest = talib.MAX(feed.high, timeperiod=self.p.highs_period)
         feed.highs_breakout = HighestHighBreakoutSignal(high=feed.high, highest=feed.highest, plotmaster=feed)
-        # feed.buy_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-2*feed.atr, plotmaster=feed,length=self.p.entry_period)
-        # feed.stop_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-3.5*feed.atr, plotmaster=feed,color='salmon', length=self.p.entry_period)
+        feed.buy_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-2*feed.atr, plotmaster=feed,length=self.p.entry_period)
+        feed.stop_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-3.5*feed.atr, plotmaster=feed,color='salmon', length=self.p.entry_period)
 
     class NoTrade(TradeState):
         def next(self):
-            pass
+            if self.feed.highs_breakout[0] > 0:
+                entry = self.strategy.buy(self.feed, exectype=Order.Limit, price=self.feed.buy_level[0], transmit=False)
+                stoploss = self.strategy.sell(self.feed, exectype=Order.StopTrail, price=self.feed.stop_level[0]+2*self.feed.atr[0], trailamount=2*self.feed.atr[0], parent=entry, transmit=False)
+                takeprofit = self.strategy.sell(self.feed, exectype=Order.Limit, price=self.feed.close[0], parent=entry, transmit=True, size=self.strategy.getsizing(self.feed)/2)
+                # self.change_state(HighestHighsBreakoutStrategy.EntrySignal(entry, stoploss, takeprofit))
+
+    class EntrySignal(TradeState):
+        def __init__(self, strategy, entry_order, stoploss_order, take_profit_order):
+            # super().__init__(strategy)
+            self.entry_order = entry_order
+            self.stoploss_order = stoploss_order
+            self.take_profit_order = take_profit_order
+            self.bars = 0
+        
+        def next(self):
+            self.bars += 1
+            if self.bars > self.strategy.p.enrty_period:
+                self.strategy.cancel(self.entry_order)
