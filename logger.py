@@ -2,7 +2,7 @@ import logging
 import sys
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('backtester')
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter(fmt='%(asctime)s %(process)s-%(thread)s %(name)s %(levelname)s:  %(message)s', datefmt='%y-%m-%d_%H:%M:%S'))
@@ -12,6 +12,18 @@ logger.addHandler(handler)
 
 def logdebug(message, feed=None):
     logger.debug(inject_feed(message, feed))
+
+def loginfo(message, feed=None):
+    logger.info(inject_feed(message, feed))
+
+def logwarning(message, feed=None):
+    logger.warning(inject_feed(message, feed))
+
+def logerror(message, feed=None):
+    logger.exception(inject_feed(message, feed))
+
+def logcritical(message, feed=None):
+    logger.critical(inject_feed(message, feed))
 
 def inject_feed(message, feed):
     if feed:
@@ -23,7 +35,3 @@ def inject_feed(message, feed):
             message = f'[ERROR] {message}'
     return message
         
-
-def logdebugdeco(message):
-    logdebug(message)
-
