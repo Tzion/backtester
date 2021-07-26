@@ -1,3 +1,4 @@
+from backtrader.trade import Trade
 from globals import *
 from backtrader import indicators, signal
 from backtrader.indicator import LinePlotterIndicator
@@ -319,10 +320,14 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
         feed.buy_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-2*feed.atr, plotmaster=feed,length=self.p.entry_period)
         feed.stop_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-3.5*feed.atr, plotmaster=feed,color='salmon', length=self.p.entry_period)
     
-    def notify_order(self, order):
-        # TODO use the new logger
-        pass
-
+    def notify_trade(self, trade):
+        feed = trade.data
+        prev_state = trade.data.state
+        if trade.isopen:
+            self.change_state(prev_state, self.OpenPosition(self, feed, trade, prev_state.entry, prev_state.stoploss, prev_state.takeprofit))
+        if trade.isclosed:
+            self.change_state(prev_state, self.NoTrade(self, feed))
+        super().notify_trade(trade)
 
     class NoTrade(TradeState):
         def next(self):
@@ -342,8 +347,25 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
         
         def next(self):
             self.bars += 1
+            if self.feed.highs_breakout[0] > 0:
+                self.pending_order_levels = (self.feed.buy_level[0], self.feed.stop_level[0]+2*self.feed.atr[0], self.feed.close[0])
             if self.bars > self.strategy.p.entry_period:
+
                 self.strategy.cancel(self.entry)
+                self.strategy.change_state(self, HighestHighsBreakoutStrategy.NoTrade(self.strategy, self.feed))
     
-    # class OpenPosition(TradeState):
+    class OpenPosition(TradeState):
+        def __init__(self, strategy : TradeStateStrategy, feed, open_trade: Trade, entry: Order, stoploss: Order, takeprofit: Order):
+            super().__init__(strategy, feed)
+            self.open_trade = open_trade
+            self.entry  = entry
+            self.stoploss = stoploss
+            self.takeprofit = takeprofit
+
+        def next(self):
+            pass
+
+
+
+
 
