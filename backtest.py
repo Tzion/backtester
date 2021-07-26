@@ -1,4 +1,3 @@
-from strategies.draft import TestLogger
 from strategies.highs_lows_stracture import HighLowsStructureImproved, HighestHighsBreakoutStrategy, HighsLowsStructure
 from test.trade_state_strategy_test import TradePhaseStrategyTest
 from iknowfirst.ikf_strategies import EndOfMonthEntry, OneTimeframeForecast, Top3, TwoTimeframesForecast, Sma5And30DaysForecasts
@@ -15,13 +14,14 @@ from backtrader_plotting import Bokeh
 import globals as gb
 import strategies
 import numpy as np
+from logger import *
 
 
 
 def main():
     global cerebro
     cerebro = gb.cerebro
-    add_strategies(TestLogger)
+    add_strategies(HighestHighsBreakoutStrategy)
     # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), limit=100, dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['VNO.csv','ORCL.csv','RL.csv','MPWR.csv','UDR.csv','INTU.csv','BAX.csv','TEL.csv','GS.csv','JBHT.csv','PHM.csv','CCL.csv','WAT.csv','HD.csv',], dirpath='data_feeds')
     add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['HD.csv', 'VNO.csv'], dirpath='data_feeds')
@@ -32,11 +32,12 @@ def main():
     add_analyzer()
     global strategies
     strategies = backtest()
-    # show_statistics(strategies)
-    # plot(strategies[0], limit=2, only_trades=False, plot_observers=True, interactive_plots=True)
+    show_statistics(strategies)
+    plot(strategies[0], limit=2, only_trades=False, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):
+    loginfo(f'backtesting strategy {strategy}')
     cerebro.addstrategy(strategy)
 
 
@@ -47,7 +48,7 @@ def add_data(start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-
     if random:
         stocks = np.random.permutation(stocks)
     stocks = stocks[:limit or len(stocks)]
-    print('adding {} data feeds'.format(len(stocks)))
+    loginfo(f'adding {len(stocks)} data feeds')
     for i, stock in enumerate(stocks):
         feed = bt.feeds.GenericCSVData(
             dataname=os.path.join(dirpath, stock2file(stock)), fromdate=start_date,
@@ -61,8 +62,7 @@ def add_analyzer():
 
 def backtest():
     cerebro.broker.setcash(10000.0)
-    print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
-    print('backtesting strategy')
+    loginfo(f'Strating portfolio value: {cerebro.broker.getvalue():.2f}')
     strategies = cerebro.run()
     return strategies
 
@@ -72,9 +72,9 @@ def plot(strategy: bt.Strategy, *args, **kwargs):
 
 
 def show_statistics(strategies):
-    print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    loginfo(f'Final portfolio value: {cerebro.broker.getvalue():.2f}')
     for each in strategies[0].analyzers:
-        each.print()
+        each.print() # TODO use logger
 
 if __name__ == '__main__':
     main()

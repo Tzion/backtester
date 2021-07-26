@@ -106,7 +106,7 @@ class BaseStrategy(bt.Strategy):
         # limit = limit or len(self.stocks)
         # feeds = list(dict(sorted(self._trades.items(), key=lambda item: len(item[1][0]))))[:limit] if only_trades else self.stocks[:limit] # for sorted trades
         plotter = Bokeh(style='bar', scheme=Tradimo()) if interactive_plots else None
-        print('ploting top %d feeds' % (limit or (only_trades and len(self._trades) or len(self.stocks))))
+        loginfo('ploting top %d feeds' % (limit or (only_trades and len(self._trades) or len(self.stocks))))
         self.set_plot_for_observers(False)
         printed = 0
         for i, stock in enumerate(self.stocks):

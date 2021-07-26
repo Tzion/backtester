@@ -6,6 +6,7 @@ import matplotlib.pylab as pylab
 from backtrader_plotting import Bokeh
 from backtrader_plotting.schemes import Blackly, Tradimo
 import globals as gb
+from logger import *
 
 class TradeState():
 
@@ -36,6 +37,7 @@ class TradeStateStrategy(bt.Strategy):
         pass
 
     def change_state(self, old_state : TradeState, new_state : TradeState):
+        assert old_state.feed.state is old_state
         old_state.feed.state = new_state
 
     def next(self):
@@ -58,7 +60,7 @@ class TradeStateStrategy(bt.Strategy):
         # limit = limit or len(self.stocks)
         # feeds = list(dict(sorted(self._trades.items(), key=lambda item: len(item[1][0]))))[:limit] if only_trades else self.stocks[:limit] # for sorted trades
         plotter = Bokeh(style='bar', scheme=Tradimo()) if interactive_plots else None
-        print('ploting top %d feeds' % (limit or (only_trades and len(self._trades) or len(self.feeds))))
+        loginfo('ploting top %d feeds' % (limit or (only_trades and len(self._trades) or len(self.feeds))))
         self.set_plot_for_observers(False)
         printed = 0
         for i, stock in enumerate(self.feeds):
@@ -98,5 +100,6 @@ class TradeStateStrategy(bt.Strategy):
             raise Exception("trying to plot buy-sell observer of wrong stock")
         observer.plotinfo.plot = plot_on
 
+    notify_trade = BaseStrategy.notify_trade
 
 
