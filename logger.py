@@ -26,8 +26,8 @@ def inject_feed(message, feed):
         try:
             name = feed._name
             time = feed.datetime.date()
-            message = f'[{name}@{time}] {message}'
+            message = f'[{name} @ {time}] {message}'
         except Exception as e:
-            message = f'[ERROR] {message}'
+            message = f'[FEEDERROR] {message}'
     return message
         
