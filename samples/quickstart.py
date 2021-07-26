@@ -29,7 +29,6 @@ class TestStrategy(bt.Strategy):
 
     def next(self):
         if (self.is_doji()):
-            self.log('Doji spotted')
             self.buy()
 
 

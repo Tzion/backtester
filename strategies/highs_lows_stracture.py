@@ -9,6 +9,7 @@ from backtrader.order import Order, OrderBase
 from enum import Enum
 from custom_indicators import visualizers
 from strategies.trade_state_strategy import TradeStateStrategy, TradeState
+from logger import *
 
 class Direction(Enum):
     SHORT = -1
@@ -88,7 +89,7 @@ class HighsLowsStructure(BaseStrategy):
             stock.entry = self.sell(stock, exectype=Order.Limit, price=stock.high[0] + 2*stock.atr[0], transmit=False)
             stock.stoploss = self.buy(stock, exectype=Order.Stop, price=stock.high[0] + 4*stock.atr[0], parent=stock.entry, transmit=False)
             stock.takeprofit = self.buy(stock, exectype=Order.Limit, price=stock.low[0], parent=stock.entry, transmit=True)
-        self.log(stock, "orders sent, %s trade. asked price: %.2f, take-profit: %.2f, stop-loss: %.2f"%(stock.direction, stock.entry.price, stock.takeprofit.price, stock.stoploss.price))
+        logdebug(f'order sent, {stock.direction} trade. asked price: {stock.entry.price:.2f}, take-profit: {stock.takeprofit.price:.2f}, stop-loss: {stock.stoploss.price}', stock)
         stock.bars_since_order = 0
 
     def breakout(self, stock):
@@ -163,7 +164,7 @@ class HighLowsStructureImproved(BaseStrategy):
     def validate_conditions(self, stock):
         stock.bars_since_signal += 1
         if stock.open[1] < stock.stop_level[0] or stock.bars_since_signal > self.p.entry_period or stock.open[1] - stock.close[0] > stock.atr[0]:
-            self.log(stock,'canceling - %s'%('price opened below the stop' if stock.open[1] < stock.stop_level[0] else None))
+            logdebug(f'canceling - {"price opened below stop level" if stock.open[1] < stock.stop_level[0] else None}')
             self.cancel(stock.entry)
             stock.entry = None
 

@@ -10,6 +10,7 @@ from backtrader_plotting.schemes import Blackly, Tradimo
 from backtrader import observers
 import globals as gb
 from money_mgmt.sizers import PortionSizer
+from logger import *
 
 
 """ 
@@ -78,33 +79,18 @@ class BaseStrategy(bt.Strategy):
     def manage_position(self, stock):
         raise NotImplementedError
 
-    def notify_order(self, order: bt.Order, verbose=0):
-        if verbose:
-            if order.status is bt.Order.Completed or order.status is bt.Order.Partial:
-                self.log(order.data, "order %s: %s %s, price: %.2f, size: %.1f" % (
-                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
-            else: # the same message for now
-                self.log(order.data, "order %s: %s %s, price: %.2f, size: %.1f" % (
-                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
-        else:
-            if order.status in [bt.Order.Rejected, bt.Order.Margin]:
-                self.log(order.data, "order %s: %s %s, price: %.2f, size: %.1f" % (
-                    order.getstatusname(), order.ordtypename(), order.getordername(), order.price or order.created.price, order.size))
+    def notify_order(self, order: bt.Order):
+        if order.status is bt.Order.Completed or order.status is bt.Order.Partial:
+            logdebug(f'order {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.created.price}, size: {order.size}', order.data)
+        if order.status in [bt.Order.Rejected, bt.Order.Margin]:
+            logwarning(f'order {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.created.price}, size: {order.size}', order.data)
 
 
-    def notify_trade(self, trade: bt.Trade, verbose=0):
+    def notify_trade(self, trade: bt.Trade):
         if (trade.status <= 1): # created or open
-            self.log(trade.data, '%s trade %s, price: %.2f, size: %.1f, date: %s' % (
-                'long' if trade.size>0 else 'short', trade.status_names[trade.status], trade.price, trade.size, trade.open_datetime().date()))
-        else: 
-            self.log(trade.data, 'trade %s, pnl %.0f, holding: %s, date: %s' % (
-                trade.status_names[trade.status], trade.pnl, trade.size, trade.close_datetime().date()))
-
-    def log(self, stock, txt):
-        ''' logging function for this strategy'''
-        date = stock.datetime.date()
-        print('%s @ %s: %s' % (stock._name, date.isoformat(), txt))
-
+            loginfo(f'{"long" if trade.size>0 else "short"} trade {trade.status_names[trade.status]}, price: {trade.price}, size: {trade.size}, date: {trade.open_datetime().date()}', trade.data)
+        else: # closed
+            loginfo(f'trade {trade.status_names[trade.status]}, pnl: {trade.pnl:.0f}, date: {trade.close_datetime().date()}', trade.data)
 
     def get_opened_trade(self, stock): #TODO handle trade management by my strategy
         trades : AutoDictList = self._trades[stock]  # self._trades[stock] is {data: {order_id: [trades]}}
