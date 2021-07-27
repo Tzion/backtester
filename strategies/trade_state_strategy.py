@@ -1,5 +1,7 @@
 from __future__ import annotations
 from abc import abstractmethod
+
+from backtrader.order import Order
 from strategies.base_strategy import BaseStrategy
 from globals import *
 import matplotlib.pylab as pylab
@@ -7,18 +9,34 @@ from backtrader_plotting import Bokeh
 from backtrader_plotting.schemes import Blackly, Tradimo
 import globals as gb
 from logger import *
+from typing import Optional
 
 class TradeState():
 
     strategy : TradeStateStrategy
 
-    def __init__(self, strategy : TradeStateStrategy, feed):
+    def __init__(self, strategy : TradeStateStrategy, feed, entry : Order = None, stoploss: Order = None, takeprofit: Order = None):
         self.strategy = strategy
         self.feed = feed
+        self._entry   = entry
+        self._stoploss = stoploss
+        self._takeprofit = takeprofit
+
+    def set_order_property(self, order:Order, name: str):
+        attr_name = '_' + name
+        cur_order = self.__getattribute__(attr_name)
+        if cur_order and type(cur_order) == Order:
+            self.strategy(cur_order)
+        self.__setattr__(attr_name, order)
+
+    entry = property(lambda self: self._entry, lambda self, order: self.set_order_property(order, 'entry'), None)
+    stoploss = property(lambda self: self._stoploss, lambda self, order: self.set_order_property(order, 'stoploss'), None)
+    takeprofit = property(lambda self: self._takeprofit, lambda self, order: self.set_order_property(order, 'takeprofit'), None)
     
     @abstractmethod
     def next(self):
         NotImplementedError
+    
 
 
 class TradeStateStrategy(bt.Strategy):
@@ -38,6 +56,7 @@ class TradeStateStrategy(bt.Strategy):
 
     def change_state(self, old_state : TradeState, new_state : TradeState):
         assert old_state.feed.state is old_state
+        logdebug(f"changing state from {old_state.__class__.__name__} to {new_state.__class__.__name__}", old_state.feed)
         old_state.feed.state = new_state
 
     def next(self):
@@ -101,5 +120,7 @@ class TradeStateStrategy(bt.Strategy):
         observer.plotinfo.plot = plot_on
 
     notify_trade = BaseStrategy.notify_trade
+
+    notify_order = BaseStrategy.notify_order
 
 

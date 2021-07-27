@@ -24,7 +24,7 @@ def main():
     add_strategies(HighestHighsBreakoutStrategy)
     # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), limit=100, dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['VNO.csv','ORCL.csv','RL.csv','MPWR.csv','UDR.csv','INTU.csv','BAX.csv','TEL.csv','GS.csv','JBHT.csv','PHM.csv','CCL.csv','WAT.csv','HD.csv',], dirpath='data_feeds')
-    add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['HD.csv', 'VNO.csv'], dirpath='data_feeds')
+    add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['HD.csv', ], dirpath='data_feeds')
     # add_data(start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['DAL.csv', 'PNW.csv', 'AMP.csv', 'LOW.csv','ADM.csv','RTX.csv','CSX.csv','NCLH.csv','PAYC.csv',],limit=0, dirpath='data_feeds')
     # add_strategies(Top3)
     # add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 6, 28), limit=0,
@@ -37,7 +37,7 @@ def main():
 
 
 def add_strategies(strategy: bt.Strategy):
-    loginfo(f'backtesting strategy {strategy}')
+    loginfo(f'backtesting strategy {type(strategy).__name__}')
     cerebro.addstrategy(strategy)
 
 
