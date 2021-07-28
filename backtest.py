@@ -23,8 +23,8 @@ def main():
     add_strategies(HighestHighsBreakoutStrategy)
     # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), limit=100, dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['VNO.csv','ORCL.csv','RL.csv','MPWR.csv','UDR.csv','INTU.csv','BAX.csv','TEL.csv','GS.csv','JBHT.csv','PHM.csv','CCL.csv','WAT.csv','HD.csv',], dirpath='data_feeds')
-    add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['HD.csv', ], dirpath='data_feeds')
-    # add_data(start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['DAL.csv', 'PNW.csv', 'AMP.csv', 'LOW.csv','ADM.csv','RTX.csv','CSX.csv','NCLH.csv','PAYC.csv',],limit=0, dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['HD.csv', ], dirpath='data_feeds')
+    add_data(start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['DAL.csv', 'PNW.csv', 'AMP.csv', 'LOW.csv','ADM.csv','RTX.csv','CSX.csv','NCLH.csv','PAYC.csv',],limit=0, dirpath='data_feeds')
     # add_strategies(Top3)
     # add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 6, 28), limit=0,
             #  dtformat='%Y-%m-%dT%H:%M:%SZ', stock_names=retrieve_stocks(), dirpath='iknowfirst/ikf_feeds', high_idx=2, low_idx=3, open_idx=1, close_idx=4, volume_idx=7, stock2file = lambda s: 'TASE_DLY_' + s.replace('.TA', '') + ', 1D.csv')
@@ -32,7 +32,7 @@ def main():
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=2, only_trades=False, plot_observers=False, interactive_plots=True)
+    # plot(strategies[0], limit=0, only_trades=False, plot_observers=False, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):

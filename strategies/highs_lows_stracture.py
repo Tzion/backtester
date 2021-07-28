@@ -307,11 +307,11 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
     params = (
         ('atr_period', 20),
         ('highs_period', 63),
-        ('entry_period', 15),
+        ('entry_period', 10),
     )
     
     def initial_state_cls(self) -> type[TradeState]:
-        return self.NoSignal
+        return self.NoPosition
 
     def prepare_feed(self, feed):
         feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period)
@@ -319,44 +319,34 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
         feed.highs_breakout = HighestHighBreakoutSignal(high=feed.high, highest=feed.highest, plotmaster=feed)
         feed.buy_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-2*feed.atr, plotmaster=feed,length=self.p.entry_period)
         feed.stop_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-3.5*feed.atr, plotmaster=feed,color='salmon', length=self.p.entry_period)
+        feed.low.extend(size=1)
+        feed.open.extend(size=1)
+        feed.close.extend(size=1)
+        feed.high.extend(size=1)
     
     def notify_order(self, order):
         super().notify_order(order)
         order.data.state.notify_order(order)
 
-    class NoSignal(TradeState):
+    class NoPosition(TradeState):
         def next(self):
-            self.validate_one_position()
-            if self.feed.buy_level[0] > 0:
+            self.validate_no_position()
+            if self.feed.buy_level[0] > 0 and self.no_gap() and self.feed.low[0] > self.feed.stop_level[0] and self.feed.low[1] <= self.feed.buy_level:
                 self.entry = self.strategy.buy(self.feed, exectype=Order.Limit, price=self.feed.buy_level[0], transmit=False)
                 self.stoploss = self.strategy.sell(self.feed, exectype=Order.StopTrail, price=self.feed.stop_level[0]+2*self.feed.atr[0], trailamount=2*self.feed.atr[0], parent=self.entry, transmit=False)
                 self.takeprofit = self.strategy.sell(self.feed, exectype=Order.Limit, price=self.feed.close[0], parent=self.entry, transmit=True, size=self.strategy.getsizing(self.feed)/2)
         
         def notify_order(self, order):
-            if order == self.entry and order.status is Order.Submitted:
-                self.strategy.change_state(self, HighestHighsBreakoutStrategy.EntrySignal(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
+            if order == self.entry and order.status is Order.Completed:
+                self.strategy.change_state(self, HighestHighsBreakoutStrategy.OpenPosition(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
         
-        def validate_one_position(self):
+        def validate_no_position(self):
             position = self.strategy.getposition(self.feed)
             assertlog(not position, f'{self.feed._name} has an open position of size {position.size} while in state {self.__class__.__name__}')
         
-
-
-
-    class EntrySignal(TradeState):
-
-        bars = 0
+        def no_gap(self):
+            return not abs(self.feed.open[1] - self.feed.close[0]) > self.feed.atr[0]/2
         
-        def next(self):
-            self.bars += 1
-            if self.bars > self.strategy.p.entry_period:
-                self.cancel_orders()
-                self.strategy.change_state(self, HighestHighsBreakoutStrategy.NoSignal(self.strategy, self.feed))
-
-        def notify_order(self, order):
-            if order == self.entry and order.status is Order.Completed:
-                self.strategy.change_state(self, HighestHighsBreakoutStrategy.OpenPosition(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
-
 
     class OpenPosition(TradeState):
         def next(self):
@@ -365,11 +355,11 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
         def notify_order(self, order):
             if order == self.stoploss and order.status is Order.Completed:
                 self.cancel_orders()
-                self.strategy.change_state(self, HighestHighsBreakoutStrategy.NoSignal(self.strategy, self.feed))
+                self.strategy.change_state(self, HighestHighsBreakoutStrategy.NoPosition(self.strategy, self.feed))
             if order == self.takeprofit and order.status is Order.Completed:
                 if self.strategy.getposition(self.feed):  # take-profit 2
                     self.stoploss = self.strategy.sell(self.feed, exectype=Order.StopTrail, price=self.entry.price, trailamount=3*self.feed.atr[0])
                     self.takeprofit = self.strategy.sell(self.feed, exectype=Order.Limit, price=self.feed.close[0]+3*self.feed.atr[0], oco=self.stoploss)
                 else:
                     self.cancel_orders()
-                    self.strategy.change_state(self, HighestHighsBreakoutStrategy.NoSignal(self.strategy, self.feed))
+                    self.strategy.change_state(self, HighestHighsBreakoutStrategy.NoPosition(self.strategy, self.feed))
