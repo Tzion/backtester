@@ -17,7 +17,6 @@ import numpy as np
 from logger import *
 
 
-
 def main():
     global cerebro
     cerebro = gb.cerebro
@@ -33,7 +32,7 @@ def main():
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=2, only_trades=False, plot_observers=True, interactive_plots=True)
+    plot(strategies[0], limit=2, only_trades=False, plot_observers=False, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):

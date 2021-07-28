@@ -31,3 +31,10 @@ def inject_feed(message, feed):
             message = f'[FEEDERROR] {message}'
     return message
         
+
+def assertlog(predicat, msg):
+    try:
+        assert predicat, msg
+    except AssertionError as e:
+        logerror('AssetionError: ' + msg)
+        raise e

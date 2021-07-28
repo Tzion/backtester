@@ -229,7 +229,7 @@ class HighestHighBreakoutSignal(bt.Indicator):
     lines = ('breakout',)
     plotinfo = dict(plot=True, subplot=False, plotlinelabels=True)
     plotlines = dict(breakout=dict(
-        marker='d', markersize=8.0, color='springgreen')
+        marker='d', markersize=8.0, color='magenta')
         )
     
     def __init__(self, high, highest):
@@ -307,7 +307,7 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
     params = (
         ('atr_period', 20),
         ('highs_period', 63),
-        ('entry_period', 10),
+        ('entry_period', 15),
     )
     
     def initial_state_cls(self) -> type[TradeState]:
@@ -326,7 +326,7 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
 
     class NoSignal(TradeState):
         def next(self):
-            self.validate()
+            self.validate_one_position()
             if self.feed.buy_level[0] > 0:
                 self.entry = self.strategy.buy(self.feed, exectype=Order.Limit, price=self.feed.buy_level[0], transmit=False)
                 self.stoploss = self.strategy.sell(self.feed, exectype=Order.StopTrail, price=self.feed.stop_level[0]+2*self.feed.atr[0], trailamount=2*self.feed.atr[0], parent=self.entry, transmit=False)
@@ -336,9 +336,11 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
             if order == self.entry and order.status is Order.Submitted:
                 self.strategy.change_state(self, HighestHighsBreakoutStrategy.EntrySignal(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
         
-        def validate(self):
+        def validate_one_position(self):
             position = self.strategy.getposition(self.feed)
-            assert not position, f'{self.feed._name} has an open position of size {position.size} while in state {self.__class__.__name__}'
+            assertlog(not position, f'{self.feed._name} has an open position of size {position.size} while in state {self.__class__.__name__}')
+        
+
 
 
     class EntrySignal(TradeState):

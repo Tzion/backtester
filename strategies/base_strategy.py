@@ -81,14 +81,14 @@ class BaseStrategy(bt.Strategy):
 
     def notify_order(self, order: bt.Order):
         if order.status in [bt.Order.Completed, bt.Order.Partial, bt.Order.Canceled, bt.Order.Submitted]:
-            logdebug(f'order #{order.ref} {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.created.price:.2f}, size: {order.size}', order.data)
+            logdebug(f'order #{order.ref} {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.created.price:.2f}, size: {order.size:.2f}', order.data)
         if order.status in [bt.Order.Rejected, bt.Order.Margin]:
-            logwarning(f'order #{order.ref} {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.created.price:.2f}, size: {order.size}', order.data)
+            logwarning(f'order #{order.ref} {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.created.price:.2f}, size: {order.size:.2f}', order.data)
 
 
     def notify_trade(self, trade: bt.Trade):
         if (trade.status <= 1): # created or open
-            loginfo(f'{"long" if trade.size>0 else "short"} trade {trade.status_names[trade.status]}, price: {trade.price:.2f}, size: {trade.size}, date: {trade.open_datetime().date()}', trade.data)
+            loginfo(f'{"long" if trade.size>0 else "short"} trade {trade.status_names[trade.status]}, price: {trade.price:.2f}, size: {trade.size:.2f}, date: {trade.open_datetime().date()}', trade.data)
         else: # closed
             loginfo(f'trade {trade.status_names[trade.status]}, pnl: {trade.pnl:.0f}, date: {trade.close_datetime().date()}', trade.data)
 
