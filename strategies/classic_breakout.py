@@ -25,10 +25,12 @@ class ClassicBreakout(TradeStateStrategy):
         feed.highest = indicators.Highest(feed.high, period=self.p.highs_period, subplot=False)
         feed.highest_breakout = feed.high > feed.highest(-1)
         feed.highest._name = 'somename' ## Workaround for bug in Bokeh - cannot print feed.highest(-1) without this attribute
-        feed.highest_breakout_marker = visualizers.SingleMarker(signals=feed.highest_breakout, level=feed.high ,plotmaster=feed)
+        feed.highest_breakout_marker = visualizers.SingleMarker(signals=feed.highest_breakout, level=feed.high*1.02 ,plotmaster=feed)
         feed.volume_avg = indicators.SMA(feed.volume, period=self.p.highs_period, subplot=True) # feed.buy_level = visualizers.Partia, subplot=TrueFalsTrue, plotmaster=feeds_breakout, level=feed.low-2*feed.atr, plotmaster=feed,length=self.p.entry_period)
         feed.volume_peek = feed.volume > feed.volume_avg * 2
-        feed.volume_peek_marker = visualizers.SingleMarker(signals=feed.volume_peek, level=feed.low, color='blueviolet', marker='o', plotmaster=feed)
+        feed.volume_peek_marker = visualizers.SingleMarker(signals=feed.volume_peek, level=feed.low*.96, color='blueviolet', marker='o', plotmaster=feed)
+        feed.bulish_candle = talib.CDLMARUBOZU(feed.open, feed.high, feed.low, feed.close, plot=False)
+        feed.bulish_candle_marker = visualizers.SingleMarker(signals=feed.bulish_candle, level=feed.low*.99, color='gold', marker='*', plotmaster=feed) 
 
         # feed.buy_signal = bt.And(feed.highest_breakout, feed.volume_peek, plot=False) ## Bokeh cannot print this line
         # feed.buy_signal_marker = visualizers.SingleMarker(signals=feed.buy_signal, level=feed.low*0.99, color='gold', marker='*')
@@ -41,5 +43,6 @@ class ClassicBreakout(TradeStateStrategy):
     class NoTrade(TradeState):
         def next(self):
             # if self.feed.buy_signal[0]:
-            if self.feed.highest_breakout[0] and self.feed.volume_peek[0]:
+            # if self.feed.highest_breakout[0] and self.feed.volume_peek[0] and self.feed.bulish_candle[0]:
+            if self.feed.volume_peek[0] and self.feed.bulish_candle[0]:
                 self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.low[0], limitprice=self.feed.high[0]+self.feed.atr[0])
