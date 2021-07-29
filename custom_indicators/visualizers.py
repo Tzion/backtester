@@ -31,5 +31,5 @@ class SingleMarker(bt.Indicator):
 
     def once(self, start, end):
         for i in range(start, end):
-            if self.signals[i]:
+            if self.signals[i] > 0:
                 self.lines.markers[i] = self.level[i]
