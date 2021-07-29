@@ -135,9 +135,9 @@ class HighLowsStructureImproved(BaseStrategy):
     def prepare_stock(self, stock):
         stock.atr = talib.ATR(stock.high, stock.low, stock.close, timeperiod=self.p.atr_period)
         stock.highest = talib.MAX(stock.high, timeperiod=self.p.highs_period)
-        stock.highs_breakout = HighestHighBreakoutSignal(high=stock.high, highest=stock.highest, plotmaster=stock)
-        # stock.highs_breakout = visualizers.SingleMarker(signals=stock.highest(-1) > stock.high, level=stock.high)
-        # stock.highs_breakout2 = visualizers.SingleMarker(signals=stock.high[0]>stock.highest[-1], level=stock.high, marker='*', color='yellow')
+        stock.highest_breakout = stock.high > stock.highest(-1)
+        stock.highest._name = 'somename' ## Workaround for bug in Bokeh - cannot print feed.highest(-1) without this attribute
+        stock.highs_breakout= visualizers.SingleMarker(signals=stock.highest_breakout, level=stock.high)
         stock.buy_level = visualizers.PartialLevel(signal=stock.highs_breakout, level=stock.low-2*stock.atr, plotmaster=stock,length=self.p.entry_period)
         stock.stop_level = visualizers.PartialLevel(signal=stock.highs_breakout, level=stock.low-3.5*stock.atr, plotmaster=stock,color='salmon', length=self.p.entry_period)
         # stock.tp1 = visualizers.PartialLevel(signal=stock.low <= stock.buy_level, level=stock.high+2*stock.atr, color='seagreen')
@@ -197,8 +197,8 @@ class HighLowsStructureImproved(BaseStrategy):
         stock.bars_since_signal = None
         stock.entry = None
 
-    def notify_order(self, order, verbose=0):
-        super().notify_order(order, verbose)
+    def notify_order(self, order):
+        super().notify_order(order)
         stock = order.data
         if order == stock.takeprofit and order.status is bt.Order.Completed:
             self.cancel(stock.stoploss)
@@ -206,101 +206,6 @@ class HighLowsStructureImproved(BaseStrategy):
             stock.takeprofit2 = self.sell(stock, exectype=Order.Limit, price=stock.high[0]+2*stock.atr[0], oco=stock.stoploss)
             
 
-
-
-class BuyLevel(bt.Indicator):
-    lines = ('buy_level',)
-    plotlines = dict(buy_level=dict(color='deepskyblue', linewidth=9.0, linestyle='dotted'))
-    plotinfo = dict(plot=True, subplot=False)
-
-    def __init__(self, signal, level, length=10):
-        self.signal = signal
-        self.level = level
-        self.length = length
-
-    def once(self, start, end):
-        for i in range(start,end):
-            for j in range(i-self.length, i):
-                if not math.isnan(self.signal[j]):
-                    self.lines.buy_level[i] = self.level[j]
-                    break
-
-class HighestHighBreakoutSignal(bt.Indicator):
-    lines = ('breakout',)
-    plotinfo = dict(plot=True, subplot=False, plotlinelabels=True)
-    plotlines = dict(breakout=dict(
-        marker='d', markersize=8.0, color='magenta')
-        )
-    
-    def __init__(self, high, highest):
-        self.high = high
-        self.highest = highest
-        # TODO Potential bug with the left most value on the chart
-        # self.addminperiod(1)
-
-    def once(self, start, end):
-        for i in range(start, end):
-            self.lines.breakout[i] = self.high[i] if self.high[i] > self.highest[i-1] else float('nan')  # If I'm getting out-of-index beacuase of the -1 add this to init: 'self.addminperiod(1)'
-
-
-# class TradeState:
-#     '''
-#     state 1 - no entry order
-#         check for signals
-#         when a signal receive - send commands
-#     state 2 - entry order was sent
-#         check for abortion signals
-#         if a signal receive - cancel commands
-#     state 3 - entry order was executed
-#         check for exit signals
-#         when signal receive - exit
-#     '''
-#     stock : Stock
-#     def __init__(self, stock):
-#         self.stock = stock
-
-#     def check_signal(self):
-#         pass
-
-# class NoTrade(TradeState):
-#     def check_signal(self):
-#         if self.highs_breakout():
-#             self.send_orders()
-    
-#     def highs_breakout(self):
-#         return self.stock.highs[0] > self.stock.highest
-#         # bring from conditions module
-
-#     def send_orders(self):
-#         order = self.send_braket()
-#         self.stock.changes_state(OrderSent(self.stock, order))
-
-# class OrderSent(TradeState):
-#     self.bars = 0 
-#     self.order
-
-#     def __init__(self, stock, order):
-#         super().__init__(stock)
-#         self.order = order
-        
-#     def check_signal(self):
-#         self.bar += 1
-#         if self.bars > 10:
-#             self.abort()
-        
-#     def abort(self):
-#         self.orders.cancel()
-#         self.stock.change_state(NoTrade(self.stock))
-
-
-# class Stock():
-#     state : TradeState
-
-#     def next(self):
-#         state.check_signals()
-    
-#     def chagne_state(self, state):
-#         self.state = state
 
 
 class HighestHighsBreakoutStrategy(TradeStateStrategy):
@@ -316,7 +221,9 @@ class HighestHighsBreakoutStrategy(TradeStateStrategy):
     def prepare_feed(self, feed):
         feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period)
         feed.highest = talib.MAX(feed.high, timeperiod=self.p.highs_period)
-        feed.highs_breakout = HighestHighBreakoutSignal(high=feed.high, highest=feed.highest, plotmaster=feed)
+        feed.highest_breakout = feed.high > feed.highest(-1)
+        feed.highest._name = 'somename' ## Workaround for bug in Bokeh - cannot print feed.highest(-1) without this attribute
+        feed.highs_breakout= visualizers.SingleMarker(signals=feed.highest_breakout, level=feed.high)
         feed.buy_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-2*feed.atr, plotmaster=feed,length=self.p.entry_period)
         feed.stop_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-3.5*feed.atr, plotmaster=feed,color='salmon', length=self.p.entry_period)
         feed.low.extend(size=1)
