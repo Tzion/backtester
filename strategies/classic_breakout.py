@@ -8,6 +8,12 @@ from custom_indicators import visualizers
 
 
 class ClassicBreakout(TradeStateStrategy):
+    '''
+    Long strategy of breakout
+    breakup candle with high volumes
+    breaks 3 month highest (paramertized)
+    strong candle - long body opens in gap
+    '''
 
     params = (
         ('atr_period', 20),
@@ -19,10 +25,10 @@ class ClassicBreakout(TradeStateStrategy):
         feed.highest = indicators.Highest(feed.high, period=self.p.highs_period, subplot=False)
         feed.highest_breakout = feed.high > feed.highest(-1)
         feed.highest._name = 'somename' ## Workaround for bug in Bokeh - cannot print feed.highest(-1) without this attribute
-        feed.single_marker_test= visualizers.SingleMarker(signals=feed.highest_breakout, level=feed.high, color='purple')
-        # feed.highs_breakout_markers = visualizers.SingleMarker(signals=feed.highest_breakout, level=feed.high, plotmaster=feed)
-        # feed.buy_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-2*feed.atr, plotmaster=feed,length=self.p.entry_period)
-        # feed.stop_level = visualizers.PartialLevel(signal=feed.highs_breakout, level=feed.low-3.5*feed.atr, plotmaster=feed,color='salmon', length=self.p.entry_period)
+        feed.highest_breakout_marker = visualizers.SingleMarker(signals=feed.highest_breakout, level=feed.high)
+        feed.volume_avg = indicators.SMA(feed.volume, period=self.p.highs_period, subplot=True) # feed.buy_level = visualizers.Partia, subplot=TrueFalsTrue, plotmaster=feeds_breakout, level=feed.low-2*feed.atr, plotmaster=feed,length=self.p.entry_period)
+        feed.volume_peek = feed.volume > feed.volume_avg * 2
+        feed.volume_peek_marker = visualizers.SingleMarker(signals=feed.volume_peek, level=feed.low, color='blueviolet', marker='o')
 
     def initial_state_cls(self):
         return self.NoTrade
