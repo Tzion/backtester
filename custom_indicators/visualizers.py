@@ -20,16 +20,14 @@ class PartialLevel(bt.Indicator):
 
 class SingleMarker(bt.Indicator):
     lines = ('markers',)
-    plotlines = dict(markers=dict(markersize=8.0,))
-    plotinfo = dict(plot=False, subplot=False, plotlinelabels=True)
+    plotinfo = dict(plot=True, subplot=False, plotlinelabels=True)
+    plotlines = dict(markers=dict(markersize=8.0, marker='d', color='springgreen'))
     
     def __init__(self, signals, level, marker='d', color='springgreen'):
         self.signals = signals
         self.level = level
         self.plotlines.markers.marker = marker
         self.plotlines.markers.color = color
-        # TODO Potential bug with the left most value on the chart
-        # self.addminperiod(1)
 
     def once(self, start, end):
         for i in range(start, end):
