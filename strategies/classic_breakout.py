@@ -31,6 +31,9 @@ class ClassicBreakout(TradeStateStrategy):
         feed.volume_peek_marker = visualizers.SingleMarker(signals=feed.volume_peek, level=feed.low*.96, color='blueviolet', marker='o', plotmaster=feed)
         feed.bulish_candle = talib.CDLMARUBOZU(feed.open, feed.high, feed.low, feed.close, plot=False) > 0
         feed.bulish_candle_marker = visualizers.SingleMarker(signals=feed.bulish_candle > 0, level=feed.low*.99, color='gold', marker='*', plotmaster=feed) 
+        feed.bulish_candle2 = talib.CDLCLOSINGMARUBOZU(feed.open, feed.high, feed.low, feed.close, plot=False) > 0
+        feed.bulish_candle_marker2 = visualizers.SingleMarker(signals=feed.bulish_candle2, level=feed.low*.99, color='silver', marker='*', plotmaster=feed) 
+
 
 
     def initial_state_cls(self):
@@ -39,5 +42,5 @@ class ClassicBreakout(TradeStateStrategy):
 
     class NoTrade(TradeState):
         def next(self):
-            if self.feed.volume_peek[0] and self.feed.bulish_candle[0] and self.feed.highest_breakout[0]:
+            if self.feed.volume_peek[0] and (self.feed.bulish_candle[0] or self.feed.bulish_candle2[0]) and self.feed.highest_breakout[0]:
                 self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.low[0], limitprice=self.feed.high[0]+self.feed.atr[0])

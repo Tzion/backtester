@@ -23,8 +23,8 @@ def main():
     cerebro = gb.cerebro
     add_strategies(ClassicBreakout)
     # add_data(random=True, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), limit=100, dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['PAYX.csv','TSLA.csv','AMAT.csv','NOW.csv','TMUS.csv','WAB.csv','TT.csv','CTSH.csv','DGX.csv','FRT.csv','NLOK.csv','CCL.csv','WAT.csv','HD.csv',], dirpath='data_feeds')
-    add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['NLOK.csv', ], dirpath='data_feeds')
+    add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['PAYX.csv','TSLA.csv','AMAT.csv','NOW.csv','TMUS.csv','WAB.csv','TT.csv','CTSH.csv','DGX.csv','FRT.csv','NLOK.csv','CCL.csv','WAT.csv','HD.csv',], dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['CSX.csv', ], dirpath='data_feeds')
     # add_data(start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['DAL.csv', 'PNW.csv', 'AMP.csv', 'LOW.csv','ADM.csv','RTX.csv','CSX.csv','NCLH.csv','PAYC.csv',],limit=0, dirpath='data_feeds')
     # add_strategies(Top3)
     # add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 6, 28), limit=0,
@@ -33,7 +33,7 @@ def main():
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=15, only_trades=False, plot_observers=False, interactive_plots=True)
+    plot(strategies[0], limit=15, only_trades=True, plot_observers=False, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):
