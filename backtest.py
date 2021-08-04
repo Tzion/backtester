@@ -23,9 +23,10 @@ def main():
     global cerebro
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
-    # add_data(random=True, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), limit=0, dirpath='data_feeds')
-    add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['EL.csv','LVS.csv','BMY.csv','SBAC.csv','NCLH.csv','SIVB.csv','ATVI.csv','CTSH.csv','GOOG.csv','PXD.csv','D.csv','TPR.csv','ADSK.csv','EXPE.csv', 'MKC.csv', 'LB.csv', 'INTU.csv', 'ALXN.csv', 'TGT.csv', 'MRO.csv','DVN.csv', 'CHD.csv',], dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['MSI.csv', ], dirpath='data_feeds')
+    # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=0, dirpath='data_feeds')
+    add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), stock_names=['LOW.csv', 'MO.csv', 'D.csv', 'ED.csv', 'ACN.csv', 'BMY.csv', 'GOOG.csv', 'PXD.csv', 'TPR.csv', 'ADSK.csv', 'EXPE.csv', 'ALXN.csv', 'MRO.csv', 'DVN.csv',], dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2016,4,27), end_date=datetime(2021, 4, 26), limit=0, dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), stock_names=['DVN.csv', ], dirpath='data_feeds')
     # add_data(start_date=datetime(2018,4,4), end_date=datetime(2020, 3, 11), stock_names=['DAL.csv', 'PNW.csv', 'AMP.csv', 'LOW.csv','ADM.csv','RTX.csv','CSX.csv','NCLH.csv','PAYC.csv',],limit=0, dirpath='data_feeds')
     # add_strategies(Top3)
     # add_data(start_date=datetime(2020, 12, 3), end_date=datetime(2021, 6, 28), limit=0,

@@ -1,5 +1,6 @@
 
 from backtrader import talib
+from backtrader.indicator import LinePlotterIndicator
 
 from strategies.trade_state_strategy import TradeState, TradeStateStrategy
 from backtrader import indicators
@@ -11,7 +12,8 @@ from custom_indicators import visualizers
 class CandlePatternLong(TradeStateStrategy):
     
     params = {
-        'atr_period': 20
+        'atr_period': 20,
+        'highs_period': 10
     }
 
     def prepare_feed(self, feed):
@@ -22,14 +24,17 @@ class CandlePatternLong(TradeStateStrategy):
         feed.three_black_crows_marker = visualizers.SingleMarker(signals=feed.three_black_crows, level=feed.low*.98, color='purple', marker='*', plotmaster=feed) 
         feed.ema_short = indicators.EMA(feed.close, period=10)
         feed.ema_long = indicators.EMA(feed.close, period=50)
-
+        feed.highest = indicators.Highest(feed.high, period=self.p.highs_period, subplot=False)
+        feed.highest_breakout = feed.high > feed.highest(-1)
+        feed.highest._name = 'somename' ## Workaround for bug in Bokeh - cannot print feed.highest(-1) without this attribute
+        feed.highest_breakout_marker = visualizers.SingleMarker(signals=feed.highest_breakout, level=feed.high*1.02 ,plotmaster=feed, color='orange')
 
 
     def initial_state_cls(self):
-        return self.NoTrade
+        return self.State1
     
 
-    class NoTrade(TradeState):
+    class State1(TradeState):
         def next(self):
-            if self.feed.three_black_crows[0]:
-                self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.low[0]-self.feed.atr[0], limitprice=self.feed.high[0]+self.feed.atr[0])
+            if self.feed.three_black_crows[0] and self.feed.highest_breakout[-2]:
+                self.strategy.sell_bracket(self.feed, exectype=bt.Order.Market, limitprice=self.feed.low[0]-3*self.feed.atr[0], stopprice=self.feed.highest[0]+self.feed.atr[0])
