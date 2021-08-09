@@ -21,13 +21,14 @@ class PartialLevel(bt.Indicator):
 class SingleMarker(bt.Indicator):
     lines = ('markers',)
     plotinfo = dict(plot=True, subplot=False, plotlinelabels=True)
-    plotlines = dict(markers=dict(markersize=8.0, marker='d', color='springgreen'))
+    # plotlines = dict(markers=dict())
     
-    def __init__(self, signals, level, marker='d', color='springgreen'):
+    def __init__(self, signals, level, marker='d', color='springgreen', markersize=8.0):
         self.signals = signals
         self.level = level
         self.plotlines.markers.marker = marker
         self.plotlines.markers.color = color
+        self.plotlines.markers.markersize = markersize
 
     def once(self, start, end):
         for i in range(start, end):
