@@ -1,6 +1,7 @@
 
 from backtrader import talib
 from backtrader.indicator import LinePlotterIndicator
+from backtrader.order import Order
 
 from strategies.trade_state_strategy import TradeState, TradeStateStrategy
 from backtrader import indicators
@@ -43,6 +44,12 @@ class CandlePatternLong(TradeStateStrategy):
     def initial_state_cls(self):
         return self.LookForEntry
     
+    def notify_trade(self, trade: bt.Trade):
+        super().notify_trade(trade)
+        if trade.isclosed:
+            self.change_state(trade.data.state, self.LookForEntry(self, trade.data))
+    
+
 
     class LookForEntry(TradeState):
         def next(self):
@@ -56,7 +63,9 @@ class CandlePatternLong(TradeStateStrategy):
                 and self.feed.tr[0] >= self.feed.atr[-1] * 1
                 # and self.gap(self.feed) > 0  and (self.gap(self.feed) > self.feed.atr[0] * .2)
                 ):
-                self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.low[0] - risk, limitprice=self.feed.low[0] + 1*risk)
+                self.entry, self.stoploss, self.takeprofit = self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.low[0] - risk, limitprice=self.feed.open[1] + 2*risk)
+                self.strategy.change_state(self, CandlePatternLong.LongProfit1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
+                return
 
             if (
                 self.feed.doji_star[0] < 0 
@@ -67,8 +76,8 @@ class CandlePatternLong(TradeStateStrategy):
                 and self.feed.tr[0] >= self.feed.atr[-1] * 1
                 # and self.gap(self.feed) < 0  and (abs(self.gap(self.feed)) > self.feed.atr[0] * .2)
             ):
-                self.strategy.sell_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.high[0] + risk, limitprice=self.feed.low[0] - 1*risk)
-
+                self.entry, self.stoploss, self.takeprofit = self.strategy.sell_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.high[0] + risk, limitprice=self.feed.open[1] - 2*risk)
+                return
     
         # TODO should be in some utils module
         def uptrend(self, feed):
@@ -80,10 +89,15 @@ class CandlePatternLong(TradeStateStrategy):
         def gap(self, feed):
             return feed.open[1] - feed.close[0]
 
-    class ManageTrade(TradeState):
+
+    class LongProfit1(TradeState):
 
         def next(self):
             self.validate()
+            risk = self.entry.executed.price - self.stoploss.created.price
+            move = self.feed.high[0] - self.entry.executed.price
+            if move > risk:
+                self.stoploss = self.strategy.sell(data=self.feed, price=self.entry.executed.price, exectype=Order.Stop, oco=self.takeprofit)
 
 
         def validate(self):
