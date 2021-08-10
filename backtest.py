@@ -24,12 +24,12 @@ def main():
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
     add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=0, dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), stock_names=['MRO.csv', 'EXR.csv', 'T.csv'], dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), stock_names=['ADSK.csv', 'T.csv'], dirpath='data_feeds')
     add_analyzer()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    # plot(strategies[0], limit=3, only_trades=True, plot_observers=False, interactive_plots=True)
+    plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):

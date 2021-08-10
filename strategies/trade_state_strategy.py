@@ -49,7 +49,7 @@ class TradeStateStrategy(bt.Strategy):
     feeds = []
 
     def __init__(self):
-        self.setsizer(PortionSizer())
+        self.setsizer(PortionSizer(percents=20))
         self.feeds = self.datas
         for feed in self.feeds:
             feed.state : TradeState = self.initial_state_cls()(self, feed)

@@ -50,6 +50,9 @@ class CandlePatternLong(TradeStateStrategy):
         if trade.isclosed:
             self.change_state(trade.data.state, self.LookForEntry(self, trade.data))
     
+    def notify_order(self, order: bt.Order):
+        super().notify_order(order)
+        order.data.state.next_state(order)
 
 
     class LookForEntry(TradeState):
@@ -68,8 +71,11 @@ class CandlePatternLong(TradeStateStrategy):
                 ):
                 stopprice = self.feed.low[0] - volatility
                 risk = self.feed.open[1] - stopprice
-                self.entry, self.stoploss, self.takeprofit = self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=stopprice, limitprice=self.feed.open[1] + 1*risk)
-                # self.strategy.change_state(self, CandlePatternLong.LongProfit1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
+                # self.entry, self.stoploss, self.takeprofit = self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=stopprice, limitprice=self.feed.open[1] + 1*volatility)
+
+                self.entry = self.strategy.buy(self.feed, exectype=Order.Market, transmit=False)
+                self.stoploss = self.strategy.sell(self.feed, exectype=Order.Stop, price=stopprice, parent=self.entry, transmit=False)
+                self.takeprofit = self.strategy.sell(self.feed, exectype=Order.Limit, price=self.feed.open[1] + 1*volatility, parent=self.entry, transmit=True, size=self.strategy.getsizing(self.feed)/2)
                 return
 
             if (
@@ -88,7 +94,12 @@ class CandlePatternLong(TradeStateStrategy):
                 self.entry, self.stoploss, self.takeprofit = self.strategy.sell_bracket(self.feed, exectype=bt.Order.Market, stopprice=stopprice, limitprice=self.feed.open[1] - 1*risk)
                 # self.strategy.change_state(self, CandlePatternLong.ShortProfit1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
                 return
-    
+
+        def next_state(self, order: bt.Order):
+            if self.entry and order.ref == self.entry.ref and order.status is Order.Completed:
+                self.strategy.change_state(self, CandlePatternLong.Tp1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
+
+
         # TODO should be in some utils module
         def uptrend(self, feed):
             return feed.ema_very_fast[0] > feed.ema_fast[0] > feed.ema_slow[0]
@@ -100,19 +111,29 @@ class CandlePatternLong(TradeStateStrategy):
             return feed.open[1] - feed.close[0]
 
 
-    class LongProfit1(TradeState):
+    class Tp1(TradeState):
 
         def next(self):
             self.validate()
-            risk = self.entry.executed.price - self.stoploss.created.price
-            move = self.feed.close[0] - self.entry.executed.price
-            if move > 5.5*risk:
-                self.stoploss = self.strategy.sell(data=self.feed, price=self.entry.executed.price, exectype=Order.Stop, oco=self.takeprofit)
-
 
         def validate(self):
             position = self.strategy.getposition(self.feed)
             assertlog(position, f'{self.feed._name} has no open position of size {position.size} while in state {self.__class__.__name__}')
+
+        def next_state(self, order):
+            if order.ref == self.takeprofit.ref and order.status is Order.Completed:
+                risk = self.entry.executed.price - self.stoploss.created.price
+                next_profit = min(1.5*risk, 3*self.feed.atr[0])
+                self.stoploss = self.strategy.sell(self.feed, exectype=Order.Stop, price=order.data.lowest[0])
+                self.takeprofit = self.strategy.sell(self.feed, exectype=Order.Limit, price=self.feed.close[0] + next_profit, oco=self.stoploss)
+                self.strategy.change_state(self, CandlePatternLong.Tp2(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
+
+    class Tp2(TradeState):
+        def next(self):
+            pass
+
+        def next_state(self, order):
+            pass
 
     class ShortProfit1(TradeState):
 
