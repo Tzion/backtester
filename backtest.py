@@ -24,7 +24,7 @@ def main():
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
     add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=0, dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), stock_names=['WELL.csv', 'EXR.csv', 'T.csv'], dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), stock_names=['MRO.csv', 'EXR.csv', 'T.csv'], dirpath='data_feeds')
     add_analyzer()
     global strategies
     strategies = backtest()

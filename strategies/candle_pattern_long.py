@@ -54,7 +54,7 @@ class CandlePatternLong(TradeStateStrategy):
 
     class LookForEntry(TradeState):
         def next(self):
-            risk = 1.4*self.feed.atr[0]
+            volatility = 1.4*self.feed.atr[0]
             if self.strategy.getposition(self.feed):
                 return
             if (
@@ -66,7 +66,9 @@ class CandlePatternLong(TradeStateStrategy):
                 and self.feed.tr[0] >= self.feed.atr[-1] * 1
                 # and self.gap(self.feed) > 0  and (self.gap(self.feed) > self.feed.atr[0] * .2)
                 ):
-                self.entry, self.stoploss, self.takeprofit = self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.low[0] - risk, limitprice=self.feed.open[1] + 1*risk)
+                stopprice = self.feed.low[0] - volatility
+                risk = self.feed.open[1] - stopprice
+                self.entry, self.stoploss, self.takeprofit = self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=stopprice, limitprice=self.feed.open[1] + 1*risk)
                 # self.strategy.change_state(self, CandlePatternLong.LongProfit1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
                 return
 
@@ -79,7 +81,11 @@ class CandlePatternLong(TradeStateStrategy):
                 and self.feed.tr[0] >= self.feed.atr[-1] * 1
                 and self.gap(self.feed) < 0  and (abs(self.gap(self.feed)) > self.feed.atr[0] * .2)
             ):
-                self.entry, self.stoploss, self.takeprofit = self.strategy.sell_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.high[0] + risk, limitprice=self.feed.open[1] - 1*risk)
+                # TODO seperate short to another strategy
+                return
+                stopprice = self.feed.high[0] - volatility
+                risk = self.feed.open[1] - stopprice
+                self.entry, self.stoploss, self.takeprofit = self.strategy.sell_bracket(self.feed, exectype=bt.Order.Market, stopprice=stopprice, limitprice=self.feed.open[1] - 1*risk)
                 # self.strategy.change_state(self, CandlePatternLong.ShortProfit1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
                 return
     
