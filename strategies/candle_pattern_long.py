@@ -1,4 +1,5 @@
 
+from __future__ import annotations
 from backtrader import talib
 from backtrader.indicator import LinePlotterIndicator
 from backtrader.order import Order
@@ -54,29 +55,32 @@ class CandlePatternLong(TradeStateStrategy):
     class LookForEntry(TradeState):
         def next(self):
             risk = 1.4*self.feed.atr[0]
+            if self.strategy.getposition(self.feed):
+                return
             if (
                 self.feed.doji_star[0] > 0 
                 and self.feed.open[1] > self.feed.low[0]
-                and self.feed.lowest[-1] + self.feed.atr[0]/2 > self.feed.low[0] > self.feed.lowest[-1]
+                and self.feed.lowest[-1] + self.feed.atr[0]/3 >= self.feed.low[0] >= self.feed.lowest[-1]
                 # and self.uptrend(self.feed)
                 # and self.feed.ema_very_fast[0] < self.feed.ema_very_fast[-1] < self.feed.ema_very_fast[-2]
                 and self.feed.tr[0] >= self.feed.atr[-1] * 1
                 # and self.gap(self.feed) > 0  and (self.gap(self.feed) > self.feed.atr[0] * .2)
                 ):
-                self.entry, self.stoploss, self.takeprofit = self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.low[0] - risk, limitprice=self.feed.open[1] + 2*risk)
-                self.strategy.change_state(self, CandlePatternLong.LongProfit1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
+                self.entry, self.stoploss, self.takeprofit = self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.low[0] - risk, limitprice=self.feed.open[1] + 1*risk)
+                # self.strategy.change_state(self, CandlePatternLong.LongProfit1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
                 return
 
             if (
                 self.feed.doji_star[0] < 0 
                 and self.feed.open[1] < self.feed.high[0]
-                and self.feed.highest[-1] - self.feed.atr[0]/2 < self.feed.high[0] < self.feed.highest[-1]
+                and self.feed.highest[-1] - self.feed.atr[0]/3 <= self.feed.high[0] <= self.feed.highest[-1]
                 # and self.downtrend(self.feed) 
                 # and self.feed.ema_very_fast[0] > self.feed.ema_very_fast[-1] > self.feed.ema_very_fast[-2]
                 and self.feed.tr[0] >= self.feed.atr[-1] * 1
-                # and self.gap(self.feed) < 0  and (abs(self.gap(self.feed)) > self.feed.atr[0] * .2)
+                and self.gap(self.feed) < 0  and (abs(self.gap(self.feed)) > self.feed.atr[0] * .2)
             ):
-                self.entry, self.stoploss, self.takeprofit = self.strategy.sell_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.high[0] + risk, limitprice=self.feed.open[1] - 2*risk)
+                self.entry, self.stoploss, self.takeprofit = self.strategy.sell_bracket(self.feed, exectype=bt.Order.Market, stopprice=self.feed.high[0] + risk, limitprice=self.feed.open[1] - 1*risk)
+                # self.strategy.change_state(self, CandlePatternLong.ShortProfit1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
                 return
     
         # TODO should be in some utils module
@@ -95,14 +99,28 @@ class CandlePatternLong(TradeStateStrategy):
         def next(self):
             self.validate()
             risk = self.entry.executed.price - self.stoploss.created.price
-            move = self.feed.high[0] - self.entry.executed.price
-            if move > risk:
+            move = self.feed.close[0] - self.entry.executed.price
+            if move > 5.5*risk:
                 self.stoploss = self.strategy.sell(data=self.feed, price=self.entry.executed.price, exectype=Order.Stop, oco=self.takeprofit)
 
 
         def validate(self):
             position = self.strategy.getposition(self.feed)
             assertlog(position, f'{self.feed._name} has no open position of size {position.size} while in state {self.__class__.__name__}')
+
+    class ShortProfit1(TradeState):
+
+        def next(self):
+            risk = self.entry.executed.price - self.stoploss.created.price
+            move = self.feed.close[0] - self.entry.executed.price
+            if move > 5.5*risk:
+                self.stoploss = self.strategy.buy(data=self.feed, price=self.entry.executed.price, exectype=Order.Stop, oco=self.takeprofit)
+
+        # TODO remove this code duplication
+        def validate(self):
+            position = self.strategy.getposition(self.feed)
+            assertlog(position, f'{self.feed._name} has no open position of size {position.size} while in state {self.__class__.__name__}')
+
 
 
 
