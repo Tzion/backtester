@@ -1,8 +1,7 @@
 
 from __future__ import annotations
-from money_mgmt.sizers import PortionSizer, RiskBasedSizer, RiskBasedWithMaxPortionSizer
+from money_mgmt.sizers import RiskBasedWithMaxPortionSizer
 from backtrader import talib
-from backtrader.indicator import LinePlotterIndicator
 from backtrader.order import Order
 
 from strategies.trade_state_strategy import TradeState, TradeStateStrategy
@@ -22,7 +21,7 @@ class CandlePatternLong(TradeStateStrategy):
 
     def __init__(self):
         super().__init__()
-        self.setsizer(RiskBasedWithMaxPortionSizer(risk_per_trade_percents=2.0, max_portion_percents=22))
+        self.setsizer(RiskBasedWithMaxPortionSizer(risk_per_trade_percents=2.0, max_portion_percents=25))
 
     def prepare_feed(self, feed):
         feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period, plot=False)
@@ -70,10 +69,10 @@ class CandlePatternLong(TradeStateStrategy):
                 self.feed.doji_star[0] > 0 
                 and self.feed.open[1] > self.feed.low[0]
                 and self.feed.lowest[-1] + self.feed.atr[0]/3 >= self.feed.low[0] >= self.feed.lowest[-1]
-                # and self.uptrend(self.feed)
+                # and self.feed.ema_very_fast[0] > self.feed.ema_fast[0] > self.feed.ema_slow[0]
                 # and self.feed.ema_very_fast[0] < self.feed.ema_very_fast[-1] < self.feed.ema_very_fast[-2]
                 and self.feed.tr[0] >= self.feed.atr[-1] * 1
-                # and self.gap(self.feed) > 0  and (self.gap(self.feed) > self.feed.atr[0] * .2)
+                and self.feed.open[1] - self.feed.close[0] > self.feed.atr[0] * .2
                 ):
                 stopprice = self.feed.low[0] - volatility
                 risk = self.feed.open[1] - stopprice
@@ -84,37 +83,10 @@ class CandlePatternLong(TradeStateStrategy):
                 self.takeprofit = self.strategy.sell(self.feed, exectype=Order.Limit, price=self.feed.open[1] + 1*volatility, parent=self.entry, transmit=True, size=self.strategy.getsizing(self.feed)/2)
                 return
 
-            if (
-                self.feed.doji_star[0] < 0 
-                and self.feed.open[1] < self.feed.high[0]
-                and self.feed.highest[-1] - self.feed.atr[0]/3 <= self.feed.high[0] <= self.feed.highest[-1]
-                # and self.downtrend(self.feed) 
-                # and self.feed.ema_very_fast[0] > self.feed.ema_very_fast[-1] > self.feed.ema_very_fast[-2]
-                and self.feed.tr[0] >= self.feed.atr[-1] * 1
-                and self.gap(self.feed) < 0  and (abs(self.gap(self.feed)) > self.feed.atr[0] * .2)
-            ):
-                # TODO seperate short to another strategy
-                return
-                stopprice = self.feed.high[0] - volatility
-                risk = self.feed.open[1] - stopprice
-                self.entry, self.stoploss, self.takeprofit = self.strategy.sell_bracket(self.feed, exectype=bt.Order.Market, stopprice=stopprice, limitprice=self.feed.open[1] - 1*risk)
-                # self.strategy.change_state(self, CandlePatternLong.ShortProfit1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
-                return
 
         def next_state(self, order: bt.Order):
             if self.entry and order.ref == self.entry.ref and order.status is Order.Completed:
                 self.strategy.change_state(self, CandlePatternLong.Tp1(self.strategy, self.feed, self.entry, self.stoploss, self.takeprofit))
-
-
-        # TODO should be in some utils module
-        def uptrend(self, feed):
-            return feed.ema_very_fast[0] > feed.ema_fast[0] > feed.ema_slow[0]
-
-        def downtrend(self, feed):
-            return feed.ema_very_fast[0] < feed.ema_fast[0] < feed.ema_slow[0]
-
-        def gap(self, feed):
-            return feed.open[1] - feed.close[0]
 
 
     class Tp1(TradeState):
