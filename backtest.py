@@ -23,14 +23,15 @@ def main():
     global cerebro
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
-    add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), stock_names=['CTAS.csv', 'PVH.csv', 'WELL.csv', 'LDOS.csv', 'PKG.csv', 'OKE.csv', 'MRO.csv', 'JPM.csv', 'JNPR.csv', 'CVX.csv', 'PWR.csv', 'JCI.csv', 'CDW.csv', 'GOOG.csv', 'MNST.csv', ], dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2018,3,24), end_date=datetime(2019, 2, 2), dirpath='data_feeds')
+    add_data(random=False, start_date=datetime(2016,3,24), end_date=datetime(2019, 2, 22), stock_names=['WHR.csv', 'UDR.csv', 'CNP.csv', 'NKE.csv', 'NVDA.csv', 'GPN.csv', 'OKE.csv', 'CB.csv', 'ADSK.csv', 'MRO.csv', 'GD.csv', 'JPM.csv', 'ORLY.csv', 'IFF.csv'], dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), stock_names=['PNW.csv',], dirpath='data_feeds')
     add_analyzer()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    # plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=True)
+    plot(strategies[0], limit=0, only_trades=True, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):

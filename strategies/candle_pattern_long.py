@@ -1,6 +1,6 @@
 
 from __future__ import annotations
-from money_mgmt.sizers import PortionSizer, RiskBasedSizer
+from money_mgmt.sizers import PortionSizer, RiskBasedSizer, RiskBasedWithMaxPortionSizer
 from backtrader import talib
 from backtrader.indicator import LinePlotterIndicator
 from backtrader.order import Order
@@ -22,7 +22,7 @@ class CandlePatternLong(TradeStateStrategy):
 
     def __init__(self):
         super().__init__()
-        self.setsizer(RiskBasedSizer(risk_per_trade_percents=2.0))
+        self.setsizer(RiskBasedWithMaxPortionSizer(risk_per_trade_percents=2.0, max_portion_percents=22))
 
     def prepare_feed(self, feed):
         feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period, plot=False)

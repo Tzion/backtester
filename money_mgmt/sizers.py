@@ -9,7 +9,7 @@ class PortionSizer(bt.Sizer):
         position = self.broker.getposition(data)
         account = self.broker.getvalue()
         if not position:
-            size = account / data.close[0] * (self.percents / 100)
+            size = account / data.close[0] * (self.percents / 100)  # there's an assumption that the asked priced is today's close price (data.close[0])
         else:
             size = position.size
 
@@ -41,3 +41,17 @@ class RiskBasedSizer(bt.Sizer):
 
         size = (self.risk_per_trade * self.broker.getvalue()) / data.risk()
         return size
+
+
+class RiskBasedWithMaxPortionSizer(RiskBasedSizer):
+
+    def __init__(self, risk_per_trade_percents, max_portion_percents):
+        super().__init__(risk_per_trade_percents)
+        self.portion_sizer = PortionSizer(percents=max_portion_percents)
+    
+    def _getsizing(self, comminfo, cash, data, isbuy):
+        return min(super()._getsizing(comminfo, cash, data, isbuy), self.portion_sizer._getsizing(comminfo, cash, data, isbuy))
+
+    def set(self, strategy, broker):
+        super().set(strategy, broker)
+        self.portion_sizer.set(strategy, broker)
