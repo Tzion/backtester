@@ -1,5 +1,6 @@
 
 from __future__ import annotations
+from money_mgmt.sizers import PortionSizer, RiskBasedSizer
 from backtrader import talib
 from backtrader.indicator import LinePlotterIndicator
 from backtrader.order import Order
@@ -15,12 +16,17 @@ class CandlePatternLong(TradeStateStrategy):
     
     params = {
         'atr_period': 13,
-        'highs_period': 30
+        'highs_period': 30,
+        'risk_per_trade_percentage' : 2
     }
 
+    def __init__(self):
+        super().__init__()
+        self.setsizer(RiskBasedSizer(risk_per_trade_percents=2.0))
+
     def prepare_feed(self, feed):
-        feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period)
-        feed.tr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=1)
+        feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period, plot=False)
+        feed.tr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=1, plot=False)
         # feed.three_line_strike = talib.CDL3LINESTRIKE(feed.open, feed.high, feed.low, feed.close, plot=False) 
         # feed.three_line_strike_marker = visualizers.SingleMarker(signals=feed.three_line_strike, level=feed.low*.99, color='silver', marker='*', plotmaster=feed) 
         # feed.three_black_crows = talib.CDL3BLACKCROWS(feed.open, feed.high, feed.low, feed.close, plot=False) 
@@ -71,7 +77,7 @@ class CandlePatternLong(TradeStateStrategy):
                 ):
                 stopprice = self.feed.low[0] - volatility
                 risk = self.feed.open[1] - stopprice
-                # self.entry, self.stoploss, self.takeprofit = self.strategy.buy_bracket(self.feed, exectype=bt.Order.Market, stopprice=stopprice, limitprice=self.feed.open[1] + 1*volatility)
+                self.feed.risk = lambda : self.feed.open[1] - stopprice
 
                 self.entry = self.strategy.buy(self.feed, exectype=Order.Market, transmit=False)
                 self.stoploss = self.strategy.sell(self.feed, exectype=Order.Stop, price=stopprice, parent=self.entry, transmit=False)
@@ -115,6 +121,14 @@ class CandlePatternLong(TradeStateStrategy):
 
         def next(self):
             self.validate()
+            # self.exit_when_close_under_entry_lows()
+
+        def exit_when_close_under_entry_lows(self):
+            trigger_idx = self.entry.plen - self.feed.open.idx -1
+            if self.feed.close[0] < min(self.feed.low[trigger_idx], self.feed.lowest[trigger_idx]):
+                self.strategy.close(self.feed)
+                self.strategy.cancel(self.takeprofit)
+                self.strategy.cancel(self.stoploss)
 
         def validate(self):
             position = self.strategy.getposition(self.feed)
@@ -134,20 +148,5 @@ class CandlePatternLong(TradeStateStrategy):
 
         def next_state(self, order):
             pass
-
-    class ShortProfit1(TradeState):
-
-        def next(self):
-            risk = self.entry.executed.price - self.stoploss.created.price
-            move = self.feed.close[0] - self.entry.executed.price
-            if move > 5.5*risk:
-                self.stoploss = self.strategy.buy(data=self.feed, price=self.entry.executed.price, exectype=Order.Stop, oco=self.takeprofit)
-
-        # TODO remove this code duplication
-        def validate(self):
-            position = self.strategy.getposition(self.feed)
-            assertlog(position, f'{self.feed._name} has no open position of size {position.size} while in state {self.__class__.__name__}')
-
-
 
 
