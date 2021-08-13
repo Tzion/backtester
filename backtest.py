@@ -78,7 +78,7 @@ def show_statistics(strategies):
 
 def print_trades_length(): # TODO add the required statistics (len, exposer) to the custom analyzer and remove this
     trades_len = strategies[0].analyzers.tradeanalyzer.get_analysis()['len']
-    print(f'\t\t\t\t\t\t\t\tTrades length: Total: {trades_len.total}, Average: {trades_len.average}, Max: {trades_len.max}, Min: {trades_len.min}')
+    print(f'\t\t\t\t\t\t\t\tTrades length: Total: {trades_len.total}, Average: {trades_len.average}, Max: {trades_len.max}, Min: {trades_len.min}. Total bars: {len(strategies[0].data)}')
 
 if __name__ == '__main__':
     main()

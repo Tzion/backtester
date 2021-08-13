@@ -79,7 +79,7 @@ class CandlePatternLong(TradeStateStrategy):
                 self.feed.risk = lambda : self.feed.open[1] - stopprice
 
                 self.entry = self.strategy.buy(self.feed, exectype=Order.Market, transmit=False)
-                self.stoploss = self.strategy.sell(self.feed, exectype=Order.Stop, price=stopprice, parent=self.entry, transmit=False)
+                self.stoploss = self.strategy.sell(self.feed, exectype=Order.StopTrail, price=stopprice, parent=self.entry, transmit=False, trailamount=self.feed.atr[0]*1.4)
                 self.takeprofit = self.strategy.sell(self.feed, exectype=Order.Limit, price=self.feed.open[1] + 1*volatility, parent=self.entry, transmit=True, size=self.strategy.getsizing(self.feed)/2)
                 return
 
