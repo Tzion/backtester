@@ -25,14 +25,14 @@ def main():
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
     # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
-    add_data(random=False, start_date=datetime(2018,3,24), end_date=datetime(2019, 2, 22), stock_names=['WHR.csv', 'UDR.csv', 'CNP.csv', 'NKE.csv', 'NVDA.csv', 'GPN.csv', 'OKE.csv', 'CB.csv', 'ADSK.csv', 'MRO.csv', 'GD.csv', 'JPM.csv', 'ORLY.csv', 'IFF.csv'], dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2017,11,30), end_date=datetime(2019, 6, 26), limit=120, stock_names=['GNRC.csv'], dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2018,3,24), end_date=datetime(2019, 2, 22), stock_names=['WHR.csv', 'UDR.csv', 'CNP.csv', 'NKE.csv', 'NVDA.csv', 'GPN.csv', 'OKE.csv', 'CB.csv', 'ADSK.csv', 'MRO.csv', 'GD.csv', 'JPM.csv', 'ORLY.csv', 'IFF.csv'], dirpath='data_feeds')
+    add_data(random=False, start_date=datetime(2017,11,30), end_date=datetime(2019, 6, 26), limit=120, stock_names=['GNRC.csv'], dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=120, dirpath='data_feeds')
     add_analyzers()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    # plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=False)
+    plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):
