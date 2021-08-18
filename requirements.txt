@@ -4,8 +4,8 @@ async-generator==1.10
 attrs==21.2.0
 autopep8==1.5.6
 backcall==0.2.0
--e git+https://github.com/Tzion/backtrader.git@0fa63ef4a35dc53cc7320813f8b15480c8f85517#egg=backtrader
--e git+https://github.com/Tzion/backtrader_plotting.git@d859c10#egg=backtrader_plotting
+-e git+git@github.com:Tzion/backtrader.git@0fa63ef4a35dc53cc7320813f8b15480c8f85517#egg=backtrader
+-e git+https://github.com/Tzion/backtrader_plotting.git@d859c1027cf2d3f686d464d3610531d4721d9aab#egg=backtrader_plotting
 bleach==3.3.0
 bokeh==2.3.2
 certifi==2020.12.5
