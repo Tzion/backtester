@@ -1,3 +1,4 @@
+from backtrader.dataseries import TimeFrame
 from utils.backtrader_helpers import extract_trades, print_trades_length
 from utils.charting import pnl_to_trade_length
 from analyzers.exposer import Exposer
@@ -26,7 +27,7 @@ def main():
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=-1, only_trades=True, plot_observers=True, interactive_plots=True)
+    plot(strategies[0], limit=-1, only_trades=True, plot_observers=True, interactive_plots=False)
 
 
 def add_strategies(strategy: bt.Strategy):
@@ -54,9 +55,13 @@ def add_analyzers():
     cerebro.addanalyzer(TradeAnalyzer)
     cerebro.addanalyzer(Exposer)
     cerebro.addanalyzer(bt.analyzers.DrawDown)
+    cerebro.addanalyzer(bt.analyzers.SQN)
+    cerebro.addanalyzer(bt.analyzers.SharpeRatio)
+    cerebro.addanalyzer(bt.analyzers.SharpeRatio_A)
 
 def add_observers():
     cerebro.addobserver(bt.observers.DrawDown)
+    cerebro.addobserver(bt.observers.LogReturns, timeframe=TimeFrame.Months, compression=0)
 
 
 def backtest():
@@ -77,6 +82,9 @@ def show_statistics(strategies):
     print_trades_length(strategies[0].analyzers.tradeanalyzer)
     strategies[0].analyzers.exposer.print()
     strategies[0].analyzers.drawdown.print()
+    strategies[0].analyzers.sqn.print()
+    strategies[0].analyzers.sharperatio.print()
+    strategies[0].analyzers.sharperatio_a.print()
     pnl_to_trade_length(extract_trades(strategies[0]))
 
 
