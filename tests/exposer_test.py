@@ -23,6 +23,7 @@ class HighExposerTest(bt.Strategy):
         self.buy(self.data0, size=1000) # All-in since the second bar- 90% exposer
     def stop(self):
         assert self.analyzers.exposer.rets.exposer == .9, f'expecting exposer to be 90%, actual exposer={self.analyzers.exposer.rets.exposer}'
+        assert float(self.analyzers.exposer.get_analysis()['Exposer'][:-1]) == 90, f'expecting printable value to be 90%, got instead: {self.analyzers.exposer.get_analysis()["Exposer"]}'
         
 class ShortSaleTest(bt.Strategy):
     def next(self):
