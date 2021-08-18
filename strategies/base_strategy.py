@@ -110,6 +110,8 @@ class BaseStrategy(bt.Strategy):
         self.set_plot_for_observers(False)
         printed = 0
         for i, stock in enumerate(self.stocks):
+            if limit<0:
+                break
             if only_trades and stock not in self._trades:
                 continue
             if limit and printed >= limit:

@@ -9,4 +9,4 @@ def extract_trades(strategy: bt.Strategy) -> list[bt.Trade]:
 
 def print_trades_length(trade_analyzer: TradeAnalyzer):
     trades_len = trade_analyzer.get_analysis()['len']
-    print(f'Trades length: Total: {trades_len.total}, Average: {trades_len.average}, Max: {trades_len.max}, Min: {trades_len.min}. Total bars: {len(strategies[0].data)}')
+    print(f'Trades length: Total: {trades_len.total}, Average: {trades_len.average}, Max: {trades_len.max}, Min: {trades_len.min}. Total bars: {len(trade_analyzer.strategy)}')

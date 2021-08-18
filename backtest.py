@@ -1,3 +1,5 @@
+from utils.backtrader_helpers import extract_trades, print_trades_length
+from utils.charting import pnl_to_trade_length
 from analyzers.exposer import Exposer
 from strategies.candle_pattern_long import CandlePatternLong
 import backtrader as bt
@@ -16,15 +18,15 @@ def main():
     global cerebro
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
-    add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2018,3,24), end_date=datetime(2019, 2, 22), stock_names=['WHR.csv', 'UDR.csv', 'CNP.csv', 'NKE.csv', 'NVDA.csv', 'GPN.csv', 'OKE.csv', 'CB.csv', 'ADSK.csv', 'MRO.csv', 'GD.csv', 'JPM.csv', 'ORLY.csv', 'IFF.csv'], dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2017,11,30), end_date=datetime(2019, 6, 26), limit=120, stock_names=['GNRC.csv'], dirpath='data_feeds')
+    add_data(limit=500, random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
+    # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=120, stock_names=['CNP.csv', 'GD.csv','ABC.csv'], dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=120, dirpath='data_feeds')
     add_analyzers()
+    add_observers()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    # plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=True)
+    plot(strategies[0], limit=-1, only_trades=True, plot_observers=True, interactive_plots=True)
 
 
 def add_strategies(strategy: bt.Strategy):
@@ -51,6 +53,10 @@ def add_analyzers():
     cerebro.addanalyzer(BasicTradeStats, _name='basic_trade_stats', useStandardPrint=False)
     cerebro.addanalyzer(TradeAnalyzer)
     cerebro.addanalyzer(Exposer)
+    cerebro.addanalyzer(bt.analyzers.DrawDown)
+
+def add_observers():
+    cerebro.addobserver(bt.observers.DrawDown)
 
 
 def backtest():
@@ -68,12 +74,13 @@ def plot(strategy: bt.Strategy, *args, **kwargs):
 def show_statistics(strategies):
     loginfo(f'Final portfolio value: {cerebro.broker.getvalue():.2f}')
     strategies[0].analyzers.basic_trade_stats.print()
+    print_trades_length(strategies[0].analyzers.tradeanalyzer)
     strategies[0].analyzers.exposer.print()
-    print_trades_length()
+    strategies[0].analyzers.drawdown.print()
+    pnl_to_trade_length(extract_trades(strategies[0]))
 
-def print_trades_length(): # TODO add the required statistics (len, exposer) to the custom analyzer and remove this
-    trades_len = strategies[0].analyzers.tradeanalyzer.get_analysis()['len']
-    print(f'Trades length: Total: {trades_len.total}, Average: {trades_len.average}, Max: {trades_len.max}, Min: {trades_len.min}. Total bars: {len(strategies[0].data)}')
 
 if __name__ == '__main__':
     main()
+
+

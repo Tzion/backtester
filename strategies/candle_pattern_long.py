@@ -58,6 +58,8 @@ class CandlePatternLong(TradeStateStrategy):
     def notify_order(self, order: bt.Order):
         super().notify_order(order)
         order.data.state.next_state(order)
+        if isinstance(order.data.state, self.Tp2) and order.status is Order.Completed:
+            loginfo(f'take profit 2 done by {order.getordername()} order')
 
 
     class LookForEntry(TradeState):
