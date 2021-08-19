@@ -1,12 +1,8 @@
-import os
-import os.path
-import sys
+from test_common import *
 import inspect
-
 import backtrader as bt
 import pandas as pd
 from backtrader.feeds.pandafeed import PandasData
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from analyzers.exposer import Exposer
 
 

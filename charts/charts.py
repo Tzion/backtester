@@ -13,8 +13,8 @@ dates = [datetime(year=2013, month=10, day=10),
          datetime(year=2014, month=1, day=10),
          datetime(year=2014, month=2, day=10)]
 
-def plot_feed(date, open, high, close, low, volume):
-    fig_data = [go.Candlestick(x=dates, open=open_data, high=high_data, low=low_data, close=close_data)]
+def plot_feed(date, open, high, low, close, volume):
+    fig_data = [go.Candlestick(x=date, open=open, high=high, low=low, close=close)]
     fig = go.Figure(data=fig_data)
     fig.show()
 
