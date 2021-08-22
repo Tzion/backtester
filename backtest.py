@@ -19,15 +19,15 @@ def main():
     global cerebro
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
-    add_data(limit=500, random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=120, stock_names=['CNP.csv', 'GD.csv','ABC.csv'], dirpath='data_feeds')
+    # add_data(limit=500, random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
+    add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=12, stock_names=['CNP.csv', 'GD.csv','ABC.csv'], dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=120, dirpath='data_feeds')
     add_analyzers()
     add_observers()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=-1, only_trades=True, plot_observers=True, interactive_plots=False)
+    plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=False)
 
 
 def add_strategies(strategy: bt.Strategy):
@@ -48,7 +48,7 @@ def add_data(start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-
             dataname=os.path.join(dirpath, stock2file(stock)), fromdate=start_date,
             todate=end_date, dtformat=dtformat,
             high=high_idx, low=low_idx, open=open_idx, close=close_idx, volume=volume_idx, plot=False)
-        cerebro.adddata(feed, name=stock.strip('.csv'))
+        gb.cerebro.adddata(feed, name=stock.strip('.csv'))
         
 def add_analyzers():
     cerebro.addanalyzer(BasicTradeStats, _name='basic_trade_stats', useStandardPrint=False)
