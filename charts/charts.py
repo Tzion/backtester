@@ -4,14 +4,18 @@ from plotly.subplots import make_subplots
 
 
 def plot_feed(date, open, high, low, close, volume, overlays_data=None, subplots_data=None):
-    fig = make_ohlcv_figure(date, open, high, low, close, volume)
+    subplots = 0 if not subplots_data else len(subplots_data)
+    fig = make_ohlcv_figure(date, open, high, low, close, volume, subplots=subplots)
     if overlays_data:
         for overlay in overlays_data:
             fig.add_trace(go.Scatter(x=date, y=overlay))
+    if subplots_data:
+        for i,subplot in enumerate(subplots_data):
+            fig.add_trace(go.Scatter(x=date, y=subplot), row=i+2, col=1)
     fig.show()
 
-def make_ohlcv_figure(date, open, high, low, close, volume):
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+def make_ohlcv_figure(date, open, high, low, close, volume, subplots=0):
+    fig = make_subplots(specs=[[{"secondary_y": True}],[{}]], rows=1+subplots, cols=1)
 
     prices_trace = go.Candlestick(x=date, open=open, high=high, low=low, close=close)
     fig.add_trace(prices_trace, secondary_y=False)

@@ -22,7 +22,7 @@ def csv_test():
     dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
     overlay = eld(data.moving_average.line)
     subplot = eld(data.atr.line)
-    plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay])
+    plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
 
 
     # cerebro.plot(style='candle')
