@@ -4,19 +4,28 @@ import backtrader as bt
 from datetime import date, datetime
 from charts.charts import plot_feed
 from utils.backtrader_helpers import extract_line_data as eld
+from backtrader import indicators
 
+
+class Strategy(bt.Strategy):
+    def __init__(self):
+        self.data.moving_average = indicators.SMA(self.data.close, period=14, subplot=False)
+        self.data.atr= indicators.ATR(self.data, period=10, subplot=True)
 
 def csv_test():
     DATA = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
     cerebro = bt.Cerebro()
     cerebro.adddata(DATA)
-    cerebro.addstrategy(DummyStrategy)
+    cerebro.addstrategy(Strategy)
     strategy = cerebro.run()
-
     data = strategy[0].data
-    eld(data.datetime)
-    dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))
-    plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume))
+    dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
+    overlay = eld(data.moving_average.line)
+    subplot = eld(data.atr.line)
+    plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay])
+
+
+    # cerebro.plot(style='candle')
 
 def sample_test():
     open_data = [33.0, 33.3, 33.5, 33.0, 34.1]
