@@ -10,12 +10,13 @@ from backtrader import indicators
 class Strategy(bt.Strategy):
     def __init__(self):
         self.data.moving_average = indicators.SMA(self.data.close, period=14, subplot=False)
-        self.data.atr= indicators.ATR(self.data, period=10, subplot=True)
+        self.data.atr= indicators.ATR(self.data, period=4, subplot=True)
+        self.data.atr2= indicators.ATR(self.data, period=10, subplot=True)
 
 def csv_test():
-    DATA = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
+    data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
     cerebro = bt.Cerebro()
-    cerebro.adddata(DATA)
+    cerebro.adddata(data)
     cerebro.addstrategy(Strategy)
     strategy = cerebro.run()
     data = strategy[0].data
@@ -23,9 +24,36 @@ def csv_test():
     overlay = eld(data.moving_average.line)
     subplot = eld(data.atr.line)
     plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
-
-
     # cerebro.plot(style='candle')
+
+def date_gap_test():
+    data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 12, 1), todate=datetime(2016,12,31), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
+    cerebro = bt.Cerebro()
+    cerebro.adddata(data)
+    cerebro.addstrategy(Strategy)
+    strategy = cerebro.run()
+    data = strategy[0].data
+    dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
+    overlay = eld(data.moving_average.line)
+    subplot = eld(data.atr.line)
+    plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
+    # cerebro.plot(style='candle')
+
+def two_subplots_test():
+    data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
+    cerebro = bt.Cerebro()
+    cerebro.adddata(data)
+    cerebro.addstrategy(Strategy)
+    strategy = cerebro.run()
+    data = strategy[0].data
+    dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
+    overlay = eld(data.moving_average.line)
+    subplots = [eld(data.atr.line), eld(data.atr2.line)]
+    plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
+    # cerebro.plot(style='candle')
+
+def two_charts_test():
+    pass
 
 def sample_test():
     open_data = [33.0, 33.3, 33.5, 33.0, 34.1]
@@ -42,4 +70,5 @@ def sample_test():
     plot_feed(dates, open_data, high_data, low_data, close_data, volume_data)
 
 if __name__ == '__main__':
-    csv_test()
+    two_subplots_test()
+    # csv_test()

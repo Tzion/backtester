@@ -5,17 +5,17 @@ from plotly.subplots import make_subplots
 
 def plot_feed(date, open, high, low, close, volume, overlays_data=None, subplots_data=None):
     subplots = 0 if not subplots_data else len(subplots_data)
-    fig = make_ohlcv_figure(date, open, high, low, close, volume, subplots=subplots)
+    fig = create_ohlcv_figure(date, open, high, low, close, volume, subplots=subplots)
     if overlays_data:
         for overlay in overlays_data:
-            fig.add_trace(go.Scatter(x=date, y=overlay))
+            fig.add_trace(go.Scatter(x=date, y=overlay, mode='lines'))
     if subplots_data:
         for i,subplot in enumerate(subplots_data):
-            fig.add_trace(go.Scatter(x=date, y=subplot), row=i+2, col=1)
+            fig.add_trace(go.Scatter(x=date, y=subplot, mode='lines+markers'), row=i+2, col=1)
     fig.show()
 
-def make_ohlcv_figure(date, open, high, low, close, volume, subplots=0):
-    fig = make_subplots(specs=[[{"secondary_y": True}],[{}]], rows=1+subplots, cols=1)
+def create_ohlcv_figure(date, open, high, low, close, volume, subplots=0):
+    fig = make_subplots(specs=[[{"secondary_y": True}]] + [[{}]] * subplots, rows=1+subplots, cols=1)
 
     prices_trace = go.Candlestick(x=date, open=open, high=high, low=low, close=close)
     fig.add_trace(prices_trace, secondary_y=False)
