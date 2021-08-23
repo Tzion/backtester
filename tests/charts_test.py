@@ -101,13 +101,14 @@ def sample_test():
     plot_feed(dates, open_data, high_data, low_data, close_data, volume_data, buy_markers=buy_markers)
 
 
-RUN_ALL_TESTS = False 
+RUN_ALL_TESTS = True
 if __name__ == '__main__':
 
     if RUN_ALL_TESTS:
         tests = [func[1] for func in inspect.getmembers((sys.modules[__name__]), lambda member: inspect.isfunction(member)) if func[0].endswith('_test')]
         for test in tests:
             test()
+
     # two_subplots_test()
-    trade_markers_test()
+    # trade_markers_test()
     # sample_test()
