@@ -5,7 +5,7 @@ from test_common import *
 import backtrader as bt
 from datetime import date, datetime
 from charts.charts import plot_feed
-from utils.backtrader_helpers import extract_line_data as eld
+from utils.backtrader_helpers import extract_line_data as eld, extract_date_line_data as edld
 from backtrader import indicators
 import backtest
 
@@ -25,7 +25,7 @@ def setup_and_run_strategy(data):
 
 def single_data_test():
     data = setup_and_run_strategy(data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
-    dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
+    dates = edld(data.datetime)
     overlay = eld(data.moving_average.line)
     subplot = eld(data.atr.line)
     plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
@@ -33,17 +33,15 @@ def single_data_test():
 
 def date_gap_test():
     data = setup_and_run_strategy(data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 12, 1), todate=datetime(2016,12,31), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
-    dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
     overlay = eld(data.moving_average.line)
     subplot = eld(data.atr.line)
-    plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
+    plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
 
 def two_subplots_test():
     data = setup_and_run_strategy(bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
-    dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
     overlay = eld(data.moving_average.line)
     subplots = [eld(data.atr.line), eld(data.atr2.line)]
-    plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
+    plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
 
 def two_charts_test():
     pass
@@ -54,10 +52,9 @@ def performance_test():
     cerebro.addstrategy(Strategy)
     strategy = cerebro.run()
     for data in strategy[0].datas:
-        dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
         overlay = eld(data.moving_average.line)
         subplots = [eld(data.atr.line), eld(data.atr2.line)]
-        plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
+        plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
 
 
 def bokeh_test():
@@ -80,5 +77,7 @@ def sample_test():
     plot_feed(dates, open_data, high_data, low_data, close_data, volume_data)
 
 if __name__ == '__main__':
-    # bokeh_test()
+    single_data_test()
+    sample_test()
+    two_subplots_test()
     date_gap_test()
