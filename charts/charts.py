@@ -2,7 +2,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
-def plot_feed(date, open, high, low, close, volume, overlays_data=None, subplots_data=None):
+def plot_feed(date, open, high, low, close, volume, overlays_data=None, subplots_data=None, buy_markers=None, sell_markers=None):
     subplots = 0 if not subplots_data else len(subplots_data)
     fig = create_ohlcv_figure(date, open, high, low, close, volume, subplots=subplots)
     if overlays_data:
@@ -11,6 +11,8 @@ def plot_feed(date, open, high, low, close, volume, overlays_data=None, subplots
     if subplots_data:
         for i,subplot in enumerate(subplots_data):
             fig.add_trace(go.Scatter(x=date, y=subplot, mode='lines+markers'), row=i+2, col=1)
+    fig = add_buysell_markers(fig, buy_markers, sell_markers, date)
+
     # fig.update_layout(xaxis_type='category')  # workaround to handle gaps of dates when stock exchange is closed. movement isn't smooth when few subgraph - commented out for now
     config = dict({'scrollZoom': True})
     fig.show(config=config)
@@ -29,6 +31,17 @@ def create_ohlcv_figure(date, open, high, low, close, volume=None, subplots=0):
     fig.update_layout(xaxis_rangeslider_visible=False)
     fig.update_layout(dragmode='pan')  # when chart open the cursor uses for navigation
     return fig
+
+
+buy_marker_config =dict(color='green', size=10, symbol='arrow-bar-up')
+sell_marker_config =dict(color='red', size=10, symbol='arrow-bar-down')
+
+def add_buysell_markers(figure: go.Figure, buy_prices, sell_prices, dates):
+    if buy_prices:
+        figure.add_trace(go.Scatter(y=buy_prices, x=dates, mode='markers', marker=buy_marker_config))
+    if sell_prices:
+        figure.add_trace(go.Scatter(y=sell_prices, x=dates, mode='markers', marker=sell_marker_config))
+    return figure
 
 
 def plot_feed_volume_as_subplot(date, open, high, low, close, volume=None):

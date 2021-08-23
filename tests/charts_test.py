@@ -18,7 +18,7 @@ class ThreeIndicators(bt.Strategy):
             data.atr= indicators.ATR(data, period=4, subplot=True)
             data.atr2= indicators.ATR(data, period=10, subplot=True)
 
-class SimpleTrade(bt.Strategy):
+class BuyAndSellFirstDataOnly(bt.Strategy):
     def next(self):
         if self.datetime.idx % 31 == 0:
             self.buy()
@@ -64,13 +64,19 @@ def performance_test():
         plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
 
 def trade_markers_test():
-    strategy = setup_and_run_strategy(SimpleTrade, 
+    strategy = setup_and_run_strategy(BuyAndSellFirstDataOnly, 
         datas=[
             bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5),
             bt.feeds.GenericCSVData(dataname='tests/test_data2.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
             ])
 
-    # bsell.line.getzero(size=len(bsell.data.line))
+    data = strategy.data0
+    buysell = strategy.observers.buysell[0]
+    plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), buy_markers=eld(buysell.buy), sell_markers=eld(buysell.sell))
+
+    data = strategy.data1
+    buysell = strategy.observers.buysell[1]
+    plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), buy_markers=eld(buysell.buy), sell_markers=eld(buysell.sell))
     cerebro.plot(style='candle')
 
 
@@ -89,9 +95,10 @@ def sample_test():
     low_data = [32.7, 32.7, 32.8, 32.6, 32.8, 32.8]
     close_data = [33.0, 32.9, 33.3, 33.1, 33.2, 33.1]
     volume_data = [10, 2, 12, 42, 1, 40, 43]
+    buy_markers = [33,] * 5
     dates = [datetime(year=2021, month=8, day=16), datetime(year=2021, month=8, day=17), datetime(year=2021, month=8, day=18), datetime(year=2021, month=8, day=19), datetime(year=2021, month=8, day=20), datetime(year=2021, month=8, day=23)]
 
-    plot_feed(dates, open_data, high_data, low_data, close_data, volume_data)
+    plot_feed(dates, open_data, high_data, low_data, close_data, volume_data, buy_markers=buy_markers)
 
 
 RUN_ALL_TESTS = False 
@@ -103,3 +110,4 @@ if __name__ == '__main__':
             test()
     # two_subplots_test()
     trade_markers_test()
+    # sample_test()
