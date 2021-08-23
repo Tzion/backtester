@@ -12,17 +12,17 @@ def plot_feed(date, open, high, low, close, volume, overlays_data=None, subplots
     if subplots_data:
         for i,subplot in enumerate(subplots_data):
             fig.add_trace(go.Scatter(x=date, y=subplot, mode='lines+markers'), row=i+2, col=1)
+    # fig.update_layout(xaxis_type='category')  # workaround to handle gaps of dates when stock exchange is closed. movement isn't smooth when few subgraph - commented out for now
     fig.show()
 
 def create_ohlcv_figure(date, open, high, low, close, volume, subplots=0):
-    fig = make_subplots(specs=[[{"secondary_y": True}]] + [[{}]] * subplots, rows=1+subplots, cols=1)
+    fig = make_subplots(specs=[[{"secondary_y": True}]] + [[{}]] * subplots, rows=1+subplots, cols=1, shared_xaxes='columns', vertical_spacing=0.01)
 
     prices_trace = go.Candlestick(x=date, open=open, high=high, low=low, close=close)
     fig.add_trace(prices_trace, secondary_y=False)
     volume_trace = go.Bar(x=date, y=volume)
     fig.add_trace(volume_trace, secondary_y=True)
 
-    fig.update_layout(xaxis_type='category')  # workaround to handle gaps of dates when stock exchange is closed
     fig.update_layout(xaxis_rangeslider_visible=False)
     return fig
 

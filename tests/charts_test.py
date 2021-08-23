@@ -1,4 +1,6 @@
 from backtrader.utils.dateintern import num2date
+from backtrader_plotting.bokeh.bokeh import Bokeh
+from backtrader_plotting.schemes.tradimo import Tradimo
 from test_common import *
 import backtrader as bt
 from datetime import date, datetime
@@ -14,7 +16,7 @@ class Strategy(bt.Strategy):
             data.atr= indicators.ATR(data, period=4, subplot=True)
             data.atr2= indicators.ATR(data, period=10, subplot=True)
 
-def setup_single_data(data):
+def setup_and_run_strategy(data):
     cerebro = bt.Cerebro()
     cerebro.adddata(data)
     cerebro.addstrategy(Strategy)
@@ -22,7 +24,7 @@ def setup_single_data(data):
     return strategy[0].data
 
 def single_data_test():
-    data = setup_single_data(data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
+    data = setup_and_run_strategy(data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
     dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
     overlay = eld(data.moving_average.line)
     subplot = eld(data.atr.line)
@@ -30,14 +32,14 @@ def single_data_test():
     # cerebro.plot(style='candle')
 
 def date_gap_test():
-    data = setup_single_data(data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 12, 1), todate=datetime(2016,12,31), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
+    data = setup_and_run_strategy(data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 12, 1), todate=datetime(2016,12,31), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
     dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
     overlay = eld(data.moving_average.line)
     subplot = eld(data.atr.line)
     plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
 
 def two_subplots_test():
-    data = setup_single_data(bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
+    data = setup_and_run_strategy(bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
     dates = list(map(lambda fdate : num2date(fdate).date(), eld(data.datetime)))  # TODO overcome the date timestamp format issue
     overlay = eld(data.moving_average.line)
     subplots = [eld(data.atr.line), eld(data.atr2.line)]
@@ -58,6 +60,14 @@ def performance_test():
         plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
 
 
+def bokeh_test():
+    cerebro = backtest.gb.cerebro
+    backtest.add_data(limit=1, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='../data_feeds')
+    cerebro.addstrategy(Strategy)
+    strategy = cerebro.run()
+    strategy[0].data.plotinfo.plot=True
+    plotter = Bokeh(style='bar', scheme=Tradimo())
+    cerebro.plot(plotter=plotter, style='candlestick', barup='green', numfigs=1)
 
 def sample_test():
     open_data = [33.0, 33.3, 33.5, 33.0, 34.1]
@@ -70,4 +80,5 @@ def sample_test():
     plot_feed(dates, open_data, high_data, low_data, close_data, volume_data)
 
 if __name__ == '__main__':
-    two_subplots_test()
+    # bokeh_test()
+    date_gap_test()
