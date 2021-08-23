@@ -23,12 +23,10 @@ def setup_and_run_strategy(data):
     strategy = cerebro.run()
     return strategy[0].data
 
-def single_data_test():
+def basic_chart_test():
     data = setup_and_run_strategy(data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
-    dates = edld(data.datetime)
-    overlay = eld(data.moving_average.line)
-    subplot = eld(data.atr.line)
-    plot_feed(dates, eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
+    plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), volume=None)
+    plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume))
     # cerebro.plot(style='candle')
 
 def date_gap_test():
@@ -67,17 +65,17 @@ def bokeh_test():
     cerebro.plot(plotter=plotter, style='candlestick', barup='green', numfigs=1)
 
 def sample_test():
-    open_data = [33.0, 33.3, 33.5, 33.0, 34.1]
-    high_data = [33.1, 33.3, 33.6, 33.2, 34.8]
-    low_data = [32.7, 32.7, 32.8, 32.6, 32.8]
-    close_data = [33.0, 32.9, 33.3, 33.1, 33.1]
-    volume_data = [10, 2, 12, 42, 1, 43]
-    dates = [datetime(year=2013, month=10, day=10), datetime(year=2013, month=11, day=10), datetime(year=2013, month=12, day=10), datetime(year=2014, month=1, day=10), datetime(year=2014, month=2, day=10)]
+    open_data = [33.0, 33.3, 33.5, 33.0, 33, 34.1]
+    high_data = [33.1, 33.3, 33.6, 33.2, 33.5, 34.8]
+    low_data = [32.7, 32.7, 32.8, 32.6, 32.8, 32.8]
+    close_data = [33.0, 32.9, 33.3, 33.1, 33.2, 33.1]
+    volume_data = [10, 2, 12, 42, 1, 40, 43]
+    dates = [datetime(year=2021, month=8, day=16), datetime(year=2021, month=8, day=17), datetime(year=2021, month=8, day=18), datetime(year=2021, month=8, day=19), datetime(year=2021, month=8, day=20), datetime(year=2021, month=8, day=23)]
 
     plot_feed(dates, open_data, high_data, low_data, close_data, volume_data)
 
 if __name__ == '__main__':
-    single_data_test()
-    sample_test()
-    two_subplots_test()
-    date_gap_test()
+    basic_chart_test()
+    # sample_test()
+    # two_subplots_test()
+    # date_gap_test()
