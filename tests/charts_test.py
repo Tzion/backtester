@@ -8,35 +8,44 @@ from charts.charts import plot_feed
 from utils.backtrader_helpers import extract_line_data as eld, extract_date_line_data as edld
 from backtrader import indicators
 import backtest
+from globals import cerebro
+import inspect
 
-class Strategy(bt.Strategy):
+class ThreeIndicators(bt.Strategy):
     def __init__(self):
         for data in self.datas:
             data.moving_average = indicators.SMA(data.close, period=14, subplot=False)
             data.atr= indicators.ATR(data, period=4, subplot=True)
             data.atr2= indicators.ATR(data, period=10, subplot=True)
 
-def setup_and_run_strategy(data):
-    cerebro = bt.Cerebro()
-    cerebro.adddata(data)
-    cerebro.addstrategy(Strategy)
+class SimpleTrade(bt.Strategy):
+    def next(self):
+        if self.datetime.idx % 31 == 0:
+            self.buy()
+        if self.datetime.idx % 47 == 0:
+            self.sell()
+        
+def setup_and_run_strategy(strategy=ThreeIndicators, datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]):
+    for d in datas:
+        cerebro.adddata(d)
+    cerebro.addstrategy(strategy)
     strategy = cerebro.run()
-    return strategy[0].data
+    return strategy[0]
 
 def basic_chart_test():
-    data = setup_and_run_strategy(data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
+    data = setup_and_run_strategy(datas = [bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]).data
     plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), volume=None)
     plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume))
     # cerebro.plot(style='candle')
 
 def date_gap_test():
-    data = setup_and_run_strategy(data = bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 12, 1), todate=datetime(2016,12,31), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
+    data = setup_and_run_strategy(datas = [bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 12, 1), todate=datetime(2016,12,31), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]).data
     overlay = eld(data.moving_average.line)
     subplot = eld(data.atr.line)
     plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
 
 def two_subplots_test():
-    data = setup_and_run_strategy(bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5))
+    data = setup_and_run_strategy(datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]).data
     overlay = eld(data.moving_average.line)
     subplots = [eld(data.atr.line), eld(data.atr2.line)]
     plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
@@ -47,18 +56,28 @@ def two_charts_test():
 def performance_test():
     cerebro = backtest.gb.cerebro
     backtest.add_data(limit=10, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='../data_feeds')
-    cerebro.addstrategy(Strategy)
+    cerebro.addstrategy(ThreeIndicators)
     strategy = cerebro.run()
     for data in strategy[0].datas:
         overlay = eld(data.moving_average.line)
         subplots = [eld(data.atr.line), eld(data.atr2.line)]
         plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
 
+def trade_markers_test():
+    strategy = setup_and_run_strategy(SimpleTrade, 
+        datas=[
+            bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5),
+            bt.feeds.GenericCSVData(dataname='tests/test_data2.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
+            ])
+
+    # bsell.line.getzero(size=len(bsell.data.line))
+    cerebro.plot(style='candle')
+
 
 def bokeh_test():
     cerebro = backtest.gb.cerebro
     backtest.add_data(limit=1, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='../data_feeds')
-    cerebro.addstrategy(Strategy)
+    cerebro.addstrategy(ThreeIndicators)
     strategy = cerebro.run()
     strategy[0].data.plotinfo.plot=True
     plotter = Bokeh(style='bar', scheme=Tradimo())
@@ -74,8 +93,13 @@ def sample_test():
 
     plot_feed(dates, open_data, high_data, low_data, close_data, volume_data)
 
+
+RUN_ALL_TESTS = False 
 if __name__ == '__main__':
-    basic_chart_test()
-    # sample_test()
+
+    if RUN_ALL_TESTS:
+        tests = [func[1] for func in inspect.getmembers((sys.modules[__name__]), lambda member: inspect.isfunction(member)) if func[0].endswith('_test')]
+        for test in tests:
+            test()
     # two_subplots_test()
-    # date_gap_test()
+    trade_markers_test()
