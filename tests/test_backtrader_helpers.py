@@ -1,29 +1,30 @@
 from tests.test_common import *
-from backtrader import cerebro
 from utils import backtrader_helpers as bh
-import unittest
 import pytest
 
 
 @pytest.fixture
-def strategy():
-    cerebro = bt.Cerebro()
+def strategy(default_observers, buynsell_name):
+    cerebro = bt.Cerebro(stdstats=default_observers)
     cerebro.adddata(DUMMY_DATA)
+    cerebro.adddata(DUMMY_DATA) # 2 datas is part of the test
+    if (buynsell_name):
+        cerebro.addobservermulti(bt.observers.BuySell, obsname=buynsell_name)
     cerebro.addstrategy(DummyStrategy)
     strategy = cerebro.run()[0]
     yield strategy
 
-class TestBacktraderHelpers():
-    def test_extract_buynsell_observer(self, strategy):
-        assert bh.extract_buynsell_observer(strategy) is not None
 
+class TestExtractBuyNSellObservers:
 
-def test_extract_buynsell_observer__non_default_name():
-    cerebro = bt.Cerebro(stdstats=False)
-    cerebro.adddata(DUMMY_DATA)
-    cerebro.addobserver(bt.observers.BuySell, obsname='non_default_name')
-    cerebro.addstrategy(DummyStrategy)
-    strategy = cerebro.run()[0]
-    assert bh.extract_buynsell_observer(strategy) is not None
+    @pytest.mark.parametrize('default_observers, buynsell_name', [(True, '')])
+    def test_extract_buynsell_observers(self, strategy):
+        assert len(bh.extract_buynsell_observers(strategy)) == 2
 
+    @pytest.mark.parametrize('default_observers, buynsell_name', [(False, 'non_default_name')])
+    def test_extract_buynsell_observers__no_default_observers(self, strategy):
+        assert len(bh.extract_buynsell_observers(strategy)) == 2
 
+    @pytest.mark.parametrize('default_observers, buynsell_name', [(False, '')])
+    def test_extract_buynsell_observers__no_buynsell_observers(self, strategy, default_observers):
+        assert len(bh.extract_buynsell_observers(strategy)) == 0
