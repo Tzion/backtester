@@ -40,10 +40,14 @@ class PlotlyPlotter():
             else:
                 self.charts_data[key]['overlays'].append(eld(ind.line))
         
+        for buysell in extract_buynsell_observers(strategy):
+            self.charts_data[buysell.data]['buy'] = eld(buysell.buy)
+            self.charts_data[buysell.data]['sell'] = eld(buysell.sell)
+
         # plot charts
         for data,chart_data in self.charts_data.items():
-            plot_feed(chart_data['timeline'], chart_data['open'], chart_data['high'], chart_data['low'], chart_data['close'], chart_data['volume'], chart_data['overlays'], chart_data['subplots'])
-            # plot_feed(chart_data['timeline'], chart_data['open'], chart_data['high'], chart_data['low'], chart_data['close'], chart_data['volume'])
+            plot_feed(chart_data['timeline'], chart_data['open'], chart_data['high'], chart_data['low'], chart_data['close'], chart_data['volume'], chart_data['overlays'], chart_data['subplots'], chart_data['buy'], chart_data['sell'])
+
 
 
 

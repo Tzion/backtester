@@ -25,7 +25,7 @@ def print_trades_length(trade_analyzer: TradeAnalyzer):
     trades_len = trade_analyzer.get_analysis()['len']
     print(f'Trades length: Total: {trades_len.total}, Average: {trades_len.average}, Max: {trades_len.max}, Min: {trades_len.min}. Total bars: {len(trade_analyzer.strategy)}')
 
-def extract_buynsell_observers(strategy: bt.Strategy):
+def extract_buynsell_observers(strategy: bt.Strategy) -> list[bt.observers.BuySell]:
     try:
         return strategy.observers.buysell # try the default name of the observer
         # TODO add validation of the type of each item in the list
