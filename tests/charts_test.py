@@ -1,3 +1,6 @@
+from tests.test_common import *
+from custom_indicators import visualizers
+from charts.plotter import PlotlyPlotter
 from backtrader.utils.dateintern import num2date
 from backtrader_plotting.bokeh.bokeh import Bokeh
 from backtrader_plotting.schemes.tradimo import Tradimo
@@ -5,7 +8,7 @@ from test_common import *
 import backtrader as bt
 from datetime import date, datetime
 from charts.charts import plot_feed
-from utils.backtrader_helpers import extract_line_data as eld, extract_date_line_data as edld
+from utils.backtrader_helpers import extract_line_data as eld, extract_line_data_datetime as edld
 from backtrader import indicators
 import backtest
 from globals import cerebro
@@ -17,6 +20,7 @@ class ThreeIndicators(bt.Strategy):
             data.moving_average = indicators.SMA(data.close, period=14, subplot=False)
             data.atr= indicators.ATR(data, period=4, subplot=True)
             data.atr2= indicators.ATR(data, period=10, subplot=True)
+            data.buy_level = visualizers.PartialLevel(signal=data.high*1.05, level=data.high*1.05,length=1)
 
 class BuyAndSellFirstDataOnly(bt.Strategy):
     def next(self):
@@ -77,7 +81,25 @@ def trade_markers_test():
     data = strategy.data1
     buysell = strategy.observers.buysell[1]
     plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), buy_markers=eld(buysell.buy), sell_markers=eld(buysell.sell))
-    cerebro.plot(style='candle')
+
+    # cerebro.plot(style='candle')
+
+def test_plotter_test():
+    strategy = setup_and_run_strategy(ThreeIndicators, 
+        datas=[
+            bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5),
+            bt.feeds.GenericCSVData(dataname='tests/test_data2.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
+            ])
+
+    # strategy2 = setup_and_run_strategy(BuyAndSellFirstDataOnly, 
+    #     datas=[
+    #         bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5),
+    #         bt.feeds.GenericCSVData(dataname='tests/test_data2.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
+    #         ])
+
+    # cerebro.plot(style='candle')
+    cerebro.plot(plotter=PlotlyPlotter())
+    # cerebro.plot(plotter=Bokeh())
 
 
 def bokeh_test():
@@ -101,7 +123,7 @@ def sample_test():
     plot_feed(dates, open_data, high_data, low_data, close_data, volume_data, buy_markers=buy_markers)
 
 
-RUN_ALL_TESTS = True
+RUN_ALL_TESTS = False
 if __name__ == '__main__':
 
     if RUN_ALL_TESTS:
@@ -111,4 +133,4 @@ if __name__ == '__main__':
 
     # two_subplots_test()
     # trade_markers_test()
-    # sample_test()
+    test_plotter_test()

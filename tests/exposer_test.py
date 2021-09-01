@@ -6,9 +6,8 @@ from backtrader.feeds.pandafeed import PandasData
 from analyzers.exposer import Exposer
 
 
-DATA = PandasData(dataname=pd.DataFrame(data=1, columns=PandasData.datafields, index=pd.date_range('20210816', periods=10)))
 
-# TODO move into some testing framework
+# TODO migrate to some testing framework
 
 class ZeroExposerTest(bt.Strategy):
     def next(self):
@@ -31,7 +30,7 @@ class ShortSaleTest(bt.Strategy):
 # before
 def test_run(test: bt.Strategy):
     cerebro = bt.Cerebro()
-    cerebro.adddata(DATA)
+    cerebro.adddata(DUMMY_DATA)
     cerebro.broker.setcash(1000)
     cerebro.broker.set_shortcash(False)
     cerebro.addstrategy(test)
