@@ -13,7 +13,7 @@ def extract_line_data(line : bt.linebuffer.LineBuffer) -> list[float]:
     values = line.getzero(size=len(line))
     return values if line.useislice else list(values)
 
-def extract_date_line_data(datetime_line: bt.linebuffer.LineBuffer) -> list[datetime]:
+def extract_line_data_datetime(datetime_line: bt.linebuffer.LineBuffer) -> list[datetime]:
     """
        Convert line buffer of dates of Matplotlib dates format to `~datetime.datetime` list.
     """
@@ -27,8 +27,8 @@ def print_trades_length(trade_analyzer: TradeAnalyzer):
 
 def extract_buynsell_observers(strategy: bt.Strategy):
     try:
+        return strategy.observers.buysell # try the default name of the observer
         # TODO add validation of the type of each item in the list
-        return strategy.observers.buysell # try the default name 
     except AttributeError:
         buynsell_observers = [obs for obs in strategy.getobservers() if type(obs) is bt.observers.BuySell]
         return buynsell_observers

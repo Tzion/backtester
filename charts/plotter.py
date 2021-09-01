@@ -21,26 +21,29 @@ class PlotlyPlotter():
         # self.charts_data = collections.defaultdict(ChartData)
         self.charts_data = collections.defaultdict(dict)
         for data in strategy.datas:
-            chart_data = dict(open=data.open, high=data.high, low=data.low, close=data.close, volume=data.volume)
+            chart_data = dict(timeline=eldd(data.datetime), open=eld(data.open), high=eld(data.high), low=eld(data.low), close=eld(data.close), volume=eld(data.volume))
+            chart_data['subplots'] = []
+            chart_data['overlays'] = []
             self.charts_data[data] = chart_data
         for ind in strategy.getindicators():
             if not hasattr(ind, 'plotinfo') or not ind.plotinfo.plot or ind.plotinfo.plotskip:
                 continue
 
-            ind._plotinit()  # some indicator requires prepering
+            ind._plotinit()  # some indicators require preperation
             master = ind.plotinfo.plotmaster
             key = master if master is not ind and master is not None else ind._clock
             if key not in self.charts_data:
-                key = key.owner
+                key = key.owner  # maybe we need to iterate key over and over for indicators that are based on other indicators...?
             # key = key if not key is strategy else key.data  # special case for LinesCoupler
             if ind.plotinfo.subplot:
-                self.charts_data[key]['subplots'] = ind
+                self.charts_data[key]['subplots'].append(eld(ind.line))
             else:
-                self.charts_data[key]['overlays'] = ind
+                self.charts_data[key]['overlays'].append(eld(ind.line))
         
         # plot charts
         for data,chart_data in self.charts_data.items():
-            plot_feed(eldd(data.datetime), eld(chart_data['open']), eld(chart_data['high']), eld(chart_data['low']), eld(chart_data['close']), eld(chart_data['volume']))
+            plot_feed(chart_data['timeline'], chart_data['open'], chart_data['high'], chart_data['low'], chart_data['close'], chart_data['volume'], chart_data['overlays'], chart_data['subplots'])
+            # plot_feed(chart_data['timeline'], chart_data['open'], chart_data['high'], chart_data['low'], chart_data['close'], chart_data['volume'])
 
 
 
