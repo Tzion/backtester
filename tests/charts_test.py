@@ -20,7 +20,7 @@ class ThreeIndicators(bt.Strategy):
             data.moving_average = indicators.SMA(data.close, period=14, subplot=False)
             data.atr= indicators.ATR(data, period=4, subplot=True)
             data.atr2= indicators.ATR(data, period=10, subplot=True)
-            data.buy_level = visualizers.PartialLevel(signal=data.high*1.05, level=data.high*1.05,length=1)
+            data.buy_level = visualizers.PartialLevel(signal=data.high*1.05, level=data.high*1.05,length=1, plotmaster=data)
 
 class BuyAndSellFirstDataOnly(bt.Strategy):
     def next(self):
