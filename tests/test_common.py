@@ -3,7 +3,8 @@ import os
 import os.path
 import sys
 import pandas as pd
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import pytest
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))) # TODO no need anymore - remove after align all test classes
 from backtrader.feeds.pandafeed import PandasData
 
 class DummyStrategy(bt.Strategy):
