@@ -1,19 +1,15 @@
-from attr import asdict
 from tests.test_common import *
 from custom_indicators import visualizers
 from charts.plotter import PlotlyPlotter
-from backtrader.utils.dateintern import num2date
 from backtrader_plotting.bokeh.bokeh import Bokeh
 from backtrader_plotting.schemes.tradimo import Tradimo
 from test_common import *
 import backtrader as bt
-from datetime import date, datetime
+from datetime import datetime
 from charts.charts import plot_feed
 from utils.backtrader_helpers import extract_line_data as eld, extract_line_data_datetime as edld
 from backtrader import indicators
 import backtest
-from globals import cerebro
-import inspect
 
 class FourIndicators(bt.Strategy):
     def __init__(self):
@@ -31,6 +27,7 @@ class BuyAndSellFirstDataOnly(bt.Strategy):
             self.sell()
         
 def setup_and_run_strategy(strategy=FourIndicators, datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]):
+    cerebro = bt.Cerebro()
     for d in datas:
         cerebro.adddata(d)
     cerebro.addstrategy(strategy)
@@ -77,21 +74,22 @@ class TestChartsApi:
 class TestIntegrationWithCerebro:
     def test_plotter_integration(self):
         print('Expected output: 2 graphs each with 4 indicators and the first has buy&sell markers')
+        cerebro = bt.Cerebro()
         modified_strategy = FourIndicators
         modified_strategy.next = BuyAndSellFirstDataOnly.next
-        strategy = setup_and_run_strategy(modified_strategy, 
-            datas=[
-                bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5),
-                bt.feeds.GenericCSVData(dataname='tests/test_data2.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
-                ])
+        cerebro.addstrategy(modified_strategy)
+        for d in [bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5),
+                    bt.feeds.GenericCSVData(dataname='tests/test_data2.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]:
+            cerebro.adddata(d)
+        cerebro.run()
         cerebro.plot(plotter=PlotlyPlotter())
 
 
-# change plot_number as required
+    # change plot_number as required
     @pytest.mark.parametrize('plot_number', [(5)])
     def test_performance(self, plot_number):
         print(f'Plot {plot_number} charts - expecting it to be smooth')
-        cerebro = backtest.gb.cerebro
+        cerebro = bt.Cerebro()
         path = './data_feeds/'
         datas_path = [path + file_name for file_name in os.listdir(path)]
         datas = [bt.feeds.GenericCSVData(dataname=data_path, fromdate=datetime(2016, 11, 30), todate=datetime(2021,4,26), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5) for data_path in datas_path]
@@ -106,7 +104,7 @@ class TestIntegrationWithCerebro:
 
 # Here for comparison if needed
 def bokeh_test():
-    cerebro = backtest.gb.cerebro
+    cerebro = bt.Cerebro()
     backtest.add_data(limit=1, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='../data_feeds')
     cerebro.addstrategy(FourIndicators)
     strategy = cerebro.run()
