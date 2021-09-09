@@ -29,7 +29,7 @@ def plot_feed(chart_data: ChartData):
     _plot_feed(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers, d.sell_markers)
 
 
-def _plot_feed(name, dates, open, high, low, close, volume, overlays_data=None, subplots_data=None, buy_markers=None, sell_markers=None):
+def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Optional[list[LabeledData]]=None, subplots_data:Optional[list[LabeledData]]=None, buy_markers=None, sell_markers=None):
     fig = create_ohlcv_figure(name, dates, open, high, low, close, volume, subplots_data=subplots_data)
     fig = add_overlay_plots(fig, dates, overlays_data)
     fig = add_subplots(fig, dates, subplots_data)
@@ -58,17 +58,17 @@ def create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplot
     return fig
 
 
-def add_overlay_plots(figure: go.Figure, dates, overlays_data):
+def add_overlay_plots(figure: go.Figure, dates, overlays_data:Optional[list[LabeledData]]):
     if overlays_data:
         for overlay in overlays_data:
-            figure.add_trace(go.Scatter(x=dates, y=overlay, mode='lines'))
+            figure.add_trace(go.Scatter(x=dates, y=overlay.data, mode='lines', name=overlay.label))
     return figure
 
 
-def add_subplots(figure: go.Figure, dates, subplots_data):
+def add_subplots(figure: go.Figure, dates, subplots_data:Optional[list[LabeledData]]):
     if subplots_data:
         for i,subplot in enumerate(subplots_data):
-            figure.add_trace(go.Scatter(x=dates, y=subplot, mode='lines+markers'), row=i+2, col=1)
+            figure.add_trace(go.Scatter(x=dates, y=subplot.data, mode='lines+markers', name=subplot.label), row=i+2, col=1)
     return figure
 
 

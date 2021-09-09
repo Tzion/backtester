@@ -32,3 +32,10 @@ def extract_buynsell_observers(strategy: bt.Strategy) -> list[bt.observers.BuySe
     except AttributeError:
         buynsell_observers = [obs for obs in strategy.getobservers() if type(obs) is bt.observers.BuySell]
         return buynsell_observers
+
+
+def get_indicator_label(indicator) -> str:
+    name = indicator.aliased or str(indicator).split('.')[-1].split(' ')[0]
+    if hasattr(indicator.params, 'period'):
+        name += '(' + str(indicator.params.period) + ')'
+    return name
