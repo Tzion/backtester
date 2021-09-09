@@ -38,8 +38,8 @@ def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Option
     # fig.update_layout(xaxis_type='category')  # workaround to handle gaps of dates when stock exchange is closed. movement isn't smooth when few subgraph - commented out for now
     config = dict({'scrollZoom': True})
 
+    config_cursor(fig)
     fig.update_layout(xaxis_rangeslider_visible=False, title=name)
-    fig.update_layout(dragmode='pan')  # when chart open the cursor uses for navigation
     fig.update_layout(legend=dict(orientation="h",yanchor="bottom",y=1.01,xanchor="left",x=0.01))
     fig.show(config=config)
 
@@ -49,14 +49,13 @@ def create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplot
     fig = make_subplots(specs=[[{"secondary_y": True}]] + [[{}]] * subplots, rows=1+subplots, cols=1, shared_xaxes='columns', vertical_spacing=0.01,
                         row_width=[1] * subplots + [4])
 
-    prices_trace = go.Candlestick(x=date, open=open, high=high, low=low, close=close, showlegend=False)
+    prices_trace = go.Candlestick(x=date, open=open, high=high, low=low, close=close, name=name)
     fig.add_trace(prices_trace, secondary_y=False)
     fig.update_layout(yaxis1_side='right')
     if volume:
         volume_trace = go.Bar(x=date, y=volume, opacity=0.35, showlegend=False)
         fig.add_trace(volume_trace, secondary_y=True)
         fig.update_layout(yaxis2_side='left')
-
     return fig
 
 
@@ -79,11 +78,16 @@ sell_marker_config =dict(color='red', size=10, symbol='arrow-bar-down')
 
 def add_buysell_markers(figure: go.Figure, dates, buy_prices, sell_prices):
     if buy_prices:
-        figure.add_trace(go.Scatter(y=buy_prices, x=dates, mode='markers', marker=buy_marker_config, showlegend=False))
+        figure.add_trace(go.Scatter(y=buy_prices, x=dates, mode='markers', marker=buy_marker_config, showlegend=False, name='buy'))
     if sell_prices:
-        figure.add_trace(go.Scatter(y=sell_prices, x=dates, mode='markers', marker=sell_marker_config, showlegend=False))
+        figure.add_trace(go.Scatter(y=sell_prices, x=dates, mode='markers', marker=sell_marker_config, showlegend=False, name='sell'))
     return figure
 
+
+def config_cursor(figure):
+    figure.update_xaxes(showspikes=True, spikemode='across', spikesnap='cursor', spikecolor="black",spikethickness=0.4)
+    figure.update_yaxes(showspikes=True, spikemode='across', spikesnap='cursor', spikecolor="black",spikethickness=0.4)
+    figure.update_layout(dragmode='pan')  # when chart open the cursor uses for navigation
 
 def _plot_feed__volume_as_subplot(date, open, high, low, close, volume=None):
     fig = make_subplots(rows=1+bool(volume), cols=1, shared_xaxes=True)
