@@ -1,9 +1,36 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class LabeledData:
+    label: str
+    data: list[float]
+
+@dataclass
+class ChartData:
+    # __slots__ = ('name', 'dates', 'open', 'high', 'low', 'close' 'volume', 'overlays_data', 'subplots_data', 'buy_markers', 'sell_markers')
+    name: str
+    dates: list
+    open: list[float]
+    high: list[float] 
+    low: list[float]
+    close: list[float]
+    volume: list[float]
+    overlays_data: list[LabeledData]
+    subplots_data: list[LabeledData]
+    buy_markers: Optional[list[float]] = None
+    sell_markers: Optional[list[float]] = None
 
 
-def plot_feed(dates, open, high, low, close, volume, overlays_data=None, subplots_data=None, buy_markers=None, sell_markers=None):
-    fig = create_ohlcv_figure(dates, open, high, low, close, volume, subplots_data=subplots_data)
+def plot_feed(chart_data: ChartData):
+    d = chart_data
+    _plot_feed(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers, d.sell_markers)
+
+
+def _plot_feed(name, dates, open, high, low, close, volume, overlays_data=None, subplots_data=None, buy_markers=None, sell_markers=None):
+    fig = create_ohlcv_figure(name, dates, open, high, low, close, volume, subplots_data=subplots_data)
     fig = add_overlay_plots(fig, dates, overlays_data)
     fig = add_subplots(fig, dates, subplots_data)
     fig = add_buysell_markers(fig, dates, buy_markers, sell_markers)
@@ -14,7 +41,7 @@ def plot_feed(dates, open, high, low, close, volume, overlays_data=None, subplot
     fig.show(config=config)
 
 
-def create_ohlcv_figure(date, open, high, low, close, volume=None, subplots_data=None):
+def create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplots_data=None):
     subplots = 0 if not subplots_data else len(subplots_data)
     fig = make_subplots(specs=[[{"secondary_y": True}]] + [[{}]] * subplots, rows=1+subplots, cols=1, shared_xaxes='columns', vertical_spacing=0.01)
 
@@ -26,7 +53,7 @@ def create_ohlcv_figure(date, open, high, low, close, volume=None, subplots_data
         fig.add_trace(volume_trace, secondary_y=True)
         fig.update_layout(yaxis2_side='left')
 
-    fig.update_layout(xaxis_rangeslider_visible=False)
+    fig.update_layout(xaxis_rangeslider_visible=False, title=name)
     fig.update_layout(dragmode='pan')  # when chart open the cursor uses for navigation
     return fig
 
@@ -69,5 +96,4 @@ def plot_feed_volume_as_subplot(date, open, high, low, close, volume=None):
     fig.update_layout(xaxis_type='category')  # workaround to handle gaps of dates when stock exchange is closed
 
     fig.show()
-
 

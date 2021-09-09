@@ -1,4 +1,4 @@
-from charts.charts import plot_feed
+from charts.charts import ChartData, plot_feed
 from utils.backtrader_helpers import extract_buynsell_observers, extract_line_data as eld, extract_line_data_datetime as eldd
 from globals import *
 import collections
@@ -17,15 +17,12 @@ class PlotlyPlotter():
         pass
 
     def plot_strategy(self, strategy: bt.Strategy):
-        # TODO compare performace of dict and slots
-        # self.charts_data = collections.defaultdict(ChartData)
-        self.charts_data = collections.defaultdict(dict)
+        self.charts_data = collections.defaultdict(ChartData)
         for data in strategy.datas:
-            chart_data = dict(timeline=eldd(data.datetime), open=eld(data.open), high=eld(data.high), low=eld(data.low), close=eld(data.close), volume=eld(data.volume))
-            chart_data['subplots'] = []
-            chart_data['overlays'] = []
+            chart_data = ChartData(data._name, eldd(data.datetime), open=eld(data.open), high=eld(data.high), low=eld(data.low), close=eld(data.close), volume=eld(data.volume), overlays_data=[], subplots_data=[], sell_markers=None, buy_markers=None)
             self.charts_data[data] = chart_data
         for ind in strategy.getindicators():
+            continue
             if not hasattr(ind, 'plotinfo') or not ind.plotinfo.plot or ind.plotinfo.plotskip:
                 continue
 
@@ -41,12 +38,13 @@ class PlotlyPlotter():
                 self.charts_data[key]['overlays'].append(eld(ind.line))
         
         for buysell in extract_buynsell_observers(strategy):
+            continue
             self.charts_data[buysell.data]['buy'] = eld(buysell.buy)
             self.charts_data[buysell.data]['sell'] = eld(buysell.sell)
 
         # plot charts
         for data,chart_data in self.charts_data.items():
-            plot_feed(chart_data['timeline'], chart_data['open'], chart_data['high'], chart_data['low'], chart_data['close'], chart_data['volume'], chart_data['overlays'], chart_data['subplots'], chart_data['buy'], chart_data['sell'])
+            plot_feed(chart_data)
 
 
 
@@ -58,6 +56,4 @@ class PlotlyPlotter():
 
 
 
-class ChartData:
-    __slots__ = ('open', 'high', 'low', 'close' 'volume', 'overlays_data', 'subplots_data', 'buy_markers', 'sell_markers')
     

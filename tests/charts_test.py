@@ -6,7 +6,7 @@ from backtrader_plotting.schemes.tradimo import Tradimo
 from test_common import *
 import backtrader as bt
 from datetime import datetime
-from charts.charts import plot_feed
+from charts.charts import plot_feed, _plot_feed
 from utils.backtrader_helpers import extract_line_data as eld, extract_line_data_datetime as edld
 from backtrader import indicators
 import backtest
@@ -45,21 +45,21 @@ class TestChartsApi:
         volume_data = [10, 2, 12, 42, 1, 40, 43]
         buy_markers = [33,] * 5
         dates = [datetime(year=2021, month=8, day=16), datetime(year=2021, month=8, day=17), datetime(year=2021, month=8, day=18), datetime(year=2021, month=8, day=19), datetime(year=2021, month=8, day=20), datetime(year=2021, month=8, day=23)]
-        plot_feed(dates, open_data, high_data, low_data, close_data, volume_data, buy_markers=buy_markers)
+        _plot_feed('sampled',dates, open_data, high_data, low_data, close_data, volume_data, buy_markers=buy_markers)
 
     def test_trade_markers_test(self):
         print('Plot chart with volume and buy&sell markers')
         strategy = setup_and_run_strategy(BuyAndSellFirstDataOnly, datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])
         data = strategy.data0
         buysell = strategy.observers.buysell[0]
-        plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), buy_markers=eld(buysell.buy), sell_markers=eld(buysell.sell))
+        _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), buy_markers=eld(buysell.buy), sell_markers=eld(buysell.sell))
 
     def test_two_subplots(self):
         print('Chart with 2 subplots indicators')
         data = setup_and_run_strategy(datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]).data
         overlay = eld(data.moving_average.line)
         subplots = [eld(data.atr.line), eld(data.atr2.line)]
-        plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
+        _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
 
 
     def test_candle_gaps_for_non_trading_days(self):
@@ -68,7 +68,7 @@ class TestChartsApi:
         data = strategy.data
         overlay = eld(data.moving_average.line)
         subplot = eld(data.atr.line)
-        plot_feed(edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
+        _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
 
 
 class TestIntegrationWithCerebro:
