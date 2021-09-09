@@ -45,16 +45,17 @@ def create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplot
     subplots = 0 if not subplots_data else len(subplots_data)
     fig = make_subplots(specs=[[{"secondary_y": True}]] + [[{}]] * subplots, rows=1+subplots, cols=1, shared_xaxes='columns', vertical_spacing=0.01)
 
-    prices_trace = go.Candlestick(x=date, open=open, high=high, low=low, close=close)
+    prices_trace = go.Candlestick(x=date, open=open, high=high, low=low, close=close, showlegend=False)
     fig.add_trace(prices_trace, secondary_y=False)
     fig.update_layout(yaxis1_side='right')
     if volume:
-        volume_trace = go.Bar(x=date, y=volume, opacity=0.35)
+        volume_trace = go.Bar(x=date, y=volume, opacity=0.35, showlegend=False)
         fig.add_trace(volume_trace, secondary_y=True)
         fig.update_layout(yaxis2_side='left')
 
     fig.update_layout(xaxis_rangeslider_visible=False, title=name)
     fig.update_layout(dragmode='pan')  # when chart open the cursor uses for navigation
+    fig.update_layout(legend=dict(orientation="h",yanchor="bottom",y=1.01,xanchor="left",x=0.01))
     return fig
 
 
@@ -77,9 +78,9 @@ sell_marker_config =dict(color='red', size=10, symbol='arrow-bar-down')
 
 def add_buysell_markers(figure: go.Figure, dates, buy_prices, sell_prices):
     if buy_prices:
-        figure.add_trace(go.Scatter(y=buy_prices, x=dates, mode='markers', marker=buy_marker_config))
+        figure.add_trace(go.Scatter(y=buy_prices, x=dates, mode='markers', marker=buy_marker_config, showlegend=False))
     if sell_prices:
-        figure.add_trace(go.Scatter(y=sell_prices, x=dates, mode='markers', marker=sell_marker_config))
+        figure.add_trace(go.Scatter(y=sell_prices, x=dates, mode='markers', marker=sell_marker_config, showlegend=False))
     return figure
 
 
