@@ -38,12 +38,16 @@ def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Option
     # fig.update_layout(xaxis_type='category')  # workaround to handle gaps of dates when stock exchange is closed. movement isn't smooth when few subgraph - commented out for now
     config = dict({'scrollZoom': True})
 
+    fig.update_layout(xaxis_rangeslider_visible=False, title=name)
+    fig.update_layout(dragmode='pan')  # when chart open the cursor uses for navigation
+    fig.update_layout(legend=dict(orientation="h",yanchor="bottom",y=1.01,xanchor="left",x=0.01))
     fig.show(config=config)
 
 
 def create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplots_data=None):
     subplots = 0 if not subplots_data else len(subplots_data)
-    fig = make_subplots(specs=[[{"secondary_y": True}]] + [[{}]] * subplots, rows=1+subplots, cols=1, shared_xaxes='columns', vertical_spacing=0.01)
+    fig = make_subplots(specs=[[{"secondary_y": True}]] + [[{}]] * subplots, rows=1+subplots, cols=1, shared_xaxes='columns', vertical_spacing=0.01,
+                        row_width=[1] * subplots + [4])
 
     prices_trace = go.Candlestick(x=date, open=open, high=high, low=low, close=close, showlegend=False)
     fig.add_trace(prices_trace, secondary_y=False)
@@ -53,9 +57,6 @@ def create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplot
         fig.add_trace(volume_trace, secondary_y=True)
         fig.update_layout(yaxis2_side='left')
 
-    fig.update_layout(xaxis_rangeslider_visible=False, title=name)
-    fig.update_layout(dragmode='pan')  # when chart open the cursor uses for navigation
-    fig.update_layout(legend=dict(orientation="h",yanchor="bottom",y=1.01,xanchor="left",x=0.01))
     return fig
 
 
@@ -84,7 +85,7 @@ def add_buysell_markers(figure: go.Figure, dates, buy_prices, sell_prices):
     return figure
 
 
-def plot_feed_volume_as_subplot(date, open, high, low, close, volume=None):
+def _plot_feed__volume_as_subplot(date, open, high, low, close, volume=None):
     fig = make_subplots(rows=1+bool(volume), cols=1, shared_xaxes=True)
     prices_trace = go.Candlestick(x=date, open=open, high=high, low=low, close=close)
     fig.add_trace(prices_trace, row=1, col=1)

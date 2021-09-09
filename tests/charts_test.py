@@ -6,7 +6,7 @@ from backtrader_plotting.schemes.tradimo import Tradimo
 from test_common import *
 import backtrader as bt
 from datetime import datetime
-from charts.charts import plot_feed, _plot_feed
+from charts.charts import LabeledData, plot_feed, _plot_feed
 from utils.backtrader_helpers import extract_line_data as eld, extract_line_data_datetime as edld
 from backtrader import indicators
 import backtest
@@ -57,8 +57,8 @@ class TestChartsApi:
     def test_two_subplots(self):
         print('Chart with 2 subplots indicators')
         data = setup_and_run_strategy(datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]).data
-        overlay = eld(data.moving_average.line)
-        subplots = [eld(data.atr.line), eld(data.atr2.line)]
+        overlay = LabeledData('overlay', eld(data.moving_average.line))
+        subplots = [LabeledData('subplot1', eld(data.atr.line)), LabeledData('subplot2',eld(data.atr2.line))]
         _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots)
 
 
@@ -66,8 +66,8 @@ class TestChartsApi:
         print('Demosntrate the gaps on the x axis for days of no trading (weekends). problem solved when there\'s not gap')
         strategy = setup_and_run_strategy(datas = [bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 12, 1), todate=datetime(2016,12,31), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])
         data = strategy.data
-        overlay = eld(data.moving_average.line)
-        subplot = eld(data.atr.line)
+        overlay = LabeledData('overlay', eld(data.moving_average.line))
+        subplot = LabeledData('subplot', eld(data.atr.line))
         _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot])
 
 
