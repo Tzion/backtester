@@ -4,6 +4,19 @@ from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
 
+"""
+This module creates interactive candlestick financial charts of data feeds using Plotly.
+
+TODO:
+    1. Block pan navigation in price chart to go below zero. (waiting for feature - https://github.com/plotly/plotly.js/issues/1876 - expected api: layout.yaxis_rangemode='visible')
+    2.  1. Color volume bars in red-green
+        2. Set range of the volume bar to be ~40% of the prices (see layout.yaxis.range)
+    3. Remove gaps of non-trading days in the X axis
+    4. Support intra-day charting
+    5. Support in complex (more than single plotline) indicators (macd, bollinger)
+    6. Support in plotting strategy observers (e.g. cash, drawdown)
+"""
+
 @dataclass
 class LabeledData:
     label: str
@@ -13,7 +26,7 @@ class LabeledData:
 class ChartData:
     # __slots__ = ('name', 'dates', 'open', 'high', 'low', 'close' 'volume', 'overlays_data', 'subplots_data', 'buy_markers', 'sell_markers')
     name: str
-    dates: list
+    dates: list[datetime]
     open: list[float]
     high: list[float] 
     low: list[float]

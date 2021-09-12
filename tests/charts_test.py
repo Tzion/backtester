@@ -38,12 +38,12 @@ class TestChartsApi:
 
     def test_plot_with_sampled_data(self):
         print('Small chart with few candles')
-        open_data = [33.0, 33.3, 33.5, 33.0, 33, 34.1]
-        high_data = [33.1, 33.3, 33.6, 33.2, 33.5, 34.8]
-        low_data = [32.7, 32.7, 32.8, 32.6, 32.8, 32.8]
-        close_data = [33.0, 32.9, 33.3, 33.1, 33.2, 33.1]
-        volume_data = [10, 2, 12, 42, 1, 40, 43]
-        buy_markers = [33,] * 5
+        open_data = [3.0, 3.3, 3.5, 3.0, 3, 4.1]
+        high_data = [3.1, 3.3, 3.6, 3.2, 3.5, 4.8]
+        low_data = [3.7, 3.7, 3.8, 3.6, 3.8, 3.8]
+        close_data = [3.0, 3.9, 3.3, 3.1, 3.2, 3.1]
+        volume_data = [1, 2, 2, 4, 1, 4, 3]
+        buy_markers = [3,] * 5
         dates = [datetime(year=2021, month=8, day=16), datetime(year=2021, month=8, day=17), datetime(year=2021, month=8, day=18), datetime(year=2021, month=8, day=19), datetime(year=2021, month=8, day=20), datetime(year=2021, month=8, day=23)]
         _plot_feed('sampled',dates, open_data, high_data, low_data, close_data, volume_data, buy_markers=buy_markers)
 
