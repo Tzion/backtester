@@ -2,6 +2,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from dataclasses import dataclass
 from typing import Optional
+from datetime import datetime
 
 @dataclass
 class LabeledData:
@@ -30,6 +31,7 @@ def plot_feed(chart_data: ChartData):
 
 
 def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Optional[list[LabeledData]]=None, subplots_data:Optional[list[LabeledData]]=None, buy_markers=None, sell_markers=None):
+    dates = list(map(lambda datetime: datetime.replace(microsecond=0), dates))  # trim microsecond to handle rounding error that cause the data point to have the date of the next day
     fig = create_ohlcv_figure(name, dates, open, high, low, close, volume, subplots_data=subplots_data)
     fig = add_overlay_plots(fig, dates, overlays_data)
     fig = add_subplots(fig, dates, subplots_data)
