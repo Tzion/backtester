@@ -3,7 +3,7 @@ from plotly.subplots import make_subplots
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
-from globals import OUTPUT_PATH_CHARS
+from globals import OUTPUT_PATH_CHARTS
 import time
 
 """
@@ -62,7 +62,7 @@ def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Option
     if show:
         fig.show(config=config)
     if write_to_file:
-        fig.write_html(file=f'{OUTPUT_PATH_CHARS}/{name}.html', config=config)
+        fig.write_html(file=f'{OUTPUT_PATH_CHARTS}/{name}.html', config=config)
     return fig
 
 

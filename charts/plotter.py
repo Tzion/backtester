@@ -1,4 +1,5 @@
-from charts.charts import ChartData, LabeledData, plot_feed
+from charts import charts
+from charts.charts import ChartData, LabeledData
 from utils.backtrader_helpers import extract_buynsell_observers, get_indicator_label, extract_line_data as eld, extract_line_data_datetime as eldd
 from globals import *
 import collections
@@ -9,20 +10,23 @@ class PlotlyPlotter():
     It is based on inner charting implementation that uses Plotly to plot the data feed graphes.
     """
 
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
     def plot(self, strategy: bt.Strategy, figid=0, numfigs=0, iplot=None, start=None, end=None, use=None):
-        self.plot_strategy(strategy)
+        self.plot_strategy(strategy, **self.kwargs)
     
     def show(self):
         """ Do nothing - needed as part of the interface """
         pass
 
-    def plot_strategy(self, strategy: bt.Strategy):
+    def plot_strategy(self, strategy: bt.Strategy, **kwargs):
         self.charts = collections.defaultdict()
         self.load_price_data(strategy)
         self.load_indicators(strategy)
         self.load_buysell_markers(strategy)
         for chart in self.charts.values():
-            fig = plot_feed(chart)
+            fig = charts.plot_feed(chart, **kwargs)
 
     def load_price_data(self, strategy):
         for data in strategy.datas:
