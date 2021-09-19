@@ -13,7 +13,8 @@ import globals as gb
 import strategies
 import numpy as np
 from logger import *
-from globals import OUTPUT_PATH
+from globals import OUTPUT_DIR
+from charts.plotter import PlotlyPlotter
 import os
 
 
@@ -23,14 +24,16 @@ def main():
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
     # add_data(limit=500, random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
-    add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=12, stock_names=['CNP.csv', 'GD.csv','ABC.csv'], dirpath='data_feeds')
+    # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=2, stock_names=['CNP.csv', 'GD.csv','ABC.csv'], dirpath='data_feeds')
+    add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=2, dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=120, dirpath='data_feeds')
     add_analyzers()
     add_observers()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=False)
+    cerebro.plot(plotter=PlotlyPlotter())
+    # plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=False)
 
 
 def add_strategies(strategy: bt.Strategy):
@@ -91,9 +94,20 @@ def show_statistics(strategies):
     pnl_to_trade_length(extract_trades(strategies[0]))
 
 
+# TODO move to utils, mark as dangerous
 def clean_previous_output():
-    for f in os.listdir(OUTPUT_PATH):
-        os.remove(f)
+    files_to_delete = ["html", "log"]
+    def clean_dir(path):
+        for blob in [os.path.join(path,f) for f in os.listdir(path)]:
+            if os.path.isdir(blob):
+                clean_dir(blob)
+            else:
+                if blob.split('.')[-1] in files_to_delete:
+                    os.remove(os.path.abspath(blob))
+
+    if os.path.abspath(OUTPUT_DIR).endswith('backtester/output'):  ## hardcoded validation
+        clean_dir(OUTPUT_DIR)
+        
 
 
 if __name__ == '__main__':
