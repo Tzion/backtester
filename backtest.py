@@ -13,9 +13,12 @@ import globals as gb
 import strategies
 import numpy as np
 from logger import *
+from globals import OUTPUT_PATH
+import os
 
 
 def main():
+    clean_previous_output()
     global cerebro
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
@@ -86,6 +89,11 @@ def show_statistics(strategies):
     strategies[0].analyzers.sharperatio.print()
     strategies[0].analyzers.sharperatio_a.print()
     pnl_to_trade_length(extract_trades(strategies[0]))
+
+
+def clean_previous_output():
+    for f in os.listdir(OUTPUT_PATH):
+        os.remove(f)
 
 
 if __name__ == '__main__':

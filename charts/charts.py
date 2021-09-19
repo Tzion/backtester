@@ -3,6 +3,8 @@ from plotly.subplots import make_subplots
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
+from globals import OUTPUT_PATH_CHARS
+import time
 
 """
 This module creates interactive candlestick financial charts of data feeds using Plotly.
@@ -38,12 +40,13 @@ class ChartData:
     sell_markers: Optional[list[float]] = None
 
 
-def plot_feed(chart_data: ChartData):
+def plot_feed(chart_data: ChartData, show=False, write_to_file=True):
     d = chart_data
-    _plot_feed(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers, d.sell_markers)
+    figure = _plot_feed(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers, d.sell_markers, show, write_to_file)
+    return figure
 
 
-def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Optional[list[LabeledData]]=None, subplots_data:Optional[list[LabeledData]]=None, buy_markers=None, sell_markers=None):
+def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Optional[list[LabeledData]]=None, subplots_data:Optional[list[LabeledData]]=None, buy_markers=None, sell_markers=None, show=False, write_to_file=True):
     dates = list(map(lambda datetime: datetime.replace(microsecond=0), dates))  # trim microsecond to handle rounding error that cause the data point to have the date of the next day
     fig = create_ohlcv_figure(name, dates, open, high, low, close, volume, subplots_data=subplots_data)
     fig = add_overlay_plots(fig, dates, overlays_data)
@@ -54,9 +57,13 @@ def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Option
     config = dict({'scrollZoom': True})
 
     config_cursor(fig)
-    fig.update_layout(xaxis_rangeslider_visible=False, title=name)
+    fig.update_layout(xaxis_rangeslider_visible=False, title=name + ' ' + time.asctime())
     fig.update_layout(legend=dict(orientation="h",yanchor="bottom",y=1.01,xanchor="left",x=0.01))
-    fig.show(config=config)
+    if show:
+        fig.show(config=config)
+    if write_to_file:
+        fig.write_html(file=f'{OUTPUT_PATH_CHARS}/{name}.html', config=config)
+    return fig
 
 
 def create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplots_data=None):
@@ -84,7 +91,7 @@ def add_overlay_plots(figure: go.Figure, dates, overlays_data:Optional[list[Labe
 def add_subplots(figure: go.Figure, dates, subplots_data:Optional[list[LabeledData]]):
     if subplots_data:
         for i,subplot in enumerate(subplots_data):
-            figure.add_trace(go.Scatter(x=dates, y=subplot.data, mode='lines+markers', name=subplot.label), row=i+2, col=1)
+            figure.add_trace(go.Scatter(x=dates, y=subplot.data, mode='lines', name=subplot.label), row=i+2, col=1)
     return figure
 
 

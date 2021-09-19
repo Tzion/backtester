@@ -22,7 +22,7 @@ class PlotlyPlotter():
         self.load_indicators(strategy)
         self.load_buysell_markers(strategy)
         for chart in self.charts.values():
-            plot_feed(chart)
+            fig = plot_feed(chart)
 
     def load_price_data(self, strategy):
         for data in strategy.datas:
