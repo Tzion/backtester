@@ -1,5 +1,5 @@
 from backtrader.dataseries import TimeFrame
-from utils.backtrader_helpers import extract_trades, print_trades_length
+from utils.backtrader_helpers import extract_all_trades, print_trades_length
 from utils.charting import pnl_to_trade_length
 from analyzers.exposer import Exposer
 from strategies.candle_pattern_long import CandlePatternLong
@@ -23,8 +23,8 @@ def main():
     global cerebro
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
-    add_data(limit=500, random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
-    # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=2, stock_names=['CNP.csv', 'GD.csv','ABC.csv'], dirpath='data_feeds')
+    # add_data(limit=12, random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
+    add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=3, stock_names=['DFS.csv', 'GD.csv','ABC.csv'], dirpath='data_feeds')
     # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=90, dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=120, dirpath='data_feeds')
     add_analyzers()
@@ -32,7 +32,7 @@ def main():
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    cerebro.plot(plotter=PlotlyPlotter())
+    # cerebro.plot(plotter=PlotlyPlotter())
     # plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=False)
 
 
@@ -48,7 +48,7 @@ def add_data(start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-
     if random:
         stocks = np.random.permutation(stocks)
     stocks = stocks[:limit or len(stocks)]
-    loginfo(f'adding {len(stocks)} data feeds')
+    logdebug(f'adding {len(stocks)} data feeds: {stocks}')
     for i, stock in enumerate(stocks):
         feed = bt.feeds.GenericCSVData(
             dataname=os.path.join(dirpath, stock2file(stock)), fromdate=start_date,
@@ -86,17 +86,18 @@ def show_statistics(strategies):
     loginfo(f'Final portfolio value: {cerebro.broker.getvalue():.2f}')
     strategies[0].analyzers.basic_trade_stats.print()
     print_trades_length(strategies[0].analyzers.tradeanalyzer)
+    strategies[0].analyzers.tradeanalyzer.print()
     strategies[0].analyzers.exposer.print()
     strategies[0].analyzers.drawdown.print()
     strategies[0].analyzers.sqn.print()
     strategies[0].analyzers.sharperatio.print()
     strategies[0].analyzers.sharperatio_a.print()
-    pnl_to_trade_length(extract_trades(strategies[0]))
+    pnl_to_trade_length(extract_all_trades(strategies[0]))
 
 
 # TODO move to utils, mark as dangerous
 def clean_previous_output():
-    files_to_delete = ["html", "log"]
+    files_to_delete = ["html",]
     def clean_dir(path):
         for blob in [os.path.join(path,f) for f in os.listdir(path)]:
             if os.path.isdir(blob):

@@ -10,7 +10,8 @@ class PlotlyPlotter():
     It is based on inner charting implementation that uses Plotly to plot the data feed graphes.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, trades_only=True, **kwargs):
+        self.trades_only = trades_only
         self.kwargs = kwargs
 
     def plot(self, strategy: bt.Strategy, figid=0, numfigs=0, iplot=None, start=None, end=None, use=None):

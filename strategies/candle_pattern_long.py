@@ -69,11 +69,11 @@ class CandlePatternLong(TradeStateStrategy):
                 return
             if (
                 self.feed.doji_star[0] > 0 
-                and self.feed.open[1] > self.feed.low[0]
-                and self.feed.lowest[-1] + self.feed.atr[0]/3 >= self.feed.low[0] >= self.feed.lowest[-1]
+                # and self.feed.open[1] > self.feed.low[0]
+                # and self.feed.lowest[-1] + self.feed.atr[0]/3 >= self.feed.low[0] >= self.feed.lowest[-1]
                 # and self.feed.ema_very_fast[0] > self.feed.ema_fast[0] > self.feed.ema_slow[0]
                 # and self.feed.ema_very_fast[0] < self.feed.ema_very_fast[-1] < self.feed.ema_very_fast[-2]
-                and self.feed.tr[0] >= self.feed.atr[-1] * 1
+                # and self.feed.tr[0] >= self.feed.atr[-1] * 1
                 # and self.feed.open[1] - self.feed.close[0] > self.feed.atr[0] * .2
                 ):
                 stopprice = self.feed.low[0] - volatility

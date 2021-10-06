@@ -1,4 +1,5 @@
 from tests.test_common import *
+import test_common
 from utils import backtrader_helpers as bh
 import pytest
 
@@ -28,3 +29,29 @@ class TestExtractBuyNSellObservers:
     @pytest.mark.parametrize('default_observers, buynsell_name', [(False, '')])
     def test_extract_buynsell_observers__no_buynsell_observers(self, strategy, default_observers):
         assert len(bh.extract_buynsell_observers(strategy)) == 0
+
+
+class ExtractTradesStrategy(bt.Strategy):
+    def next(self):
+        if self.datetime.idx == 0:
+            self.buy(data=self.data0, tradeid=0)
+        if self.datetime.idx == 3:
+            self.sell(data=self.data0, tradeid=0)
+        if self.datetime.idx == 10:
+            self.buy(data=self.data0, tradeid=0)
+        if self.datetime.idx == 13:
+            self.sell(data=self.data0, tradeid=0)
+        if self.datetime.idx == 20:
+            self.buy(data=self.data0, tradeid=2)
+        if self.datetime.idx == 23:
+            self.sell(data=self.data0, tradeid=2)
+        if self.datetime.idx == 20:
+            self.buy(data=self.data1, tradeid=2)
+        if self.datetime.idx == 23:
+            self.sell(data=self.data1, tradeid=2)
+        
+
+@pytest.mark.parametrize('strategy, datas', [(ExtractTradesStrategy,[test_common.TEST_DATA0, test_common.TEST_DATA1])])
+def test_extract_all_trades(strategy_fixture):
+    trades = bh.extract_all_trades(strategy_fixture)
+    assert len(trades) == 4

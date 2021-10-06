@@ -3,11 +3,19 @@ import backtrader as bt
 from backtrader.analyzers.tradeanalyzer import TradeAnalyzer
 from backtrader.utils.dateintern import num2date
 
-def extract_trades(strategy: bt.Strategy) -> list[bt.Trade]:
-    trades = strategy._trades
-    trades_list = [t[0][0] for t in list(trades.values())]
-    assert len(trades) == len(trades_list), 'some trades were missed to be extracted'
-    return trades_list
+'''
+returns a dictionary of data feed to trades (by stripping the order_id from strategy._trades)
+'''
+def extract_trades_per_feed(strategy: bt.Strategy) -> dict[bt.DataBase,bt.Trade]:
+    trades = strategy._trades # trades is in the form of dict[feed, dict[order_id, trade]]
+    all_trades = dict()
+    for feed in trades.keys():
+        trades_without_order_id = [trade for trade_group in trades[feed].values() for trade in trade_group]
+        all_trades[feed] = trades_without_order_id
+    return all_trades
+
+def extract_all_trades(strategy: bt.Strategy) -> list[bt.Trade]:
+    return [trade for trades in extract_trades_per_feed(strategy).values() for trade in trades] 
 
 def extract_line_data(line : bt.linebuffer.LineBuffer) -> list[float]:
     values = line.getzero(size=len(line))
