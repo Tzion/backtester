@@ -26,14 +26,6 @@ class BuyAndSellFirstDataOnly(bt.Strategy):
         if self.datetime.idx % 47 == 0:
             self.sell()
         
-def setup_and_run_strategy(strategy=FourIndicators, datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]):
-    cerebro = bt.Cerebro()
-    for d in datas:
-        cerebro.adddata(d)
-    cerebro.addstrategy(strategy)
-    strategy = cerebro.run()
-    return strategy[0]
-
 class TestChartsApi:
 
     def test_plot_with_sampled_data(self):
@@ -49,23 +41,24 @@ class TestChartsApi:
 
     def test_trade_markers_test(self):
         print('Plot chart with volume and buy&sell markers')
-        strategy = test_commonrun(BuyAndSellFirstDataOnly, datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])
+        strategy = run_strategy(BuyAndSellFirstDataOnly, datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])
         data = strategy.data0
         buysell = strategy.observers.buysell[0]
         _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), buy_markers=eld(buysell.buy), sell_markers=eld(buysell.sell), show=True, write_to_file=False)
-
-    def test_two_subplots(self):
+    
+    @pytest.mark.parametrize('strategy, datas', [(FourIndicators,[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])])
+    def test_two_subplots(self, strategy_fixture):
         print('Chart with 2 subplots indicators')
-        data = setup_and_run_strategy(datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]).data
+        data = strategy_fixture.data
         overlay = LabeledData('overlay', eld(data.moving_average.line))
         subplots = [LabeledData('subplot1', eld(data.atr.line)), LabeledData('subplot2',eld(data.atr2.line))]
         _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots, show=True, write_to_file=False)
 
 
-    def test_candle_gaps_for_non_trading_days(self):
+    @pytest.mark.parametrize('strategy, datas', [(FourIndicators,[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 12, 1), todate=datetime(2016,12,31), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])])
+    def test_candle_gaps_for_non_trading_days(self, strategy_fixture):
         print('Demosntrate the gaps on the x axis for days of no trading (weekends). problem solved when there\'s not gap')
-        strategy = setup_and_run_strategy(datas = [bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 12, 1), todate=datetime(2016,12,31), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])
-        data = strategy.data
+        data = strategy_fixture.data
         overlay = LabeledData('overlay', eld(data.moving_average.line))
         subplot = LabeledData('subplot', eld(data.atr.line))
         _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot], show=True, write_to_file=False)
