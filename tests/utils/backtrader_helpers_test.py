@@ -53,5 +53,5 @@ class ExtractTradesStrategy(bt.Strategy):
 
 @pytest.mark.parametrize('strategy, datas', [(ExtractTradesStrategy,[test_common.TEST_DATA0, test_common.TEST_DATA1])])
 def test_extract_all_trades(strategy_fixture):
-    trades = bh.extract_all_trades(strategy_fixture)
+    trades = bh.extract_trades_list(strategy_fixture)
     assert len(trades) == 4

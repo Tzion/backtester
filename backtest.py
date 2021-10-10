@@ -1,5 +1,5 @@
 from backtrader.dataseries import TimeFrame
-from utils.backtrader_helpers import extract_all_trades, print_trades_length
+from utils.backtrader_helpers import extract_trades_list, print_trades_length
 from utils.charting import pnl_to_trade_length
 from analyzers.exposer import Exposer
 from strategies.candle_pattern_long import CandlePatternLong
@@ -24,15 +24,15 @@ def main():
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
     # add_data(limit=12, random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
-    add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=3, stock_names=['DFS.csv', 'GD.csv','ABC.csv'], dirpath='data_feeds')
-    # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=90, dirpath='data_feeds')
+    # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=3, stock_names=['DFS.csv', 'GD.csv','ABC.csv', 'NVDA.csv', 'EBAY.csv'], dirpath='data_feeds')
+    add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=50, dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=120, dirpath='data_feeds')
     add_analyzers()
     add_observers()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    # cerebro.plot(plotter=PlotlyPlotter())
+    cerebro.plot(plotter=PlotlyPlotter(trades_only=False))
     # plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=False)
 
 
@@ -92,7 +92,7 @@ def show_statistics(strategies):
     strategies[0].analyzers.sqn.print()
     strategies[0].analyzers.sharperatio.print()
     strategies[0].analyzers.sharperatio_a.print()
-    pnl_to_trade_length(extract_all_trades(strategies[0]))
+    pnl_to_trade_length(extract_trades_list(strategies[0]))
 
 
 # TODO move to utils, mark as dangerous

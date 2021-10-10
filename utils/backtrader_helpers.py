@@ -3,10 +3,10 @@ import backtrader as bt
 from backtrader.analyzers.tradeanalyzer import TradeAnalyzer
 from backtrader.utils.dateintern import num2date
 
-'''
-returns a dictionary of data feed to trades (by stripping the order_id from strategy._trades)
-'''
-def extract_trades_per_feed(strategy: bt.Strategy) -> dict[bt.DataBase,bt.Trade]:
+def extract_trades(strategy: bt.Strategy) -> dict[bt.DataBase, list[bt.Trade]]:
+    '''
+    returns a dictionary of data feed to its trades (by stripping the order_id from strategy._trades)
+    '''
     trades = strategy._trades # trades is in the form of dict[feed, dict[order_id, trade]]
     all_trades = dict()
     for feed in trades.keys():
@@ -14,8 +14,8 @@ def extract_trades_per_feed(strategy: bt.Strategy) -> dict[bt.DataBase,bt.Trade]
         all_trades[feed] = trades_without_order_id
     return all_trades
 
-def extract_all_trades(strategy: bt.Strategy) -> list[bt.Trade]:
-    return [trade for trades in extract_trades_per_feed(strategy).values() for trade in trades] 
+def extract_trades_list(strategy: bt.Strategy) -> list[bt.Trade]:
+    return [trade for trades in extract_trades(strategy).values() for trade in trades] 
 
 def extract_line_data(line : bt.linebuffer.LineBuffer) -> list[float]:
     values = line.getzero(size=len(line))
