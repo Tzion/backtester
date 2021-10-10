@@ -43,6 +43,7 @@ class PlotlyPlotter():
             self.charts[data] = chart
     
     def load_indicators(self, strategy):
+        data_keys = {key for key in strategy.datas} # required becuase we want to do __eq__ besed on the key and not based on the internal impl of __eq__ of strategy.datas
         for ind in strategy.getindicators():
             if not hasattr(ind, 'plotinfo') or not ind.plotinfo.plot or ind.plotinfo.plotskip:
                 continue
@@ -50,7 +51,7 @@ class PlotlyPlotter():
             ind._plotinit()  # some indicators require preperation
             master = ind.plotinfo.plotmaster
             key = master if master is not ind and master is not None else ind._clock
-            if key not in strategy.datas:
+            if key not in data_keys:
                 key = key.owner  # maybe we need to iterate key over and over for indicators that are based on other indicators...?
             # key = key if not key is strategy else key.data  # special case for LinesCoupler
             if key is not self.charts:
