@@ -35,9 +35,16 @@ class PlotlyPlotter():
         for chart in self.charts.values():
             fig = charts.plot_price_chart(chart, **kwargs)
         if self.pnl2duration:
-            charts.plot_pnl_to_duration(bh.extract_trades_list(strategy))
+            # charts.plot_pnl_to_duration(bh.extract_trades_list(strategy))
+            pass
         if self.draw_down:
-            charts.plot_draw_down()
+            # line_data = eld(strategy.observers.drawdown)
+            # TODO move to utils 3 lines or call the lines explicity
+            lines = {line:eld(line) for line in strategy.observers.drawdown.lines}
+            observer = strategy.observers.drawdown
+            lines = {attr:eld(observer.lines.__getattribute__(attr)) for attr in observer.lines.__dir__() if observer.lines.__getattribute__(attr).__class__ is bt.linebuffer.LineBuffer}
+            charts.plot_lines('drawdown', **lines)
+        self.plot_observers(strategy)
     
     def select_charts(self, strategy):
         if self.trades_only:
@@ -75,6 +82,8 @@ class PlotlyPlotter():
                 self.charts[buysell.data].buy_markers = eld(buysell.buy)
                 self.charts[buysell.data].sell_markers = eld(buysell.sell)
 
+    def plot_observers(self, strategy):
+        pass
 
 
 

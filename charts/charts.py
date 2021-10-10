@@ -140,5 +140,15 @@ def plot_pnl_to_duration(trades: list[bt.Trade]):
         fig = px.scatter(x=bars, y=pnls)
         fig.show()
 
-def plot_draw_down():
-    pass
+def plot_draw_down(observer : bt.observers.DrawDown):
+    from utils import backtrader_helpers as bh
+    x = bh.extract_line_data(observer)
+    px.line()
+
+def plot_lines(name, **lines):
+    # TODO improve visibility of x values (currently array indecies)
+    fig = go.Figure()
+    for line,data in lines.items():
+        fig.add_trace(go.Scatter(name=line, y=data))
+    fig.update_layout(title=name)
+    fig.show()
