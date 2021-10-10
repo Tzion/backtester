@@ -6,7 +6,7 @@ from backtrader_plotting.schemes.tradimo import Tradimo
 from test_common import *
 import backtrader as bt
 from datetime import datetime
-from charts.charts import LabeledData, plot_feed, _plot_feed
+from charts.charts import LabeledData, plot_price_chart, _plot_feed
 from utils.backtrader_helpers import extract_line_data as eld, extract_line_data_datetime as edld
 from backtrader import indicators
 import backtest

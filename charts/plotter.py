@@ -12,8 +12,10 @@ class PlotlyPlotter():
     It is based on inner charting implementation that uses Plotly to plot the data feed graphes.
     """
 
-    def __init__(self, trades_only=True, **kwargs):
+    def __init__(self, trades_only=True, draw_down=True, pnl2duration=True, **kwargs):
         self.trades_only = trades_only
+        self.pnl2duration = pnl2duration
+        self.draw_down = draw_down
         self.kwargs = kwargs
 
     def plot(self, strategy: bt.Strategy, figid=0, numfigs=0, iplot=None, start=None, end=None, use=None):
@@ -31,7 +33,11 @@ class PlotlyPlotter():
         self.load_indicators(strategy)
         self.load_buysell_markers(strategy)
         for chart in self.charts.values():
-            fig = charts.plot_feed(chart, **kwargs)
+            fig = charts.plot_price_chart(chart, **kwargs)
+        if self.pnl2duration:
+            charts.plot_pnl_to_duration(bh.extract_trades_list(strategy))
+        if self.draw_down:
+            charts.plot_draw_down()
     
     def select_charts(self, strategy):
         if self.trades_only:

@@ -40,7 +40,7 @@ class ChartData:
     sell_markers: Optional[list[float]] = None
 
 
-def plot_feed(chart_data: ChartData, show=False, write_to_file=True):
+def plot_price_chart(chart_data: ChartData, show=False, write_to_file=True):
     d = chart_data
     figure = _plot_feed(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers, d.sell_markers, show, write_to_file)
     return figure
@@ -128,3 +128,17 @@ def _plot_feed__volume_as_subplot(date, open, high, low, close, volume=None):
 
     fig.show()
 
+
+
+import plotly.express as px
+import backtrader as bt
+# decouple from the dependency in backtrader.Trade - by holding (adapter) to the trades data
+def plot_pnl_to_duration(trades: list[bt.Trade]):
+    if len(trades) > 0:
+        pnls = [t.pnl for t in trades]
+        bars = [t.barlen for t in trades]
+        fig = px.scatter(x=bars, y=pnls)
+        fig.show()
+
+def plot_draw_down():
+    pass
