@@ -4,6 +4,7 @@ from charts.charts import ChartData, LabeledData
 from utils.backtrader_helpers import extract_buynsell_observers, get_indicator_label, extract_line_data as eld, extract_line_data_datetime as eldd
 from globals import *
 from utils import backtrader_helpers as bh
+import logger
 
 class PlotlyPlotter():
     """
@@ -16,6 +17,7 @@ class PlotlyPlotter():
         self.kwargs = kwargs
 
     def plot(self, strategy: bt.Strategy, figid=0, numfigs=0, iplot=None, start=None, end=None, use=None):
+        logger.loginfo(f'plotting strategy: {strategy.__class__.__name__}')
         self.plot_strategy(strategy, **self.kwargs)
     
     def show(self):

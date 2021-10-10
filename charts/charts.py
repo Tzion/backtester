@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
 from globals import CHARTS_DIR
+import logger
 
 """
 This module creates interactive candlestick financial charts of data feeds using Plotly.
@@ -59,9 +60,12 @@ def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Option
     fig.update_layout(xaxis_rangeslider_visible=False, title=name + ' ' + str(datetime.now()))
     fig.update_layout(legend=dict(orientation="h",yanchor="bottom",y=1.01,xanchor="left",x=0.01))
     if show:
+        logger.logdebug(f'showing chart of {name}')
         fig.show(config=config)
     if write_to_file:
-        fig.write_html(file=f'{CHARTS_DIR}/{name}.html', config=config)
+        file_path = f'{CHARTS_DIR}/{name}.html'
+        logger.logdebug(f'creating chart file {file_path}')
+        fig.write_html(file=file_path, config=config)
     return fig
 
 
