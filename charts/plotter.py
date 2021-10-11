@@ -12,10 +12,10 @@ class PlotlyPlotter():
     It is based on inner charting implementation that uses Plotly to plot the data feed graphes.
     """
 
-    def __init__(self, trades_only=True, draw_down=True, pnl2duration=True, **kwargs):
+    def __init__(self, trades_only=True, observers=True, pnl2duration=True, **kwargs):
         self.trades_only = trades_only
         self.pnl2duration = pnl2duration
-        self.draw_down = draw_down
+        self.observers= observers
         self.kwargs = kwargs
 
     def plot(self, strategy: bt.Strategy, figid=0, numfigs=0, iplot=None, start=None, end=None, use=None):
@@ -37,14 +37,8 @@ class PlotlyPlotter():
         if self.pnl2duration:
             # charts.plot_pnl_to_duration(bh.extract_trades_list(strategy))
             pass
-        if self.draw_down:
-            # line_data = eld(strategy.observers.drawdown)
-            # TODO move to utils 3 lines or call the lines explicity
-            lines = {line:eld(line) for line in strategy.observers.drawdown.lines}
-            observer = strategy.observers.drawdown
-            lines = {attr:eld(observer.lines.__getattribute__(attr)) for attr in observer.lines.__dir__() if observer.lines.__getattribute__(attr).__class__ is bt.linebuffer.LineBuffer}
-            charts.plot_lines('drawdown', **lines)
-        self.plot_observers(strategy)
+        if self.plot_observers:
+            self.plot_observers(strategy)
     
     def select_charts(self, strategy):
         if self.trades_only:
@@ -83,8 +77,9 @@ class PlotlyPlotter():
                 self.charts[buysell.data].sell_markers = eld(buysell.sell)
 
     def plot_observers(self, strategy):
-        pass
-
+        for obs in strategy.observers:
+            lines = {line: bh.extract_line_data(getattr(obs.lines,line)) for line in obs.lines.getlinealiases()}
+            charts.plot_lines(bh.get_alias(obs), **lines)
 
 
     

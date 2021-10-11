@@ -43,7 +43,13 @@ def extract_buynsell_observers(strategy: bt.Strategy) -> list[bt.observers.BuySe
 
 
 def get_indicator_label(indicator) -> str:
-    name = indicator.aliased or str(indicator).split('.')[-1].split(' ')[0]
+    # name = indicator.aliased or str(indicator).split('.')[-1].split(' ')[0]  # TODO this line was replaced by the one below- delete after validate
+    name = indicator.aliased or indicator.__class__.__name__
     if hasattr(indicator.params, 'period'):
         name += '(' + str(indicator.params.period) + ')'
     return name
+
+def get_alias(line: bt.LineSeries):
+    if len(line.alias) > 0:
+        return line.alias[0]
+    return line.aliased or line.__class__.__name__
