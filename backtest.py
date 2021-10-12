@@ -1,5 +1,5 @@
 from backtrader.dataseries import TimeFrame
-from utils.backtrader_helpers import extract_trades_list, print_trades_length
+from utils.backtrader_helpers import print_trades_length
 from analyzers.exposer import Exposer
 from strategies.candle_pattern_long import CandlePatternLong
 import backtrader as bt
