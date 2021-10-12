@@ -39,7 +39,7 @@ class PlotlyPlotter():
             self.plot_observers(strategy)
         if self.pnl2duration:
             trades = bh.extract_trades_list(strategy)
-            charts.plot_profit_to_duration([trade.pnl for trade in trades], [trade.barlen for trade in trades], self.auto_open, self.save_to_file)
+            charts.plot_duration_to_profit([trade.pnl for trade in trades], [trade.barlen for trade in trades], self.auto_open, self.save_to_file)
     
     def select_charts(self, strategy):
         if self.trades_only:

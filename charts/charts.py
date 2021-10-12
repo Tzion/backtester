@@ -47,10 +47,10 @@ def plot_price_chart(chart_data: ChartData, show, save_to_file):
     figure = _plot_feed(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers, d.sell_markers, show, save_to_file)
     return figure
 
-def plot_profit_to_duration(trade_duration: list, profit: list, show, save_to_file):
+def plot_duration_to_profit(trade_duration: list, profit: list, show, save_to_file):
     if len(trade_duration) > 0:
-        name = 'ProfitToTradeDuration'
-        fig = px.scatter(title=name, x=trade_duration, y=profit)
+        name = 'TradeDurationToProfit'
+        fig = px.scatter(title=name, y=trade_duration, x=profit)
         _show_and_save(fig, name, OBSERVERS_DIR, show, save_to_file)
         return fig
 
