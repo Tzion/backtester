@@ -3,7 +3,7 @@ from plotly.subplots import make_subplots
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
-from globals import CHARTS_DIR
+from globals import CHARTS_DIR, OBSERVERS_DIR
 import logger
 
 """
@@ -39,24 +39,49 @@ class ChartData:
     buy_markers: Optional[list[float]] = None
     sell_markers: Optional[list[float]] = None
 
+config = dict({'scrollZoom': True})
 
-def plot_price_chart(chart_data: ChartData, show=False, write_to_file=True):
+def plot_price_chart(chart_data: ChartData, show, save_to_file):
     d = chart_data
-    figure = _plot_feed(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers, d.sell_markers, show, write_to_file)
+    figure = _plot_feed(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers, d.sell_markers, show, save_to_file)
     return figure
 
 
-def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Optional[list[LabeledData]]=None, subplots_data:Optional[list[LabeledData]]=None, buy_markers=None, sell_markers=None, show=False, write_to_file=True):
+import plotly.express as px
+import backtrader as bt
+# TODO decouple from the dependency in backtrader.Trade - by holding (adapter) to the trades data
+def plot_pnl_to_duration(trades: list[bt.Trade]):
+    if len(trades) > 0:
+        pnls = [t.pnl for t in trades]
+        bars = [t.barlen for t in trades]
+        fig = px.scatter(x=bars, y=pnls)
+        return fig
+
+def plot_lines(name, show, save_to_file, **lines):
+    # TODO improve visibility of x values (currently array indecies)
+    fig = go.Figure()
+    for line,data in lines.items():
+        fig.add_trace(go.Scatter(name=line, y=data, mode='markers' if any([val != val for val in data]) else 'lines'))
+    fig.update_layout(title=name)
+    if show:
+        logger.logdebug(f'showing chart of {name}')
+        fig.show
+    if save_to_file:
+        file_path = f'{OBSERVERS_DIR}/{name}.html'
+        logger.logdebug(f'saving chart file {file_path}')
+        fig.write_html(file=file_path, config=config)
+    return fig
+
+def _plot_feed(name, dates, open, high, low, close, volume, overlays_data, subplots_data, buy_markers, sell_markers, show, write_to_file):
     dates = list(map(lambda datetime: datetime.replace(microsecond=0), dates))  # trim microsecond to handle rounding error that cause the data point to have the date of the next day
-    fig = create_ohlcv_figure(name, dates, open, high, low, close, volume, subplots_data=subplots_data)
-    fig = add_overlay_plots(fig, dates, overlays_data)
-    fig = add_subplots(fig, dates, subplots_data)
-    fig = add_buysell_markers(fig, dates, buy_markers, sell_markers)
+    fig = _create_ohlcv_figure(name, dates, open, high, low, close, volume, subplots_data=subplots_data)
+    fig = _add_overlay_plots(fig, dates, overlays_data)
+    fig = _add_subplots(fig, dates, subplots_data)
+    fig = _add_buysell_markers(fig, dates, buy_markers, sell_markers)
 
     # fig.update_layout(xaxis_type='category')  # workaround to handle gaps of dates when stock exchange is closed. movement isn't smooth when few subgraph - commented out for now
-    config = dict({'scrollZoom': True})
 
-    config_cursor(fig)
+    _config_cursor(fig)
     fig.update_layout(xaxis_rangeslider_visible=False, title=name + ' ' + str(datetime.now()))
     fig.update_layout(legend=dict(orientation="h",yanchor="bottom",y=1.01,xanchor="left",x=0.01))
     if show:
@@ -64,12 +89,12 @@ def _plot_feed(name, dates, open, high, low, close, volume, overlays_data:Option
         fig.show(config=config)
     if write_to_file:
         file_path = f'{CHARTS_DIR}/{name}.html'
-        logger.logdebug(f'creating chart file {file_path}')
+        logger.logdebug(f'saving chart file {file_path}')
         fig.write_html(file=file_path, config=config)
     return fig
 
 
-def create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplots_data=None):
+def _create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplots_data=None):
     subplots = 0 if not subplots_data else len(subplots_data)
     fig = make_subplots(specs=[[{"secondary_y": True}]] + [[{}]] * subplots, rows=1+subplots, cols=1, shared_xaxes='columns', vertical_spacing=0.01,
                         row_width=[1] * subplots + [4])
@@ -84,14 +109,14 @@ def create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplot
     return fig
 
 
-def add_overlay_plots(figure: go.Figure, dates, overlays_data:Optional[list[LabeledData]]):
+def _add_overlay_plots(figure: go.Figure, dates, overlays_data:Optional[list[LabeledData]]):
     if overlays_data:
         for overlay in overlays_data:
             figure.add_trace(go.Scatter(x=dates, y=overlay.data, mode='lines', name=overlay.label))
     return figure
 
 
-def add_subplots(figure: go.Figure, dates, subplots_data:Optional[list[LabeledData]]):
+def _add_subplots(figure: go.Figure, dates, subplots_data:Optional[list[LabeledData]]):
     if subplots_data:
         for i,subplot in enumerate(subplots_data):
             figure.add_trace(go.Scatter(x=dates, y=subplot.data, mode='lines', name=subplot.label), row=i+2, col=1)
@@ -101,7 +126,7 @@ def add_subplots(figure: go.Figure, dates, subplots_data:Optional[list[LabeledDa
 buy_marker_config =dict(color='green', size=10, symbol='arrow-bar-up')
 sell_marker_config =dict(color='red', size=10, symbol='arrow-bar-down')
 
-def add_buysell_markers(figure: go.Figure, dates, buy_prices, sell_prices):
+def _add_buysell_markers(figure: go.Figure, dates, buy_prices, sell_prices):
     if buy_prices:
         figure.add_trace(go.Scatter(y=buy_prices, x=dates, mode='markers', marker=buy_marker_config, showlegend=False, name='buy'))
     if sell_prices:
@@ -109,7 +134,7 @@ def add_buysell_markers(figure: go.Figure, dates, buy_prices, sell_prices):
     return figure
 
 
-def config_cursor(figure):
+def _config_cursor(figure):
     figure.update_xaxes(showspikes=True, spikemode='across', spikesnap='cursor', spikecolor="black",spikethickness=0.4)
     figure.update_yaxes(showspikes=True, spikemode='across', spikesnap='cursor', spikecolor="black",spikethickness=0.4)
     figure.update_layout(dragmode='pan')  # when chart open the cursor uses for navigation
@@ -126,24 +151,4 @@ def _plot_feed__volume_as_subplot(date, open, high, low, close, volume=None):
     fig.update_layout(xaxis_rangeslider_visible=False)
     fig.update_layout(xaxis_type='category')  # workaround to handle gaps of dates when stock exchange is closed
 
-    fig.show()
-
-
-
-import plotly.express as px
-import backtrader as bt
-# decouple from the dependency in backtrader.Trade - by holding (adapter) to the trades data
-def plot_pnl_to_duration(trades: list[bt.Trade]):
-    if len(trades) > 0:
-        pnls = [t.pnl for t in trades]
-        bars = [t.barlen for t in trades]
-        fig = px.scatter(x=bars, y=pnls)
-        fig.show()
-
-def plot_lines(name, **lines):
-    # TODO improve visibility of x values (currently array indecies)
-    fig = go.Figure()
-    for line,data in lines.items():
-        fig.add_trace(go.Scatter(name=line, y=data, mode='markers' if any([val != val for val in data]) else 'lines'))
-    fig.update_layout(title=name)
     fig.show()

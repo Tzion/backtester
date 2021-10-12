@@ -75,7 +75,7 @@ class TestIntegrationWithCerebro:
                     bt.feeds.GenericCSVData(dataname='tests/test_data2.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]:
             cerebro.adddata(d)
         cerebro.run()
-        cerebro.plot(plotter=PlotlyPlotter(show=True, write_to_file=False))
+        cerebro.plot(plotter=PlotlyPlotter(auto_open=True, save_to_file=False))
 
 
     # change plot_number as required
@@ -90,7 +90,7 @@ class TestIntegrationWithCerebro:
             cerebro.adddata(d)
         cerebro.addstrategy(FourIndicators)
         strategy = cerebro.run()
-        cerebro.plot(plotter=PlotlyPlotter(show=True, write_to_file=False))
+        cerebro.plot(plotter=PlotlyPlotter(trades_only=False, auto_open=True, save_to_file=False))
 
 
 

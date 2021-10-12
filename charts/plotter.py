@@ -12,28 +12,29 @@ class PlotlyPlotter():
     It is based on inner charting implementation that uses Plotly to plot the data feed graphes.
     """
 
-    def __init__(self, trades_only=True, observers=True, pnl2duration=True, **kwargs):
+    def __init__(self, trades_only=True, observers=True, pnl2duration=True, auto_open=False, save_to_file=True):
         self.trades_only = trades_only
         self.pnl2duration = pnl2duration
-        self.observers= observers
-        self.kwargs = kwargs
+        self.observers = observers
+        self.auto_open = auto_open
+        self.save_to_file = save_to_file
 
     def plot(self, strategy: bt.Strategy, figid=0, numfigs=0, iplot=None, start=None, end=None, use=None):
         logger.loginfo(f'plotting strategy: {strategy.__class__.__name__}')
-        self.plot_strategy(strategy, **self.kwargs)
+        self.plot_strategy(strategy)
     
     def show(self):
         """ Do nothing - needed as part of the interface """
         pass
 
-    def plot_strategy(self, strategy: bt.Strategy, **kwargs):
+    def plot_strategy(self, strategy: bt.Strategy):
         self.charts : dict[CSVDataBase, ChartData]
         self.select_charts(strategy)
         self.load_price_data(strategy)
         self.load_indicators(strategy)
         self.load_buysell_markers(strategy)
         for chart in self.charts.values():
-            fig = charts.plot_price_chart(chart, **kwargs)
+            fig = charts.plot_price_chart(chart, self.auto_open, self.save_to_file)
         if self.pnl2duration:
             # charts.plot_pnl_to_duration(bh.extract_trades_list(strategy))
             pass
@@ -76,10 +77,10 @@ class PlotlyPlotter():
                 self.charts[buysell.data].buy_markers = eld(buysell.buy)
                 self.charts[buysell.data].sell_markers = eld(buysell.sell)
 
-    def plot_observers(self, strategy):
+    def plot_observers(self, strategy, **kwargs):
         for obs in strategy.observers:
             lines = {line: bh.extract_line_data(getattr(obs.lines,line)) for line in obs.lines.getlinealiases()}
-            charts.plot_lines(bh.get_alias(obs), **lines)
+            charts.plot_lines(bh.get_alias(obs), self.auto_open, self.save_to_file, **lines)
 
 
     
