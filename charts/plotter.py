@@ -28,6 +28,11 @@ class PlotlyPlotter():
         pass
 
     def plot_strategy(self, strategy: bt.Strategy):
+        if self.plot_observers:
+            self.plot_observers(strategy)
+        if self.pnl2duration:
+            trades = bh.extract_trades_list(strategy)
+            charts.plot_duration_to_profit([trade.pnl for trade in trades], [trade.barlen for trade in trades], self.auto_open, self.save_to_file)
         self.charts : dict[CSVDataBase, ChartData]
         self.select_charts(strategy)
         self.load_price_data(strategy)
@@ -35,11 +40,6 @@ class PlotlyPlotter():
         self.load_buysell_markers(strategy)
         for chart in self.charts.values():
             charts.plot_price_chart(chart, self.auto_open, self.save_to_file)
-        if self.plot_observers:
-            self.plot_observers(strategy)
-        if self.pnl2duration:
-            trades = bh.extract_trades_list(strategy)
-            charts.plot_duration_to_profit([trade.pnl for trade in trades], [trade.barlen for trade in trades], self.auto_open, self.save_to_file)
     
     def select_charts(self, strategy):
         if self.trades_only:
