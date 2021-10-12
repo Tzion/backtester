@@ -12,28 +12,26 @@ import globals as gb
 import strategies
 import numpy as np
 from logger import *
-from globals import OUTPUT_DIR
 from charts.plotter import PlotlyPlotter
+from utils import utils
 import os
 
 
 def main():
-    clean_previous_output()
+    utils.clean_previous_output()
     global cerebro
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
-    # add_data(limit=12, random=True, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
+    add_data(limit=0, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
     # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=3, stock_names=['DFS.csv', 'GD.csv','ABC.csv', 'NVDA.csv', 'EBAY.csv'], dirpath='data_feeds')
     # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=39, stock_names=['DFS.csv', ], dirpath='data_feeds')
-    add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=5, dirpath='data_feeds')
     # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=120, dirpath='data_feeds')
     add_analyzers()
     add_observers()
     global strategies
     strategies = backtest()
-    # show_statistics(strategies)
-    cerebro.plot(plotter=PlotlyPlotter(trades_only=False, pnl2duration=True))
-    # plot(strategies[0], limit=1, only_trades=True, plot_observers=True, interactive_plots=False)
+    show_statistics(strategies)
+    cerebro.plot(plotter=PlotlyPlotter())
 
 
 def add_strategies(strategy: bt.Strategy):
@@ -92,25 +90,6 @@ def show_statistics(strategies):
     strategies[0].analyzers.sqn.print()
     strategies[0].analyzers.sharperatio.print()
     strategies[0].analyzers.sharperatio_a.print()
-
-
-# TODO move to utils, mark as dangerous
-def clean_previous_output():
-    files_to_delete = ["html",]
-    def clean_dir(path):
-        files_deleted = 0
-        for blob in [os.path.join(path,f) for f in os.listdir(path)]:
-            if os.path.isdir(blob):
-                clean_dir(blob)
-            else:
-                if blob.split('.')[-1] in files_to_delete:
-                    os.remove(os.path.abspath(blob))
-                    files_deleted += 1
-        logdebug(f'{files_deleted} files were deleted in {path}')
-
-    if os.path.abspath(OUTPUT_DIR).endswith('backtester/output'):  ## hardcoded validation
-        clean_dir(OUTPUT_DIR)
-        
 
 
 if __name__ == '__main__':
