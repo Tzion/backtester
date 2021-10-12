@@ -37,14 +37,14 @@ class TestChartsApi:
         volume_data = [1, 2, 2, 4, 1, 4, 3]
         buy_markers = [3,] * 5
         dates = [datetime(year=2021, month=8, day=16), datetime(year=2021, month=8, day=17), datetime(year=2021, month=8, day=18), datetime(year=2021, month=8, day=19), datetime(year=2021, month=8, day=20), datetime(year=2021, month=8, day=23)]
-        _plot_feed('sampled',dates, open_data, high_data, low_data, close_data, volume_data, buy_markers=buy_markers, show=True, write_to_file=False)
+        _plot_feed('sampled',dates, open_data, high_data, low_data, close_data, volume_data, buy_markers=buy_markers, show=True, save_to_file=False, overlays_data=None, subplots_data=None, sell_markers=None)
 
     def test_trade_markers_test(self):
         print('Plot chart with volume and buy&sell markers')
         strategy = run_strategy(BuyAndSellFirstDataOnly, datas=[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])
         data = strategy.data0
         buysell = strategy.observers.buysell[0]
-        _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), buy_markers=eld(buysell.buy), sell_markers=eld(buysell.sell), show=True, write_to_file=False)
+        _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), buy_markers=eld(buysell.buy), sell_markers=eld(buysell.sell), show=True, save_to_file=False, overlays_data=None, subplots_data=None)
     
     @pytest.mark.parametrize('strategy, datas', [(FourIndicators,[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])])
     def test_two_subplots(self, strategy_fixture):
@@ -52,7 +52,7 @@ class TestChartsApi:
         data = strategy_fixture.data
         overlay = LabeledData('overlay', eld(data.moving_average.line))
         subplots = [LabeledData('subplot1', eld(data.atr.line)), LabeledData('subplot2',eld(data.atr2.line))]
-        _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots, show=True, write_to_file=False)
+        _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots, show=True, save_to_file=False, buy_markers=None, sell_markers=None)
 
 
     @pytest.mark.parametrize('strategy, datas', [(FourIndicators,[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 12, 1), todate=datetime(2016,12,31), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])])
@@ -61,12 +61,12 @@ class TestChartsApi:
         data = strategy_fixture.data
         overlay = LabeledData('overlay', eld(data.moving_average.line))
         subplot = LabeledData('subplot', eld(data.atr.line))
-        _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot], show=True, write_to_file=False)
+        _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot], show=True, save_to_file=False, buy_markers=None, sell_markers=None)
 
 
 class TestIntegrationWithCerebro:
     def test_plotter_integration(self):
-        print('Expected output: 2 graphs each with 4 indicators and the first has buy&sell markers')
+        print('Expected output: 2 feed graphs each with 4 indicators (the first feed has buy&sell markers), 3 observers (cash, trades and profit-to-duration)')
         cerebro = bt.Cerebro()
         modified_strategy = FourIndicators
         modified_strategy.next = BuyAndSellFirstDataOnly.next
@@ -75,12 +75,12 @@ class TestIntegrationWithCerebro:
                     bt.feeds.GenericCSVData(dataname='tests/test_data2.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)]:
             cerebro.adddata(d)
         cerebro.run()
-        cerebro.plot(plotter=PlotlyPlotter(auto_open=True, save_to_file=False))
+        cerebro.plot(plotter=PlotlyPlotter(trades_only=False, auto_open=True, save_to_file=False))
 
 
-    # change plot_number as required
     @pytest.mark.parametrize('plot_number', [(5)])
     def test_performance(self, plot_number):
+        ''' change plot_number as required '''
         print(f'Plot {plot_number} charts - expecting it to be smooth')
         cerebro = bt.Cerebro()
         path = './data_feeds/'
@@ -90,7 +90,7 @@ class TestIntegrationWithCerebro:
             cerebro.adddata(d)
         cerebro.addstrategy(FourIndicators)
         strategy = cerebro.run()
-        cerebro.plot(plotter=PlotlyPlotter(trades_only=False, auto_open=True, save_to_file=False))
+        cerebro.plot(plotter=PlotlyPlotter(trades_only=False, observers=False, pnl2duration=False, auto_open=True, save_to_file=False))
 
 
 

@@ -1,10 +1,11 @@
 import plotly.graph_objects as go
+import plotly.express as px
 from plotly.subplots import make_subplots
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
-from globals import CHARTS_DIR, OBSERVERS_DIR
 import logger
+from charts import CHARTS_DIR, OBSERVERS_DIR
 
 """
 This module creates interactive candlestick financial charts of data feeds using Plotly.
@@ -46,15 +47,11 @@ def plot_price_chart(chart_data: ChartData, show, save_to_file):
     figure = _plot_feed(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers, d.sell_markers, show, save_to_file)
     return figure
 
-
-import plotly.express as px
-import backtrader as bt
-# TODO decouple from the dependency in backtrader.Trade - by holding (adapter) to the trades data
-def plot_pnl_to_duration(trades: list[bt.Trade]):
-    if len(trades) > 0:
-        pnls = [t.pnl for t in trades]
-        bars = [t.barlen for t in trades]
-        fig = px.scatter(x=bars, y=pnls)
+def plot_profit_to_duration(trade_duration: list, profit: list, show, save_to_file):
+    if len(trade_duration) > 0:
+        name = 'ProfitToTradeDuration'
+        fig = px.scatter(title=name, x=trade_duration, y=profit)
+        _show_and_save(fig, name, OBSERVERS_DIR, show, save_to_file)
         return fig
 
 def plot_lines(name, show, save_to_file, **lines):
@@ -63,16 +60,11 @@ def plot_lines(name, show, save_to_file, **lines):
     for line,data in lines.items():
         fig.add_trace(go.Scatter(name=line, y=data, mode='markers' if any([val != val for val in data]) else 'lines'))
     fig.update_layout(title=name)
-    if show:
-        logger.logdebug(f'showing chart of {name}')
-        fig.show
-    if save_to_file:
-        file_path = f'{OBSERVERS_DIR}/{name}.html'
-        logger.logdebug(f'saving chart file {file_path}')
-        fig.write_html(file=file_path, config=config)
+    _show_and_save(fig, name, OBSERVERS_DIR, show, save_to_file)
     return fig
 
-def _plot_feed(name, dates, open, high, low, close, volume, overlays_data, subplots_data, buy_markers, sell_markers, show, write_to_file):
+
+def _plot_feed(name, dates, open, high, low, close, volume, overlays_data, subplots_data, buy_markers, sell_markers, show, save_to_file):
     dates = list(map(lambda datetime: datetime.replace(microsecond=0), dates))  # trim microsecond to handle rounding error that cause the data point to have the date of the next day
     fig = _create_ohlcv_figure(name, dates, open, high, low, close, volume, subplots_data=subplots_data)
     fig = _add_overlay_plots(fig, dates, overlays_data)
@@ -84,15 +76,17 @@ def _plot_feed(name, dates, open, high, low, close, volume, overlays_data, subpl
     _config_cursor(fig)
     fig.update_layout(xaxis_rangeslider_visible=False, title=name + ' ' + str(datetime.now()))
     fig.update_layout(legend=dict(orientation="h",yanchor="bottom",y=1.01,xanchor="left",x=0.01))
-    if show:
-        logger.logdebug(f'showing chart of {name}')
-        fig.show(config=config)
-    if write_to_file:
-        file_path = f'{CHARTS_DIR}/{name}.html'
-        logger.logdebug(f'saving chart file {file_path}')
-        fig.write_html(file=file_path, config=config)
+    _show_and_save(fig, name, CHARTS_DIR, show, save_to_file)
     return fig
 
+def _show_and_save(fig, name, path, show, save):
+    if show:
+        logger.logdebug(f'showing chart of {name}')
+        fig.show()
+    if save:
+        file_path = '{path}/{name}.html'
+        logger.logdebug(f'saving chart file {file_path}')
+        fig.write_html(file=file_path, config=config)
 
 def _create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplots_data=None):
     subplots = 0 if not subplots_data else len(subplots_data)
