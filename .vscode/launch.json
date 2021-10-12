@@ -24,7 +24,7 @@
             "name": "Dashboard",
             "type": "python",
             "request": "launch",
-            "module": "front.app",
+            "module": "front.dashboard",
         },
         {
             "name": "Pytest Current File",
