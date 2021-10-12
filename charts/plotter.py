@@ -64,7 +64,7 @@ class PlotlyPlotter():
             if key not in data_keys:
                 key = key.owner  # maybe we need to iterate key over and over for indicators that are based on other indicators...?
             # key = key if not key is strategy else key.data  # special case for LinesCoupler
-            if key is not self.charts:
+            if key not in self.charts:
                 continue
             if ind.plotinfo.subplot:
                 self.charts[key].subplots_data.append(LabeledData(get_indicator_label(ind), eld(ind.line)))
