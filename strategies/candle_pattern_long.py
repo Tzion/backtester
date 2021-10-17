@@ -24,7 +24,8 @@ class CandlePatternLong(TradeStateStrategy):
         self.setsizer(RiskBasedWithMaxPortionSizer(risk_per_trade_percents=2.0, max_portion_percents=25))
 
     def prepare_feed(self, feed):
-        feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period, plot=False)
+        feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period, plot=True)
+        feed.atr_slow = talib.ATR(feed.high,feed.low,feed.close, timeperiod=3, plot=True)
         feed.tr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=1, plot=False)
         # feed.three_line_strike = talib.CDL3LINESTRIKE(feed.open, feed.high, feed.low, feed.close, plot=False) 
         # feed.three_line_strike_marker = visualizers.SingleMarker(signals=feed.three_line_strike, level=feed.low*.99, color='silver', marker='*', plotmaster=feed) 
@@ -33,9 +34,14 @@ class CandlePatternLong(TradeStateStrategy):
         feed.doji_star = talib.CDLDOJISTAR(feed.open, feed.high, feed.low, feed.close, plot=False) 
         feed.doji_star_marker = visualizers.SingleMarker(signals=feed.doji_star, level=feed.low*.985, color='purple', marker='H', plotmaster=feed, markersize=7) 
 
-        feed.ema_very_fast = indicators.EMA(feed.close, period=12)
-        feed.ema_fast = indicators.EMA(feed.close, period=50)
-        feed.ema_slow = indicators.EMA(feed.close, period=100)
+        feed.ema_very_fast = indicators.EMA(feed.close, period=11, plot=True)
+        feed.ema_fast = indicators.EMA(feed.close, period=24, plot=True)
+        feed.ema_slow = indicators.EMA(feed.close, period=57, plot=True)
+        feed.trend_line = bt.And((feed.ema_very_fast > feed.ema_fast),(feed.ema_fast > feed.ema_slow)) # - ((feed.ema_very_fast < feed.ema_fast) < feed.ema_slow)
+        feed.trend = indicators.MovingAverageSimple(feed.trend_line, period=1, plot=True, plotmaster=feed, subplot=True) # using MA with period=1 as a workaround to be able to plot trend_line
+        feed.trend_line2 = bt.And((feed.ema_very_fast < feed.ema_fast),(feed.ema_fast < feed.ema_slow)) # - ((feed.ema_very_fast < feed.ema_fast) < feed.ema_slow)
+        feed.trend = indicators.MovingAverageSimple(feed.trend_line2, period=1, plot=True, plotmaster=feed, subplot=True) # using MA with period=1 as a workaround to be able to plot trend_line
+        feed.trend = indicators.MovingAverageSimple(feed.trend_line - feed.trend_line2, period=1, plot=True, plotmaster=feed, subplot=True) # using MA with period=1 as a workaround to be able to plot trend_line
         feed.highest = indicators.Highest(feed.high, period=self.p.highs_period, subplot=False)
         feed.lowest = indicators.Lowest(feed.low, period=self.p.highs_period, subplot=False)
         feed.highest_breakout = feed.high > feed.highest(-1)
@@ -75,13 +81,14 @@ class CandlePatternLong(TradeStateStrategy):
                 # and self.feed.ema_very_fast[0] < self.feed.ema_very_fast[-1] < self.feed.ema_very_fast[-2]
                 and self.feed.tr[0] >= self.feed.atr[-1] * 1
                 # and self.feed.open[1] - self.feed.close[0] > self.feed.atr[0] * .2
+                # and self.feed.trend[0] > -1 
                 ):
                 stopprice = self.feed.low[0] - volatility
                 risk = self.feed.open[1] - stopprice
                 self.feed.risk = lambda : self.feed.open[1] - stopprice
 
                 self.entry = self.strategy.buy(self.feed, exectype=Order.Market, transmit=False)
-                self.stoploss = self.strategy.sell(self.feed, exectype=Order.StopTrail, price=stopprice, parent=self.entry, transmit=False, trailamount=self.feed.atr[0]*1.4)
+                self.stoploss = self.strategy.sell(self.feed, exectype=Order.StopTrail, price=stopprice, parent=self.entry, transmit=False, trailamount=volatility)
                 self.takeprofit = self.strategy.sell(self.feed, exectype=Order.Limit, price=self.feed.open[1] + 1*volatility, parent=self.entry, transmit=True, size=self.strategy.getsizing(self.feed)/2)
                 return
 
@@ -95,7 +102,13 @@ class CandlePatternLong(TradeStateStrategy):
 
         def next(self):
             self.validate()
+            # self.change_to_trail_stop_after_some_progress()
             # self.exit_when_close_under_entry_lows()
+
+        # def exit_if_trade_goes_strong_down_on_the_beginning(self):
+        def change_to_trail_stop_after_some_progress(self):
+            if self.entry.plen > 2 and self.stoploss.getordername() is Order.StopTrail:
+                self.stoploss = self.strategy.sell(self.feed, exectype=Order.StopTrail, parent=self.entry, transmit=False, trailamount=self.feed.atr[0]*1.5)
 
         def exit_when_close_under_entry_lows(self):
             trigger_idx = self.entry.plen - self.feed.open.idx -1
