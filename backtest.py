@@ -23,9 +23,8 @@ def main():
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
     add_data(limit=0, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
-    # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=3, stock_names=['DFS.csv', 'GD.csv','ABC.csv', 'NVDA.csv', 'EBAY.csv'], dirpath='data_feeds')
-    # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2019, 6, 26), limit=39, stock_names=['DFS.csv', ], dirpath='data_feeds')
-    # add_data(random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), limit=120, dirpath='data_feeds')
+    # add_data(limit=0, random=False, start_date=datetime(2018,6,1), end_date=datetime(2019, 1, 1), dirpath='data_feeds')
+    # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2020, 4, 26), limit=3, stock_names=['PWR.csv'], dirpath='data_feeds')
     add_analyzers()
     add_observers()
     global strategies
@@ -35,7 +34,7 @@ def main():
 
 
 def add_strategies(strategy: bt.Strategy):
-    loginfo(f'backtesting strategy {type(strategy).__name__}')
+    loginfo(f'backtesting strategy {strategy.__class__.__name__}')
     cerebro.addstrategy(strategy)
 
 
@@ -76,6 +75,7 @@ def backtest():
     return strategies
 
 
+#TODO cleanup
 def plot(strategy: bt.Strategy, *args, **kwargs):
     strategy.plot(*args, **kwargs)
 
@@ -84,12 +84,14 @@ def show_statistics(strategies):
     loginfo(f'Final portfolio value: {cerebro.broker.getvalue():.2f}')
     strategies[0].analyzers.basic_trade_stats.print()
     print_trades_length(strategies[0].analyzers.tradeanalyzer)
-    strategies[0].analyzers.tradeanalyzer.print()
     strategies[0].analyzers.exposer.print()
+    '''
+    strategies[0].analyzers.tradeanalyzer.print()
     strategies[0].analyzers.drawdown.print()
     strategies[0].analyzers.sqn.print()
     strategies[0].analyzers.sharperatio.print()
     strategies[0].analyzers.sharperatio_a.print()
+    '''
 
 
 if __name__ == '__main__':

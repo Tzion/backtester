@@ -47,6 +47,8 @@ def get_indicator_label(indicator) -> str:
     name = indicator.aliased or indicator.__class__.__name__
     if hasattr(indicator.params, 'period'):
         name += '(' + str(indicator.params.period) + ')'
+    elif hasattr(indicator.params, 'timeperiod'):
+        name += '(' + str(indicator.params.timeperiod) + ')'
     return name
 
 def get_alias(line: bt.LineSeries):
