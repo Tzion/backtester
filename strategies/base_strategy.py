@@ -80,10 +80,12 @@ class BaseStrategy(bt.Strategy):
         raise NotImplementedError
 
     def notify_order(self, order: bt.Order):
-        if order.status in [bt.Order.Completed, bt.Order.Partial, bt.Order.Canceled, bt.Order.Submitted]:
-            logdebug(f'order #{order.ref} {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.executed.price or order.created.price:.2f}, size: {order.size:.2f}', order.data)
-        if order.status in [bt.Order.Rejected, bt.Order.Margin]:
-            logwarning(f'order #{order.ref} {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.executed.price or order.created.price:.2f}, size: {order.size:.2f}', order.data)
+        if order.status in [bt.Order.Canceled, bt.Order.Submitted]:
+            logdebug(f'order #{order.ref} {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.created.price:.2f} created price: {order.created.price:.2f}, size: {order.size:.2f}', order.data)
+        if order.status in [bt.Order.Completed, bt.Order.Partial]:
+            logdebug(f'order #{order.ref} {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.created.price:.2f} executed price: {order.executed.price:.2f}, size: {order.size:.2f}', order.data)
+        if order.status in [bt.Order.Rejected, bt.Order.Margin, bt.Order.Partial]:
+            logwarning(f'order #{order.ref} {order.getstatusname()}, {order.ordtypename()}, {order.getordername()}, price: {order.price or order.created.price:.2f} created price: {order.created.price:.2f}, size: {order.size:.2f}', order.data)
 
 
     def notify_trade(self, trade: bt.Trade):
@@ -98,53 +100,3 @@ class BaseStrategy(bt.Strategy):
         if len(open_trades) > 1:
             raise Exception('Warning - more than one open position for %s, trades: %s'%(stock, open_trades))
         return open_trades[0]
-
-
-    # TODO the are of plotting need refactoring       
-    def plot(self, limit=0, only_trades=True, interactive_plots=True, plot_observers=True):
-        pylab.rcParams['figure.figsize'] = 26, 13 # that's default image size for this interactive session
-        # limit = limit or len(self.stocks)
-        # feeds = list(dict(sorted(self._trades.items(), key=lambda item: len(item[1][0]))))[:limit] if only_trades else self.stocks[:limit] # for sorted trades
-        plotter = Bokeh(style='bar', scheme=Tradimo()) if interactive_plots else None
-        loginfo('ploting top %d feeds' % ((only_trades and len(self._trades) or limit or len(self.stocks))))
-        self.set_plot_for_observers(False)
-        printed = 0
-        for i, stock in enumerate(self.stocks):
-            if limit<0:
-                break
-            if only_trades and stock not in self._trades:
-                continue
-            if limit and printed >= limit:
-                break
-            self.set_plotting(stock, True)
-            self.set_plot_for_buysell_observer(True, i, stock) # this hack won't work for sorted trades - because of assumption over
-            gb.cerebro.plot(plotter=plotter, style='candlestick', barup='green', numfigs=1)
-            printed += 1
-            self.set_plot_for_buysell_observer(False, i, stock) # this hack won't work for sorted trades - because of assumption over
-            self.set_plotting(stock, False)
-        if plot_observers:
-            self.plot_observers(plotter, only_trades)
-
-
-    def set_plotting(self, feed, on):
-        feed.plotinfo.plotmaster = feed
-        feed.plotinfo.plot = on  # todo create a wrapper for the feed (csvData) object with attributes like indicators
-        self.set_plot_for_indicators(feed, on)
-    
-    def plot_observers(self, plotter, only_trades):
-        self.set_plot_for_observers(True, only_trades)
-        gb.cerebro.plot(plotter)
-
-    def set_plot_for_observers(self, is_plot, only_trades=False):
-        for observer in self.getobservers():
-            if only_trades and not observer.data in self._trades and type(observer) and not observer.plotinfo.subplot:
-                continue
-            observer.plotinfo.plot = is_plot
-
-    # hacky function to turn on the buy-sell observer of the stock that is about to plot
-    def set_plot_for_buysell_observer(self, plot_on, index, stock):
-        observer = self.getobservers()[index+1]
-        if observer.data._name != stock._name:
-            raise Exception("trying to plot buy-sell observer of wrong stock")
-        observer.plotinfo.plot = plot_on
-        
