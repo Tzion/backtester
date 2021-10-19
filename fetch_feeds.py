@@ -15,6 +15,7 @@ for symbol in tickers:
             print('downloading data feed of {}'.format(symbol))
             symbol = symbol.replace('.','')
             feed = yf.download(symbol, start=None, end=None, progress=True) #  when start and end are None gives all histroy until today.
+            feed = feed[feed.columns[[1,2,0,3,5,4]]]  # backward compatibility to the way the feed loader works
             feed.to_csv(f'{FEEDS_DIR}{symbol}.csv')
         else:
             print('data feed of {} already exists, skipping'.format(symbol))
