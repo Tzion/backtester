@@ -1,7 +1,6 @@
 cscope.out
 tags
 venv
-data_feeds
 data_feeds_bkp
 .DS_Store
 __pycache__
