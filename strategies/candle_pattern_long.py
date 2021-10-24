@@ -15,13 +15,13 @@ class CandlePatternLong(TradeStateStrategy):
     
     params = {
         'atr_period': 13,
-        'highs_period': 30,
+        'highs_period': 37,
         'risk_per_trade_percentage' : 2
     }
 
     def __init__(self):
         super().__init__()
-        self.setsizer(RiskBasedWithMaxPortionSizer(risk_per_trade_percents=2.0, max_portion_percents=25))
+        self.setsizer(RiskBasedWithMaxPortionSizer(risk_per_trade_percents=3.0, max_portion_percents=28))
 
     def prepare_feed(self, feed):
         feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period, plot=False)
