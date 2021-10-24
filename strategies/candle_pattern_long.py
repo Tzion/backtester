@@ -16,7 +16,10 @@ class CandlePatternLong(TradeStateStrategy):
     params = {
         'atr_period': 13,
         'highs_period': 37,
-        'risk_per_trade_percentage' : 2
+        'ema_fast': 21,
+        'ema_meduim': 40,
+        'ema_slow': 100,
+
     }
 
     def __init__(self):
@@ -25,32 +28,24 @@ class CandlePatternLong(TradeStateStrategy):
 
     def prepare_feed(self, feed):
         feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period, plot=False)
-        feed.atr_slow = talib.ATR(feed.high,feed.low,feed.close, timeperiod=3, plot=False)
         feed.tr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=1, plot=False)
-        # feed.three_line_strike = talib.CDL3LINESTRIKE(feed.open, feed.high, feed.low, feed.close, plot=False) 
-        # feed.three_line_strike_marker = visualizers.SingleMarker(signals=feed.three_line_strike, level=feed.low*.99, color='silver', marker='*', plotmaster=feed) 
-        # feed.three_black_crows = talib.CDL3BLACKCROWS(feed.open, feed.high, feed.low, feed.close, plot=False) 
-        # feed.three_black_crows_marker = visualizers.SingleMarker(signals=feed.three_black_crows, level=feed.low*.98, color='pink', marker='*', plotmaster=feed) 
         feed.doji_star = talib.CDLDOJISTAR(feed.open, feed.high, feed.low, feed.close, plot=False) 
-        feed.doji_star_marker = visualizers.SingleMarker(signals=feed.doji_star, level=feed.low*.985, color='purple', marker='H', plotmaster=feed, markersize=7) 
-
-        feed.ema_very_fast = indicators.EMA(feed.close, period=21, plot=True)
-        feed.ema_fast = indicators.EMA(feed.close, period=40, plot=True)
-        feed.ema_slow = indicators.EMA(feed.close, period=100, plot=True)
-        feed.trend_line = bt.And((feed.ema_very_fast > feed.ema_fast),(feed.ema_fast > feed.ema_slow)) # - ((feed.ema_very_fast < feed.ema_fast) < feed.ema_slow)
-        feed.trend = indicators.MovingAverageSimple(feed.trend_line, period=1, plot=True, plotmaster=feed, subplot=True) # using MA with period=1 as a workaround to be able to plot trend_line
-        feed.trend_line2 = bt.And((feed.ema_very_fast < feed.ema_fast),(feed.ema_fast < feed.ema_slow)) # - ((feed.ema_very_fast < feed.ema_fast) < feed.ema_slow)
-        feed.trend = indicators.MovingAverageSimple(feed.trend_line2, period=1, plot=True, plotmaster=feed, subplot=True) # using MA with period=1 as a workaround to be able to plot trend_line
-        feed.trend = indicators.MovingAverageSimple(feed.trend_line - feed.trend_line2, period=1, plot=True, plotmaster=feed, subplot=True) # using MA with period=1 as a workaround to be able to plot trend_line
         feed.highest = indicators.Highest(feed.high, period=self.p.highs_period, subplot=False)
         feed.lowest = indicators.Lowest(feed.low, period=self.p.highs_period, subplot=False)
         feed.highest_breakout = feed.high > feed.highest(-1)
-        feed.highest._name = 'somename' ## Workaround for bug in Bokeh - cannot print feed.highest(-1) without this attribute
+        feed.doji_star_marker = visualizers.SingleMarker(signals=feed.doji_star, level=feed.low*.985, color='purple', marker='H', plotmaster=feed, markersize=7) 
         feed.highest_breakout_marker = visualizers.SingleMarker(signals=feed.highest_breakout, level=feed.high*1.02 ,plotmaster=feed, color='orange', markersize=6, plot=False)
         feed.open.extend(size=1)
         feed.high.extend(size=1)
         feed.low.extend(size=1)
         feed.close.extend(size=1)
+
+        # trend analysis
+        feed.ema_fast = indicators.EMA(feed.close, period=self.p.ema_fast, plot=True)
+        feed.ema_meduim = indicators.EMA(feed.close, period=self.p.ema_meduim, plot=True)
+        feed.ema_slow = indicators.EMA(feed.close, period=self.p.ema_slow, plot=True)
+        feed.trend_line = bt.And((feed.ema_fast > feed.ema_meduim),(feed.ema_meduim > feed.ema_slow)) - bt.And((feed.ema_fast < feed.ema_meduim),(feed.ema_meduim < feed.ema_slow))
+        feed.trend = indicators.MovingAverageSimple(feed.trend_line, period=1, plot=True, plotmaster=feed, subplot=True) # using MA with period=1 as a workaround to be able to plot trend_line
 
 
     def initial_state_cls(self):
