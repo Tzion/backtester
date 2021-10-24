@@ -24,8 +24,8 @@ class CandlePatternLong(TradeStateStrategy):
         self.setsizer(RiskBasedWithMaxPortionSizer(risk_per_trade_percents=2.0, max_portion_percents=25))
 
     def prepare_feed(self, feed):
-        feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period, plot=True)
-        feed.atr_slow = talib.ATR(feed.high,feed.low,feed.close, timeperiod=3, plot=True)
+        feed.atr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=self.p.atr_period, plot=False)
+        feed.atr_slow = talib.ATR(feed.high,feed.low,feed.close, timeperiod=3, plot=False)
         feed.tr = talib.ATR(feed.high,feed.low,feed.close, timeperiod=1, plot=False)
         # feed.three_line_strike = talib.CDL3LINESTRIKE(feed.open, feed.high, feed.low, feed.close, plot=False) 
         # feed.three_line_strike_marker = visualizers.SingleMarker(signals=feed.three_line_strike, level=feed.low*.99, color='silver', marker='*', plotmaster=feed) 
@@ -34,9 +34,9 @@ class CandlePatternLong(TradeStateStrategy):
         feed.doji_star = talib.CDLDOJISTAR(feed.open, feed.high, feed.low, feed.close, plot=False) 
         feed.doji_star_marker = visualizers.SingleMarker(signals=feed.doji_star, level=feed.low*.985, color='purple', marker='H', plotmaster=feed, markersize=7) 
 
-        feed.ema_very_fast = indicators.EMA(feed.close, period=11, plot=True)
-        feed.ema_fast = indicators.EMA(feed.close, period=24, plot=True)
-        feed.ema_slow = indicators.EMA(feed.close, period=57, plot=True)
+        feed.ema_very_fast = indicators.EMA(feed.close, period=21, plot=True)
+        feed.ema_fast = indicators.EMA(feed.close, period=40, plot=True)
+        feed.ema_slow = indicators.EMA(feed.close, period=100, plot=True)
         feed.trend_line = bt.And((feed.ema_very_fast > feed.ema_fast),(feed.ema_fast > feed.ema_slow)) # - ((feed.ema_very_fast < feed.ema_fast) < feed.ema_slow)
         feed.trend = indicators.MovingAverageSimple(feed.trend_line, period=1, plot=True, plotmaster=feed, subplot=True) # using MA with period=1 as a workaround to be able to plot trend_line
         feed.trend_line2 = bt.And((feed.ema_very_fast < feed.ema_fast),(feed.ema_fast < feed.ema_slow)) # - ((feed.ema_very_fast < feed.ema_fast) < feed.ema_slow)
@@ -67,12 +67,25 @@ class CandlePatternLong(TradeStateStrategy):
         if isinstance(order.data.state, self.Tp2) and order.status is Order.Completed:
             loginfo(f'take profit 2 done by {order.getordername()} order')
 
+    def market_downtrend(self):
+        index = self.getdatabyname('^GSPC')
+        return index.trend == -1
+    
+    def risk_factor(self):
+        index = self.getdatabyname('^GSPC')
+        if index.trend == -1:
+            risk = 3
+        elif index.trend == 0:
+            risk = 2
+        else:
+            risk =1
+        return risk
 
     class LookForEntry(TradeState):
         def next(self):
-            volatility = 1.4*self.feed.atr[0]
             if self.strategy.getposition(self.feed):
                 return
+            volatility = 1.4*self.feed.atr[0]
             if (
                 self.feed.doji_star[0] > 0 
                 and self.feed.open[1] > self.feed.low[0]
@@ -85,7 +98,7 @@ class CandlePatternLong(TradeStateStrategy):
                 ):
                 stopprice = self.feed.low[0] - volatility
                 risk = self.feed.open[1] - stopprice
-                self.feed.risk = lambda : self.feed.open[1] - stopprice
+                self.feed.risk = lambda : (self.feed.open[1] - stopprice) * self.strategy.risk_factor()
 
                 self.entry = self.strategy.buy(self.feed, exectype=Order.Market, transmit=False)
                 self.stoploss = self.strategy.sell(self.feed, exectype=Order.StopTrail, price=stopprice, parent=self.entry, transmit=False, trailamount=volatility)
