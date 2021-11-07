@@ -28,7 +28,7 @@ class PlotlyPlotter():
         pass
 
     def plot_strategy(self, strategy: bt.Strategy):
-        if self.plot_observers:
+        if self.observers:
             self.plot_observers(strategy)
         if self.pnl2duration:
             trades = bh.extract_trades_list(strategy)

@@ -14,7 +14,7 @@ class PartialLevel(bt.Indicator):
     def once(self, start, end):
         for i in range(start,end):
             for j in range(i-self.length+1, i+1):
-                if not math.isnan(self.signal[j]):
+                if not math.isnan(self.signal[j]) and self.signal[j] != 0:
                     self.lines.level[i] = self.level[j]
                     break
 
