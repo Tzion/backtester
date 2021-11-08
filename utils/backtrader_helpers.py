@@ -2,6 +2,7 @@ from datetime import datetime
 import backtrader as bt
 from backtrader.analyzers.tradeanalyzer import TradeAnalyzer
 from backtrader.utils.dateintern import num2date
+from charts import charts
 
 def extract_trades(strategy: bt.Strategy) -> dict[bt.DataBase, list[bt.Trade]]:
     '''
@@ -52,15 +53,27 @@ def get_indicator_label(indicator) -> str:
         name += '(' + str(indicator.params.timeperiod) + ')'
     return name
 
-def extract_indicator_data(indicator) -> dict:
-    metadata = dict()
+def extract_indicator_lines(indicator) -> dict:
+    lines = dict()
     for line_i in range(indicator.size()):
         line_alias = indicator.lines._getlinealias(line_i)
-        lineplotinfo = getattr(indicator.plotlines, line_alias)
-        metadata[line_alias] = lineplotinfo.__dict__ # TODO use adapter from AutoClassInfo to plotly figure required data
+        lines[line_alias] = dict()
         lineplotdata = getattr(indicator, line_alias)
-        metadata[line_alias]['y'] = extract_line_data(lineplotdata)
-    return metadata
+        lines[line_alias]['data'] = extract_line_data(lineplotdata)
+        lineplotinfo = getattr(indicator.plotlines, line_alias)
+        lines[line_alias]['metadata'] = lineplotinfo
+    return lines
+
+def indicator_to_lines_data(indicator) -> dict[str,charts.Line]:
+    lines = dict()
+    for line_i in range(indicator.size()):
+        line_alias = indicator.lines._getlinealias(line_i)
+        lineplotdata = getattr(indicator, line_alias)
+        lineplotinfo = getattr(indicator.plotlines, line_alias)
+        lines[line_alias] = charts.Line(extract_line_data(lineplotdata), lineplotinfo)
+    return lines
+
+
 
 def get_alias(line: bt.LineSeries):
     if len(line.alias) > 0:

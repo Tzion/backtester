@@ -27,9 +27,15 @@ class LabeledData:
     metadata : dict = field(default_factory=dict)
 
 @dataclass
+class Line:
+    data: list[float]
+    metadata: dict = field(default_factory=dict)
+
+@dataclass
 class LinesData:
     name: str
     lines_data : dict = field(default_factory=dict)
+    lines : dict[str,Line] = field(default_factory=dict)
 
 @dataclass
 class ChartData:
@@ -42,7 +48,7 @@ class ChartData:
     close: list[float]
     volume: list[float]
     overlays_data: list[LinesData]
-    subplots_data: list[LabeledData]
+    subplots_data: list[LinesData]
     buy_markers: Optional[list[float]] = None
     sell_markers: Optional[list[float]] = None
 
@@ -113,14 +119,15 @@ def _add_overlay_plots(figure: go.Figure, dates, overlays_data:Optional[list[Lin
     if overlays_data:
         for overlay in overlays_data:
             for line in overlay.lines_data.items():
-                figure.add_trace(go.Scatter(x=dates, y=line[1]['y'], mode='lines', name=overlay.name))
+                figure.add_trace(go.Scatter(x=dates, y=line[1]['data'], mode='lines', name=overlay.name))
     return figure
 
 
-def _add_subplots(figure: go.Figure, dates, subplots_data:Optional[list[LabeledData]]):
+def _add_subplots(figure: go.Figure, dates, subplots_data:Optional[list[LinesData]]):
     if subplots_data:
         for i,subplot in enumerate(subplots_data):
-            figure.add_trace(go.Scatter(x=dates, y=subplot.data, mode='lines', name=subplot.label), row=i+2, col=1)
+            for line in subplot.lines_data.items():
+                figure.add_trace(go.Scatter(x=dates, y=line[1]['data'], mode='lines', name=subplot.name), row=i+2, col=1)
     return figure
 
 
