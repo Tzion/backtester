@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 from datetime import datetime
 import logger
@@ -24,6 +24,12 @@ TODO:
 class LabeledData:
     label: str
     data: list[float]
+    metadata : dict = field(default_factory=dict)
+
+@dataclass
+class LinesData:
+    name: str
+    lines_data : dict = field(default_factory=dict)
 
 @dataclass
 class ChartData:
@@ -35,7 +41,7 @@ class ChartData:
     low: list[float]
     close: list[float]
     volume: list[float]
-    overlays_data: list[LabeledData]
+    overlays_data: list[LinesData]
     subplots_data: list[LabeledData]
     buy_markers: Optional[list[float]] = None
     sell_markers: Optional[list[float]] = None
@@ -103,10 +109,11 @@ def _create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplo
     return fig
 
 
-def _add_overlay_plots(figure: go.Figure, dates, overlays_data:Optional[list[LabeledData]]):
+def _add_overlay_plots(figure: go.Figure, dates, overlays_data:Optional[list[LinesData]]):
     if overlays_data:
         for overlay in overlays_data:
-            figure.add_trace(go.Scatter(x=dates, y=overlay.data, mode='lines', name=overlay.label))
+            for line in overlay.lines_data.items():
+                figure.add_trace(go.Scatter(x=dates, y=line[1]['y'], mode='lines', name=overlay.name))
     return figure
 
 

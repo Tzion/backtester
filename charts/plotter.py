@@ -1,7 +1,7 @@
 from backtrader.feed import CSVDataBase
 from charts import charts
-from charts.charts import ChartData, LabeledData
-from utils.backtrader_helpers import extract_buynsell_observers, get_indicator_label, extract_line_data as eld, extract_line_data_datetime as eldd
+from charts.charts import ChartData, LabeledData, LinesData
+from utils.backtrader_helpers import extract_buynsell_observers, extract_indicator_data, get_indicator_label, extract_line_data as eld, extract_line_data_datetime as eldd
 from globals import *
 from utils import backtrader_helpers as bh
 import logger
@@ -69,7 +69,7 @@ class PlotlyPlotter():
             if ind.plotinfo.subplot:
                 self.charts[key].subplots_data.append(LabeledData(get_indicator_label(ind), eld(ind.line)))
             else:
-                self.charts[key].overlays_data.append(LabeledData(get_indicator_label(ind), eld(ind.line)))
+                self.charts[key].overlays_data.append(LinesData(get_indicator_label(ind), extract_indicator_data(ind)))
         
     def load_buysell_markers(self, strategy):
         for buysell in extract_buynsell_observers(strategy):

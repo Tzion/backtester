@@ -52,6 +52,16 @@ def get_indicator_label(indicator) -> str:
         name += '(' + str(indicator.params.timeperiod) + ')'
     return name
 
+def extract_indicator_data(indicator) -> dict:
+    metadata = dict()
+    for line_i in range(indicator.size()):
+        line_alias = indicator.lines._getlinealias(line_i)
+        lineplotinfo = getattr(indicator.plotlines, line_alias)
+        metadata[line_alias] = lineplotinfo.__dict__ # TODO use adapter from AutoClassInfo to plotly figure required data
+        lineplotdata = getattr(indicator, line_alias)
+        metadata[line_alias]['y'] = extract_line_data(lineplotdata)
+    return metadata
+
 def get_alias(line: bt.LineSeries):
     if len(line.alias) > 0:
         return line.alias[0]
