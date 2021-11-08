@@ -34,7 +34,6 @@ class Line:
 @dataclass
 class LinesData:
     name: str
-    lines_data : dict = field(default_factory=dict)
     lines : dict[str,Line] = field(default_factory=dict)
 
 @dataclass
@@ -118,16 +117,16 @@ def _create_ohlcv_figure(name, date, open, high, low, close, volume=None, subplo
 def _add_overlay_plots(figure: go.Figure, dates, overlays_data:Optional[list[LinesData]]):
     if overlays_data:
         for overlay in overlays_data:
-            for line in overlay.lines_data.items():
-                figure.add_trace(go.Scatter(x=dates, y=line[1]['data'], mode='lines', name=overlay.name))
+            for _,line in overlay.lines.items():
+                figure.add_trace(go.Scatter(x=dates, y=line.data, name=overlay.name, **line.metadata))
     return figure
 
 
 def _add_subplots(figure: go.Figure, dates, subplots_data:Optional[list[LinesData]]):
     if subplots_data:
         for i,subplot in enumerate(subplots_data):
-            for line in subplot.lines_data.items():
-                figure.add_trace(go.Scatter(x=dates, y=line[1]['data'], mode='lines', name=subplot.name), row=i+2, col=1)
+            for _,line in subplot.lines.items():
+                figure.add_trace(go.Scatter(x=dates, y=line.data, name=subplot.name, **line.metadata), row=i+2, col=1)
     return figure
 
 

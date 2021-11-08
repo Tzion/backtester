@@ -99,16 +99,17 @@ class TestIndicators:
         def __init__(self):
             for data in self.datas:
                 signal_line = data.high == data.close
-                # data.red_candles = visualizers.SingleMarker(signals=signal_line, level=data.low*1.02 ,plotmaster=data, color='pink', markersize=6, plot=True)
+                data.red_candles = visualizers.SingleMarker(signals=signal_line, level=data.low*1.02 ,plotmaster=data, color='pink', markersize=6, plot=True)
+                # data.red_candles = visualizers.SingleMarker_Old(signals=signal_line, level=data.low*1.02 ,plotmaster=data, color='pink', markersize=6, plot=True)
                 # data.no_wick_candles = visualizers.PartialLevel(signal=signal_line, level=data.high*1.01, color='orange', plotmaster=data, plot=True)
-                # data.bollinger = bt.indicators.BollingerBands()
+                data.bollinger = bt.indicators.BollingerBands()
                 # data.macd = bt.indicators.MACD()
-                data.macd_hist = bt.indicators.MACDHisto()
+                # data.macd_hist = bt.indicators.MACDHisto()
 
     @pytest.mark.parametrize('strategy, datas', [(Indicators ,[bt.feeds.GenericCSVData(dataname='tests/test_data.csv', fromdate=datetime(2016, 7, 1), todate=datetime(2017,6,30), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)])])
     def test_visualizers(self, strategy_fixture):
+        # strategy_fixture.cerebro.plot(plotter=Bokeh(style='bar', scheme=Tradimo()), style='candlestick', barup='green', numfigs=1)
         strategy_fixture.cerebro.plot(plotter=PlotlyPlotter(trades_only=False, observers=False, pnl2duration=False, auto_open=True, save_to_file=False))
-        strategy_fixture.cerebro.plot(plotter=Bokeh(style='bar', scheme=Tradimo()), style='candlestick', barup='green', numfigs=1)
 
 
 

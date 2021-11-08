@@ -67,9 +67,9 @@ class PlotlyPlotter():
             if key not in self.charts:
                 continue
             if ind.plotinfo.subplot:
-                self.charts[key].subplots_data.append(LinesData(get_indicator_label(ind), extract_indicator_lines(ind), indicator_to_lines_data(ind)))
+                self.charts[key].subplots_data.append(LinesData(get_indicator_label(ind), indicator_to_lines_data(ind)))
             else:
-                self.charts[key].overlays_data.append(LinesData(get_indicator_label(ind), extract_indicator_lines(ind), indicator_to_lines_data(ind)))
+                self.charts[key].overlays_data.append(LinesData(get_indicator_label(ind), indicator_to_lines_data(ind)))
         
     def load_buysell_markers(self, strategy):
         for buysell in extract_buynsell_observers(strategy):

@@ -2,7 +2,7 @@ from datetime import datetime
 import backtrader as bt
 from backtrader.analyzers.tradeanalyzer import TradeAnalyzer
 from backtrader.utils.dateintern import num2date
-from charts import charts
+from charts import charts, MATHPLOTLIB_TO_PLOTLY_ATTRIBUTES
 
 def extract_trades(strategy: bt.Strategy) -> dict[bt.DataBase, list[bt.Trade]]:
     '''
@@ -70,8 +70,16 @@ def indicator_to_lines_data(indicator) -> dict[str,charts.Line]:
         line_alias = indicator.lines._getlinealias(line_i)
         lineplotdata = getattr(indicator, line_alias)
         lineplotinfo = getattr(indicator.plotlines, line_alias)
-        lines[line_alias] = charts.Line(extract_line_data(lineplotdata), lineplotinfo)
+        lines[line_alias] = charts.Line(extract_line_data(lineplotdata), plotinfo_to_plotly_metadata(lineplotinfo))
     return lines
+
+def plotinfo_to_plotly_metadata(plotinfo) -> dict:
+    def translate(k): return MATHPLOTLIB_TO_PLOTLY_ATTRIBUTES.get(k) or k
+    d = plotinfo.__dict__.copy()
+    d.update(plotinfo._getitems()) # go over both the class attributes and special attributes
+    for k,v in d.items():
+        d[translate(k)] = v
+    return d
 
 
 
