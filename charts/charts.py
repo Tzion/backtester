@@ -29,7 +29,15 @@ class LabeledData:
 @dataclass
 class Line:
     data: list[float]
-    metadata: dict = field(default_factory=dict)
+    metadata: dict[str,str] = field(default_factory=dict)
+
+    def __init__(self, data, metadata):
+        self.data = data
+        self.execution_data = dict()
+        for key in list(metadata):
+            if key.startswith('_'):
+                self.execution_data[key] = metadata.pop(key)
+        self.metadata = metadata
 
 @dataclass
 class LinesData:

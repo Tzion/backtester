@@ -2,14 +2,14 @@ from globals import *
 
 class PartialLevel(bt.Indicator):
     lines = ('level',)
-    plotlines = dict(level=dict(linewidth=9.0, ls=':'))
+    plotlines = dict(level=dict(line_width=1.0, line_dash='dash'))
     plotinfo = dict(plot=True, subplot=False)
 
     def __init__(self, signal, level, length=10, color='deepskyblue'):
         self.signal = signal
         self.level = level
         self.length = length
-        self.plotlines.level.color = color
+        self.plotlines.level.line_color = color
 
     def once(self, start, end):
         for i in range(start,end):

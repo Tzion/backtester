@@ -99,7 +99,7 @@ class TestIndicators:
         def __init__(self):
             for data in self.datas:
                 signal_line = data.high == data.close
-                data.red_candles = visualizers.SingleMarker(signals=signal_line, level=data.low*1.02 ,plotmaster=data, color='pink', markersize=6, plot=True)
+                # data.red_candles = visualizers.SingleMarker(signals=signal_line, level=data.low*1.02 ,plotmaster=data, color='pink', markersize=6, plot=True)
                 # data.red_candles = visualizers.SingleMarker_Old(signals=signal_line, level=data.low*1.02 ,plotmaster=data, color='pink', markersize=6, plot=True)
                 # data.no_wick_candles = visualizers.PartialLevel(signal=signal_line, level=data.high*1.01, color='orange', plotmaster=data, plot=True)
                 data.bollinger = bt.indicators.BollingerBands()
