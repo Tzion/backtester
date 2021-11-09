@@ -16,7 +16,7 @@ TODO:
         2. Set range of the volume bar to be ~40% of the prices (see layout.yaxis.range)
     3. Remove gaps of non-trading days in the X axis
     4. Support intra-day charting
-    5. Support in complex (more than single plotline) indicators (macd, bollinger)
+    5. Support in super-complex (few plot lines of different type) indicators (macd-histo: lines and bar)
     6. Support in plotting strategy observers (e.g. cash, drawdown)
 """
 

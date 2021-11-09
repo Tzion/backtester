@@ -2,14 +2,14 @@ from globals import *
 
 class PartialLevel(bt.Indicator):
     lines = ('level',)
-    plotlines = dict(level=dict(line_width=1.0, line_dash='dash'))
+    plotlines = dict(level=dict(linewidth=2, ls=':'))
     plotinfo = dict(plot=True, subplot=False)
 
     def __init__(self, signal, level, length=10, color='deepskyblue'):
         self.signal = signal
         self.level = level
         self.length = length
-        self.plotlines.level.line_color = color
+        self.plotlines.level.linecolor = color
 
     def once(self, start, end):
         for i in range(start,end):
@@ -19,7 +19,7 @@ class PartialLevel(bt.Indicator):
                     break
 
 
-class SingleMarker_Old(bt.Indicator):  # For backward compatibility with bokeh
+class SingleMarker(bt.Indicator):  # For backward compatibility with bokeh
     lines = ('marker',)
     plotinfo = dict(plot=True, subplot=False, plotlinelabels=True)
     # plotlines = dict(markers=dict())
@@ -28,28 +28,12 @@ class SingleMarker_Old(bt.Indicator):  # For backward compatibility with bokeh
         self.signals = signals
         self.level = level
         self.plotlines.marker.marker = marker
-        self.plotlines.marker.color = color
+        self.plotlines.marker.markercolor = color
         self.plotlines.marker.markersize = markersize
-
-    def once(self, start, end):
-        for i in range(start, end):
-            if self.signals[i] != 0 and not math.isnan(self.signals[i]):
-                self.lines.marker[i] = self.level[i]
-
-
-class SingleMarker(bt.Indicator):
-    lines = ('marker',)
-    plotinfo = dict(plot=True, subplot=False, plotlinelabels=True)
-    
-    def __init__(self, signals, level, marker='star', color='springgreen', markersize=8.0):
-        self.signals = signals
-        self.level = level
-        self.plotlines.marker.marker_symbol= marker
-        self.plotlines.marker.marker_color = color
-        self.plotlines.marker.marker_size = markersize
         self.plotlines.marker.mode = 'markers'
 
     def once(self, start, end):
         for i in range(start, end):
             if self.signals[i] != 0 and not math.isnan(self.signals[i]):
                 self.lines.marker[i] = self.level[i]
+

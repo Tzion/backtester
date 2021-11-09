@@ -80,7 +80,8 @@ def plotinfo_to_plotly_metadata(plotinfo) -> dict:
         val = plot_attributes[key]
         new_key, new_val = translate(key, val)
         plot_attributes.pop(key)
-        plot_attributes[new_key] = new_val
+        if new_key:
+            plot_attributes[new_key] = new_val
     return plot_attributes
 
 
