@@ -22,15 +22,14 @@ def main():
     global cerebro
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
-    add_data(limit=0, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds')
-    # add_data(limit=0, random=False, start_date=datetime(2018,6,1), end_date=datetime(2019, 1, 1), dirpath='data_feeds')
-    # add_data(random=True, start_date=datetime(2016,11,30), end_date=datetime(2020, 4, 26), limit=3, stock_names=['PWR.csv'], dirpath='data_feeds')
+    # stock_for_testing = ['ABC.csv',   'BAC.csv',   'CDW.csv',   'CVX.csv',   'GD.csv',    'GPN.csv',   'IP.csv',    'JNJ.csv',   'LDOS.csv',  'MNST.csv',  'NKE.csv',   'OKE.csv', 'PNW.csv',   'RE.csv',    'STE.csv',   'UDR.csv',   'WELL.csv',  '^GSPC.csv', 'ADSK.csv',  'BR.csv','CNP.csv','EBAY.csv','GNRC.csv','HPQ.csv','JCI.csv','JNPR.csv', 'LNC.csv','MRO.csv', 'NVDA.csv', 'ORLY.csv', 'PVH.csv','SEE.csv','SWK.csv', 'VLO.csv',   'WHR.csv', 'ANSS.csv',  'CB.csv','CTAS.csv','EXR.csv','GOOG.csv', 'IFF.csv','JKHY.csv', 'JPM.csv','MCHP.csv','NFLX.csv','ODFL.csv', 'PKG.csv','PWR.csv','SNA.csv','TXT.csv', 'VRTX.csv',  'ZTS.csv']
+    add_data(limit=0, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds',)# stock_names=stock_for_testing)
     add_analyzers()
     add_observers()
     global strategies
     strategies = backtest()
     show_statistics(strategies)
-    cerebro.plot(plotter=PlotlyPlotter())
+    cerebro.plot(plotter=PlotlyPlotter(trades_only=True))
 
 
 def add_strategies(strategy: bt.Strategy):

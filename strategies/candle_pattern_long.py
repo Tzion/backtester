@@ -33,7 +33,7 @@ class CandlePatternLong(TradeStateStrategy):
         feed.highest = indicators.Highest(feed.high, period=self.p.highs_period, subplot=False)
         feed.lowest = indicators.Lowest(feed.low, period=self.p.highs_period, subplot=False)
         feed.highest_breakout = feed.high > feed.highest(-1)
-        feed.doji_star_marker = visualizers.SingleMarker(signals=feed.doji_star, level=feed.low*.985, color='purple', marker='H', plotmaster=feed, markersize=7) 
+        feed.doji_star_marker = visualizers.SingleMarker(signals=feed.doji_star, level=feed.low*.985, color='purple', marker='hexagram', plotmaster=feed, markersize=7) 
         feed.highest_breakout_marker = visualizers.SingleMarker(signals=feed.highest_breakout, level=feed.high*1.02 ,plotmaster=feed, color='orange', markersize=6, plot=False)
         feed.open.extend(size=1)
         feed.high.extend(size=1)
