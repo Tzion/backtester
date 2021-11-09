@@ -21,12 +21,6 @@ TODO:
 """
 
 @dataclass
-class LabeledData:
-    label: str
-    data: list[float]
-    metadata : dict = field(default_factory=dict)
-
-@dataclass
 class Line:
     data: list[float]
     metadata: dict[str,str] = field(default_factory=dict)

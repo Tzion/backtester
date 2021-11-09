@@ -1,6 +1,6 @@
 from backtrader.feed import CSVDataBase
 from charts import charts
-from charts.charts import ChartData, LabeledData, LinesData
+from charts.charts import ChartData, LinesData
 from utils.backtrader_helpers import extract_buynsell_observers, extract_indicator_lines, get_indicator_label, extract_line_data as eld, extract_line_data_datetime as eldd, indicator_to_lines_data
 from globals import *
 from utils import backtrader_helpers as bh

@@ -6,8 +6,8 @@ from backtrader_plotting.schemes.tradimo import Tradimo
 from test_common import *
 import backtrader as bt
 from datetime import datetime
-from charts.charts import LabeledData, plot_price_chart, _plot_feed
-from utils.backtrader_helpers import extract_line_data as eld, extract_line_data_datetime as edld
+from charts.charts import LinesData, plot_price_chart, _plot_feed
+from utils.backtrader_helpers import indicator_to_lines_data, extract_line_data_datetime as edld, extract_line_data as eld
 from backtrader import indicators
 import backtest
 from backtrader import talib
@@ -51,8 +51,8 @@ class TestChartsApi:
     def test_two_subplots(self, strategy_fixture):
         print('Chart with 2 subplots indicators')
         data = strategy_fixture.data
-        overlay = LabeledData('overlay', eld(data.moving_average.line))
-        subplots = [LabeledData('subplot1', eld(data.atr.line)), LabeledData('subplot2',eld(data.atr2.line))]
+        overlay = LinesData('overlay', indicator_to_lines_data(data.moving_average))
+        subplots = [LinesData('subplot1', indicator_to_lines_data(data.atr)), LinesData('subplot2', indicator_to_lines_data(data.atr2))]
         _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=subplots, show=True, save_to_file=False, buy_markers=None, sell_markers=None)
 
 
@@ -60,8 +60,8 @@ class TestChartsApi:
     def test_candle_gaps_for_non_trading_days(self, strategy_fixture):
         print('Demosntrate the gaps on the x axis for days of no trading (weekends). problem solved when there\'s not gap')
         data = strategy_fixture.data
-        overlay = LabeledData('overlay', eld(data.moving_average.line))
-        subplot = LabeledData('subplot', eld(data.atr.line))
+        overlay = LinesData('overlay', indicator_to_lines_data(data.moving_average))
+        subplot = LinesData('subplot', indicator_to_lines_data(data.atr))
         _plot_feed(data._name, edld(data.datetime), eld(data.open), eld(data.high), eld(data.low), eld(data.close), eld(data.volume), overlays_data=[overlay], subplots_data=[subplot], show=True, save_to_file=False, buy_markers=None, sell_markers=None)
 
 
