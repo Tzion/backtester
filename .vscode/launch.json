@@ -35,5 +35,13 @@
             "console": "integratedTerminal",
             "justMyCode": false,
         },
+        {
+            "name": "Signals",
+            "type": "python",
+            "request": "launch",
+            "program": "live_signals.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+        },
     ]
 }
