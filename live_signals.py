@@ -1,25 +1,10 @@
+import globals as gb
 from globals import *
 import datetime
 from backtrader.stores import ibstore as store
 from samples.ibtest.ibtest import TestStrategy
 
         
-def live_signals():
-    cerebro = bt.Cerebro(stdstats=False)
-    store = bt.stores.IBStore(host='127.0.0.1', port=7497, clientId=1488)
-    cerebro.broker = store.getbroker()
-    # also: 'TQQQ-STK-ISLAND-USD'
-    data = store.getdata(dataname='AAPL-STK-SMART-USD', timeframe=bt.TimeFrame.Days)
-    cerebro.resampledata(data, timeframe=bt.TimeFrame.Days, compression=1)
-
-    
-    cerebro.addstrategy(St)
-    strats = cerebro.run()
-    print(f'data len: {len(strats[0].data)}')
-    print('')
-    # ibstore = store.IBStore(host='127.0.0.1', port=7496, clientId=1896292)
-    # data = ibstore.getdata(dataname='EUR.USD-CASH-IDEALPRO')
-
 class St(bt.Strategy):
     def start(self):
         print('strategy is running')
@@ -49,11 +34,37 @@ stockkwargs = dict(
     rtbar=False,  # use RealTime 5 seconds bars
     historical=True,  # only historical download
     qcheck=0.5,  # timeout in seconds (float) to check for events
-    fromdate=datetime.datetime(2021, 11, 4),  # get data from..
-    todate=datetime.datetime(2021, 11, 11),  # get data from..
+    fromdate=datetime.datetime(2019, 4, 10),  # get data from..
+    todate=datetime.datetime(2019, 4, 30),  # get data from..
     latethrough=False,  # let late samples through
     tradename=None  # use a different asset as order target
 )
+
+def backtest():
+    global cerebro
+    cerebro = gb.cerebro
+    cerebro.addstrategy(TestStrategy)
+    from backtest import add_data
+    add_data(limit=0, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds', stock_names=['ABC.csv'])
+    backfill(cerebro.datas)
+    global strategies
+    strategies = backtest()
+    merge_data(cerebro.datas)
+    pass
+    
+
+def backfill(datas):
+    global cerebro
+    store = bt.stores.IBStore(port=7497, notifyall=False, _debug=True)
+    for data in datas:
+        from_date = find_end_date(data)
+        live_data = store.getdata(dataname=data._name+'-STK-SMART-USD', fromdate=from_date, todate=datetime.datetime.today(), historical=True, timeframe=bt.TimeFrame.Days)
+        cerebro.adddata(live_data)
+
+def merge_data(datas):
+    for data in datas:
+        data.roll
+        pass
 
 def run(args=None):
     cerebro = bt.Cerebro(stdstats=False)
@@ -62,12 +73,16 @@ def run(args=None):
     cerebro.addstrategy(TestStrategy)
     # quote('BAX', 'CDE', 'CAD', 'FUT') # got result (contract) but no len
     # quote('TSX', 'CDE', 'CAD', 'FUT') # got result (contract) but no len
-    data = store.getdata(dataname='AAPL-STK-SMART-USD', **stockkwargs)
-    cerebro.replaydata(data, timeframe=bt.TimeFrame.Days)
+
+    disk_data = bt.feeds.GenericCSVData(dataname='data_feeds/NVDA.csv', fromdate=datetime.datetime(2019, 4, 10), todate=datetime.datetime(2019,4,26), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
+    data = store.getdata(dataname='NVDA-STK-SMART-USD', **stockkwargs, backfill_from=disk_data,)
+    # cerebro.replaydata(data, timeframe=bt.TimeFrame.Days)
+    cerebro.adddata(data, name='A')
+    cerebro.adddata(disk_data, name='A')
     # cerebro.resampledata(data, timeframe=bt.TimeFrame.Days, compression=1)
-    # data.start()
-    store.start()
+    # store.start()
     cerebro.run()
+    pass
 
 def quote(symbol, exchange, currency='USD', type='STK'):
     if cerebro.datas:
