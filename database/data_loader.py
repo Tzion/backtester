@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import sys
 import numpy as np
@@ -8,6 +8,9 @@ import globals as gb
 from globals import *
 
 class DataLoader(ABC):
+
+    def __init__(self, cerebro):
+        self.cerebro = cerebro
     
     @abstractmethod
     def load_feeds(self, **kwargs):
@@ -30,8 +33,30 @@ class StaticLoader(DataLoader):
                 dataname=os.path.join(dirpath, stock2file(stock)), fromdate=start_date,
                 todate=end_date, dtformat=dtformat,
                 high=high_idx, low=low_idx, open=open_idx, close=close_idx, volume=volume_idx, plot=False)
-            gb.cerebro.adddata(feed, name=stock.strip('.csv'))
+            self.cerebro.adddata(feed, name=stock.strip('.csv'))
 
+
+class LiveLoader(DataLoader):
+
+    config = dict(
+        timeframe=bt.TimeFrame.Days,
+        historical=True,  # only historical download
+        fromdate= datetime(2019, 4, 10),  # get data from..
+        todate= datetime(2019, 4, 30),  # get data from..
+    )
+    
+    def load_feeds(self, symbols=[], start_date=None, end_date=datetime.today()):
+        start_date = start_date or end_date - timedelta(days=100)
+        store = bt.stores.ibstore.IBStore(port=7497, _debug=True)
+        ib_symbols = [symbol +'-STK-SMART-USD' for symbol in symbols]
+        for symbol in ib_symbols:
+            data = store.getdata(dataname=symbol, **LiveLoader.config)
+            self.cerebro.adddata(data)
+
+
+        
+
+        pass
 
     '''
     load_data
