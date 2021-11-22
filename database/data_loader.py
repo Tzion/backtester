@@ -36,27 +36,21 @@ class StaticLoader(DataLoader):
             self.cerebro.adddata(feed, name=stock.strip('.csv'))
 
 
-class LiveLoader(DataLoader):
+class HistoricalLoader(DataLoader):
 
     config = dict(
         timeframe=bt.TimeFrame.Days,
         historical=True,  # only historical download
-        fromdate= datetime(2019, 4, 10),  # get data from..
-        todate= datetime(2019, 4, 30),  # get data from..
     )
     
     def load_feeds(self, symbols=[], start_date=None, end_date=datetime.today()):
         start_date = start_date or end_date - timedelta(days=100)
-        store = bt.stores.ibstore.IBStore(port=7497, _debug=True)
+        store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True)
         ib_symbols = [symbol +'-STK-SMART-USD' for symbol in symbols]
         for symbol in ib_symbols:
-            data = store.getdata(dataname=symbol, **LiveLoader.config)
+            data = store.getdata(dataname=symbol, **HistoricalLoader.config, fromdate=start_date, todate=end_date)
             self.cerebro.adddata(data)
 
-
-        
-
-        pass
 
     '''
     load_data
