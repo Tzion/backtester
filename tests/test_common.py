@@ -21,6 +21,10 @@ TEST_DATA1 = bt.feeds.GenericCSVData(dataname='tests/test_data2.csv', fromdate=d
 def strategy_fixture(strategy, datas):
     return run_strategy(strategy, datas)
 
+@pytest.fixture
+def cerebro():
+    return bt.cerebro.Cerebro()
+
 # for debugging reasons it may be more convenient to call this directrly from the test
 def run_strategy(strategy, datas=[TEST_DATA0, TEST_DATA1]):
     cerebro = bt.Cerebro()
