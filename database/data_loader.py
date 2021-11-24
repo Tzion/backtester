@@ -1,15 +1,16 @@
 from abc import ABC, abstractmethod
+import backtrader as bt
 from datetime import datetime, timedelta
 import os
 import sys
 import numpy as np
 from logger import *
 import globals as gb
-from globals import *
+from database import get_feed_file_path
 
 class DataLoader(ABC):
 
-    def __init__(self, cerebro):
+    def __init__(self, cerebro:bt.Cerebro):
         self.cerebro = cerebro
     
     @abstractmethod
@@ -41,15 +42,21 @@ class HistoricalLoader(DataLoader):
     config = dict(
         timeframe=bt.TimeFrame.Days,
         historical=True,  # only historical download
+        what = 'TRADES',
     )
     
-    def load_feeds(self, symbols=[], start_date=None, end_date=datetime.today()):
+    def load_feeds(self, symbols=[], start_date=None, end_date=datetime.today(), backfill_from_database=True):
         start_date = start_date or end_date - timedelta(days=100)
-        store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True)
-        ib_symbols = [symbol +'-STK-SMART-USD' for symbol in symbols]
-        for symbol in ib_symbols:
-            data = store.getdata(dataname=symbol, **HistoricalLoader.config, fromdate=start_date, todate=end_date)
-            self.cerebro.adddata(data)
+        store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True) # make it singleton
+        for symbol in symbols:
+            if backfill_from_database:
+                file_data = bt.feeds.GenericCSVData(dataname=get_feed_file_path(symbol), fromdate=start_date, todate=end_date, dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
+                #TODO check ib or backtrader.ib interface for the stock ame manipulation or implement on my side
+                data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date, backfill_from=file_data)
+                # self.cerebro.adddata(file_data,)# symbol)
+            else:
+                data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date)
+            self.cerebro.adddata(data, symbol)
 
 
     '''
@@ -61,3 +68,7 @@ class HistoricalLoader(DataLoader):
     run backtest
     stay_alive- wait for data
     '''
+
+    
+    # %%
+    
