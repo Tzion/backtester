@@ -21,6 +21,14 @@
             "justMyCode": false,
         },
         {
+            "name": "Python Module",
+            "type": "python",
+            "request": "launch",
+            "module": "tests.database.data_loader_test",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+        },
+        {
             "name": "Dashboard",
             "type": "python",
             "request": "launch",

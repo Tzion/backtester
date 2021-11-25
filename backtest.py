@@ -21,7 +21,7 @@ def main():
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
     stock_for_testing = ['ABC.csv',   'BAC.csv',   'CDW.csv',   'CVX.csv',   'GD.csv',    'GPN.csv',   'IP.csv',    'JNJ.csv',   'LDOS.csv',  'MNST.csv',  'NKE.csv',   'OKE.csv', 'PNW.csv',   'RE.csv',    'STE.csv',   'UDR.csv',   'WELL.csv',  '^GSPC.csv', 'ADSK.csv',  'BR.csv','CNP.csv','EBAY.csv','GNRC.csv','HPQ.csv','JCI.csv','JNPR.csv', 'LNC.csv','MRO.csv', 'NVDA.csv', 'ORLY.csv', 'PVH.csv','SEE.csv','SWK.csv', 'VLO.csv',   'WHR.csv', 'ANSS.csv',  'CB.csv','CTAS.csv','EXR.csv','GOOG.csv', 'IFF.csv','JKHY.csv', 'JPM.csv','MCHP.csv','NFLX.csv','ODFL.csv', 'PKG.csv','PWR.csv','SNA.csv','TXT.csv', 'VRTX.csv',  'ZTS.csv']
-    load_data(StaticLoader(), limit=0, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds', stock_names=stock_for_testing)
+    load_data(StaticLoader(cerebro), limit=0, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds', stock_names=stock_for_testing)
     # disk_data = bt.feeds.GenericCSVData(dataname='data_feeds/NVDA.csv', fromdate=datetime(2018, 9, 1), todate=datetime(2019,4,26), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
     # cerebro.adddata(disk_data, name=disk_data._name)
     # add_analyzers()
