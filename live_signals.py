@@ -34,7 +34,7 @@ stockkwargs = dict(
     rtbar=False,  # use RealTime 5 seconds bars
     historical=True,  # only historical download
     qcheck=0.5,  # timeout in seconds (float) to check for events
-    fromdate=datetime.datetime(2019, 4, 10),  # get data from..
+    fromdate=datetime.datetime(2019, 4, 20),  # get data from..
     todate=datetime.datetime(2019, 4, 30),  # get data from..
     latethrough=False,  # let late samples through
     tradename=None  # use a different asset as order target
@@ -74,15 +74,34 @@ def run(args=None):
     # quote('BAX', 'CDE', 'CAD', 'FUT') # got result (contract) but no len
     # quote('TSX', 'CDE', 'CAD', 'FUT') # got result (contract) but no len
 
-    disk_data = bt.feeds.GenericCSVData(dataname='data_feeds/NVDA.csv', fromdate=datetime.datetime(2019, 4, 10), todate=datetime.datetime(2019,4,26), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
+    disk_data = bt.feeds.GenericCSVData(dataname='data_feeds/NVDA.csv', fromdate=datetime.datetime(2019, 4, 20), todate=datetime.datetime(2019,4,26), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
     data = store.getdata(dataname='NVDA-STK-SMART-USD', **stockkwargs, backfill_from=disk_data,)
     # cerebro.replaydata(data, timeframe=bt.TimeFrame.Days)
     cerebro.adddata(data, name='A')
-    cerebro.adddata(disk_data, name='A')
+    # cerebro.adddata(disk_data, name='A')
     # cerebro.resampledata(data, timeframe=bt.TimeFrame.Days, compression=1)
     # store.start()
     cerebro.run()
+    print(len(cerebro.datas[0]))
+    # print(len(cerebro.datas[1]))
+    print(len(cerebro.datas))
     pass
+
+def run_no_backfill():
+    cerebro = bt.Cerebro(stdstats=False)
+    istore = bt.stores.IBStore(port=7497, notifyall=False, _debug=True)
+    exchanges =['SMART','AMEX','NYSE','CBOE','PHLX','ISE','CHX','ARCA','ISLAND','DRCTEDGE',
+                'BEX','BATS','EDGEA','CSFBALGO','JEFFALGO','BYX','IEX','EDGX','FOXRIVER','PEARL','NYSENAT','LTSE','MEMX','PSX']
+    for exc in exchanges:
+        data = istore.getdata(dataname=f'ZION-STK-{exc}-USD', fromdate=datetime.datetime(2021,11,16), todate=datetime.datetime(2021,11,23), historical=True)
+        cerebro.adddata(data)
+    cerebro.addstrategy(TestStrategy)
+    strat = cerebro.run()[0]
+    pass
+    
+    
+# %%
+
 
 def quote(symbol, exchange, currency='USD', type='STK'):
     if cerebro.datas:
@@ -96,4 +115,4 @@ def quote(symbol, exchange, currency='USD', type='STK'):
     return cerebro.datas[0]
 
 if __name__ == '__main__':
-    run()
+    run_no_backfill()

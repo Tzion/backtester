@@ -43,6 +43,7 @@ class HistoricalLoader(DataLoader):
         timeframe=bt.TimeFrame.Days,
         historical=True,  # only historical download
         what = 'TRADES',
+        useRTH = True,  # request data of Regular Trading Hours
     )
     
     def load_feeds(self, symbols=[], start_date=None, end_date=datetime.today(), backfill_from_database=True):
@@ -69,6 +70,58 @@ class HistoricalLoader(DataLoader):
     stay_alive- wait for data
     '''
 
+
+"""
+# %%
+import backtrader as bt
+import datetime
+from samples.ibtest.ibtest import TestStrategy
+
+cerebro = bt.Cerebro(stdstats=False)
+istore = bt.stores.IBStore(port=7497, notifyall=False, _debug=True)
+exchanges =['SMART']
+for exc in exchanges:
+    data = istore.getdata(dataname=f'ZION-STK-{exc}-USD', fromdate=datetime.datetime(2021,11,16), todate=datetime.datetime(2021,11,23), historical=True)
+    cerebro.adddata(data)
+cerebro.addstrategy(TestStrategy)
+strat = cerebro.run()[0]
+
+
+# PLAYING WITH BACKTRADER IB API
+# %%
+
+import backtrader as bt
+from datetime import datetime
+
+config = dict(
+    timeframe=bt.TimeFrame.Days,
+    historical=True,  # only historical download
+    what = 'TRADES',
+    useRTH = True,  # request data of Regular Trading Hours
+)
+store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True)
+contract = store.makecontract('NVDA', 'STK', 'SMART', 'USD')
+# store.reqHistoricalData(contract, enddate='2021-11-12', duration=, barsize=, useRTH=True)
+
     
-    # %%
+
     
+# PLAYING DIRECTLY WITH IBAPI
+# %%
+import ibapi
+from ibapi.client import EClient
+from ibapi.wrapper import EWrapper
+from ibapi.contract import Contract
+
+wrapper = EWrapper()
+client = EClient(wrapper)
+client.connect('127.0.0.1', 7497, 10)
+
+ 
+# %%
+contract = Contract()
+contract.currency='USD'; contract.symbol='ZION'; contract.secType='STK'
+client.reqContractDetails(0,contract)
+# %%
+wrapper
+"""
