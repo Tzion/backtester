@@ -5,8 +5,7 @@ import os
 import sys
 import numpy as np
 from logger import *
-import globals as gb
-from database import get_feed_file_path
+import database
 
 class DataLoader(ABC):
 
@@ -51,7 +50,7 @@ class HistoricalLoader(DataLoader):
         store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True) # make it singleton
         for symbol in symbols:
             if backfill_from_database:
-                file_data = bt.feeds.GenericCSVData(dataname=get_feed_file_path(symbol), fromdate=start_date, todate=end_date, dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
+                file_data = bt.feeds.GenericCSVData(dataname=database.get_feed_file_path(symbol), fromdate=start_date, todate=end_date, dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
                 #TODO check ib or backtrader.ib interface for the stock ame manipulation or implement on my side
                 data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date, backfill_from=file_data)
                 # self.cerebro.adddata(file_data,)# symbol)
@@ -62,66 +61,21 @@ class HistoricalLoader(DataLoader):
 
     '''
     load_data
-        load_from_file
-        backfill_from_ib
-            validate
-            write_to_file ?
-    run backtest
-    stay_alive- wait for data
+    fetch
+    store
+    stay_alive- wait for data?
+
+    fetch:
+        fetch_from_cache (files)
+        if cached file is not completed:
+            fetch from server
+    
+    store:
+        validate no conflicts with already stored file
+        append the extra lines to the csv
+
+
+    tests:
+    no mismatches between data sources
+    fetch from server data matches the stored
     '''
-
-
-"""
-# %%
-import backtrader as bt
-import datetime
-from samples.ibtest.ibtest import TestStrategy
-
-cerebro = bt.Cerebro(stdstats=False)
-istore = bt.stores.IBStore(port=7497, notifyall=False, _debug=True)
-exchanges =['SMART']
-for exc in exchanges:
-    data = istore.getdata(dataname=f'ZION-STK-{exc}-USD', fromdate=datetime.datetime(2021,11,16), todate=datetime.datetime(2021,11,23), historical=True)
-    cerebro.adddata(data)
-cerebro.addstrategy(TestStrategy)
-strat = cerebro.run()[0]
-
-
-# PLAYING WITH BACKTRADER IB API
-# %%
-
-import backtrader as bt
-from datetime import datetime
-
-config = dict(
-    timeframe=bt.TimeFrame.Days,
-    historical=True,  # only historical download
-    what = 'TRADES',
-    useRTH = True,  # request data of Regular Trading Hours
-)
-store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True)
-contract = store.makecontract('NVDA', 'STK', 'SMART', 'USD')
-# store.reqHistoricalData(contract, enddate='2021-11-12', duration=, barsize=, useRTH=True)
-
-    
-
-    
-# PLAYING DIRECTLY WITH IBAPI
-# %%
-import ibapi
-from ibapi.client import EClient
-from ibapi.wrapper import EWrapper
-from ibapi.contract import Contract
-
-wrapper = EWrapper()
-client = EClient(wrapper)
-client.connect('127.0.0.1', 7497, 10)
-
- 
-# %%
-contract = Contract()
-contract.currency='USD'; contract.symbol='ZION'; contract.secType='STK'
-client.reqContractDetails(0,contract)
-# %%
-wrapper
-"""
