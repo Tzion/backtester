@@ -3,6 +3,8 @@ import os
 import enum
 import pandas as pd
 
+PREFIX = 'database/data'
+
 class DataSource(enum.Enum):
     INTERACTIVE_BROKERS = 1
     TRADING_VIEW = 2
@@ -19,7 +21,7 @@ def get_feed_file_path(symbol, source: DataSource=DataSource.INTERACTIVE_BROKERS
             raise Exception('Ambiguos search results: more than 1 files matches the symbol')
         return str(matches[0])
         
-    dir = f'database/{source.get_name()}/'
+    dir = f'{PREFIX}{source.get_name()}/'
     path = find_file(symbol, dir)
     if os.path.isfile(path):
         return path
@@ -41,5 +43,3 @@ def diff_data_feed_csv(file_1, file_2, columns=['open', 'low', 'high', 'close',]
     # to show details results - next phase
     compare = df11[df11.eq(df22).all(axis=1) == False]
     print(comparison.to_string(index=True))
-
-# %%
