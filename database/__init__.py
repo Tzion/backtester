@@ -3,7 +3,7 @@ import os
 import enum
 import pandas as pd
 
-PREFIX = 'database/data'
+PREFIX = 'database/data/'
 
 class DataSource(enum.Enum):
     INTERACTIVE_BROKERS = 1
@@ -16,9 +16,11 @@ class DataSource(enum.Enum):
 
 def get_feed_file_path(symbol, source: DataSource=DataSource.INTERACTIVE_BROKERS):
     def find_file(symbol, dir):
-        matches = list(Path(dir).glob('*.csv'))
+        matches = list(Path(dir).glob(f'{symbol}.csv')) # TODO bug - ambiguous for symbols A AA
         if len(matches) > 1:
-            raise Exception('Ambiguos search results: more than 1 files matches the symbol')
+            raise Exception('Ambiguous search results: more than 1 files matches the symbol')
+        if not matches:
+            raise FileNotFoundError(f'No csv file {symbol}.csv in {dir}')
         return str(matches[0])
         
     dir = f'{PREFIX}{source.get_name()}/'
