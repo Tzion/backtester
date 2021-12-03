@@ -14,7 +14,7 @@ def assert_prices(feed, datetime, open, high, low, close, ago=0):
     assert feed.low[ago] == low
     assert feed.close[ago] == close
 
-class TestLiveLoader:
+class TestHistoricalLoader:
     """IB Gateway or TWS must be connected prior to these tests"""
         
     @pytest.fixture
@@ -44,7 +44,7 @@ class TestLiveLoader:
 
     def test_backfill_one_bar(self, cerebro, loader):
         """Load data feed from file, fill missing bar from live data server"""
-        loader.load_feeds(['NVDA'], start_date=datetime(2021, 11, 19), end_date=datetime(2021, 11, 23), backfill_from_database=False)
+        loader.load_feeds(['NVDA'], start_date=datetime(2021, 11, 19), end_date=datetime(2021, 11, 23), backfill_from_database=True)
         cerebro.addstrategy(DummyStrategy)
         cerebro.run()
         assert len(cerebro.datas[0]) == 2
