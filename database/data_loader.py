@@ -6,6 +6,7 @@ import sys
 import numpy as np
 from logger import *
 import database
+from database.data_writer import DataWriter
 
 class DataLoader(ABC):
 
@@ -52,63 +53,14 @@ class HistoricalLoader(DataLoader):
         for symbol in symbols:
             if backfill_from_database:
                 file_data = bt.feeds.GenericCSVData(dataname=database.get_feed_file_path(symbol), fromdate=start_date, todate=end_date, dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
-                #TODO check ib or backtrader.ib interface for the stock ame manipulation or implement on my side
                 data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date, backfill_from=file_data)
             else:
                 data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date)
             
             if store:
-                decorate_data_writter(data)
-                # data.stop = stop_and_store_decorator(data.stop)
-                # data.load = load_and_store.__get__(data, bt.feeds.ibdata.IBData)
-                # data.stop = stop_and_store_decorator(data.stop)
-                pass
+                DataWriter.data_writer_decorator(data)
             self.cerebro.adddata(data, symbol)
-            # self.cerebro.addstorecb(notify_data_callback)
-        if store:
-            pass
-            # data.load = load_and_store.__get__(data, bt.feeds.ibdata.IBData)
-            self.cerebro.addwriter(bt.WriterFile, csv=True, out='./writer_test')
 
-
-def decorate_data_writter(data):
-    data.stop = stop_and_store_decorator(data.stop, data)
-    # return data
-
-def load_and_store(data):
-    return bt.feeds.ibdata.IBData.load(data)
-    
-def stop_and_store_decorator(stop_func, data):
-    def stop_and_store():
-        d = data
-        print('im storing')
-        stop_func()
-    return stop_and_store
-    
-# class Data():
-#     def stop(self):
-#         pass
-
-# class DataDecorator():
-#     def __init__(self, data):
-#         self.data = data
-    
-#     def stop(self):
-#         self.data.stop()
-
-class DataWriterDecorator():
-    
-    def __init__(self, data):
-        self.data = data
-
-    def __get__(self, instance, owner):
-            if instance is None:
-                return self
-            print (instance, owner)
-
-    def stop(self):
-        print('Im writing the data') 
-        self.data.stop()
 
     '''
     load_data
