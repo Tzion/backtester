@@ -58,7 +58,8 @@ class HistoricalLoader(DataLoader):
                 data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date)
             
             if store:
-                DataWriter.data_writer_decorator(data)
+                data = DataWriter.add_writer(data)
+                pass
             self.cerebro.adddata(data, symbol)
 
 
