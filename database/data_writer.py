@@ -4,6 +4,7 @@ import database
 from logger import *
 from backtrader.feeds import IBData
 import io
+from functools import reduce
 
 class DataWriter():
     
@@ -47,10 +48,17 @@ class DataWriter():
 
 
 def store(data, file):
-    file.write(str(data.getwriterheaders()))
-    file.write(str(data.buflen()))
+    file.write(reduce(lambda a,b: a + ',' + b, data.getwriterheaders()[2:]) + '\n')
+    write_values(data, file)
     file.close()
 
+def write_values(data, file):
+    data.home()
+    while len(data) < data.buflen():
+        data.next()
+        line = data.getwritervalues()
+        # file.write(reduce(lambda a,b: str(a) + ',' + str(b), [2:]) + '\n')
+        file.write(str(line[2].date()) + ',' + str(line[3:])[1:-1].replace('\'', '').replace(' ','') + '\n')
 
 def write_latest_line(data, file):
     loginfo('storing line')
