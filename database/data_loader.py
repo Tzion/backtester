@@ -55,7 +55,7 @@ class HistoricalLoader(DataLoader):
                 file_data = bt.feeds.GenericCSVData(dataname=database.get_feed_file_path(symbol), fromdate=start_date, todate=end_date, dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
                 data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date, backfill_from=file_data)
                 if store:
-                    data = DataWriter.add_writer(data, data.p.backfill_from)
+                    data = DataWriter.decorate_writing(data, data.p.backfill_from)
             else:
                 data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date)
             
