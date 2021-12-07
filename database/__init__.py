@@ -30,10 +30,10 @@ def get_feed_file_path(symbol, source: DataSource=DataSource.INTERACTIVE_BROKERS
     return None
 
     
-def diff_data_feed_csv(file_1, file_2, columns=['open', 'low', 'high', 'close',]):
+def diff_data_feed_csv(file1, file2, columns=['open', 'low', 'high', 'close',]):
     # TODO support date range
-    df1 = pd.read_csv(file_1, parse_dates=[0])
-    df2 = pd.read_csv(file_2, parse_dates=[0])
+    df1 = pd.read_csv(file1, parse_dates=[0])
+    df2 = pd.read_csv(file2, parse_dates=[0])
     columns.insert(0,df1.columns[0])
     df1 = pd.DataFrame(df1, columns=columns)
     df2 = pd.DataFrame(df2, columns=columns)
@@ -45,3 +45,34 @@ def diff_data_feed_csv(file_1, file_2, columns=['open', 'low', 'high', 'close',]
     # to show details results - next phase
     compare = df11[df11.eq(df22).all(axis=1) == False]
     print(comparison.to_string(index=True))
+
+def merge_data_feeds(file1, file2, export_path=None):
+    dataframe1 = pd.read_csv(file1)
+    dataframe2 = pd.read_csv(file2)
+    if _pre_merge_validation(dataframe1, dataframe2):
+        merged = _merge_data_frames(dataframe1, dataframe2)
+        if export_path:
+            pass
+            # save to file
+        return merged
+    
+def _pre_merge_validation(dataframe1, dataframe2):
+    '''Verify that the origin data is contained in the '''
+    headers = headers_match(dataframe1 ,dataframe2)
+    beginnig = beginning_match(dataframe1 ,dataframe2)
+
+def _merge_data_frames(feed1, feed2):
+    pass
+    
+def headers_match(df1, df2):
+    return True
+
+def beginning_match(base_df, extra_df):
+    for line in len(base_df):
+        pass
+
+
+
+#%%
+
+# %%
