@@ -57,9 +57,10 @@ def merge_data_feeds(file1, file2, export_path=None):
         return merged
     
 def _pre_merge_validation(dataframe1, dataframe2):
-    '''Verify that the origin data is contained in the '''
+    '''Verify that there are no conflicts of data of the same dates'''
     headers = headers_match(dataframe1 ,dataframe2)
     beginnig = beginning_match(dataframe1 ,dataframe2)
+    # return True
 
 def _merge_data_frames(feed1, feed2):
     pass
@@ -68,8 +69,7 @@ def headers_match(df1, df2):
     return True
 
 def beginning_match(base_df, extra_df):
-    for line in len(base_df):
-        pass
+    pass
 
 
 
