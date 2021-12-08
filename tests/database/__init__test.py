@@ -12,14 +12,18 @@ class TestDataFeeds:
     def test_diff_in_data_feeds_from_different_sources(self, symbol):
         print(get_feed_file_path(symbol, DataSource.TRADING_VIEW))
     
-    @pytest.mark.parametrize('file1, file2', [('tests/database/merge_test_datapoints_0-22.csv', 'tests/database/merge_test_datapoints_0-20.csv')])
-    def test_merge_data_feeds__one_contains_other(self, file1, file2):
+    @pytest.mark.parametrize('file1, file2', [('tests/database/merge_test_datapoints_0-22.csv', 'tests/database/merge_test_datapoints_0-20.csv'),
+                                              ('tests/database/merge_test_datapoints_0-22.csv', 'tests/database/merge_test_datapoints_2-20.csv'),
+                                              ('tests/database/merge_test_datapoints_0-20.csv', 'tests/database/merge_test_datapoints_20-22.csv'),
+                                            ]
+                             )
+    def test_merge_data_feeds(self, file1, file2):
         merged = merge_data_feeds(file1, file2)
-        assert len(merged) == 23
-        # TODO verify data also
-
-    def test_merge_data_feeds__one_continues_other(self, file1, file2):
-        pass
+        assert len(merged) == 23, 'Length of merged result is shorted than expected'
+        entire_data = pd.read_csv('tests/database/merge_test_datapoints_0-22.csv')
+        entire_data.eq(merged), 'Data of merged result is different than the completed data'
+        merged_opposite = merge_data_feeds(file2, file1)
+        assert merged.eq(merged_opposite), 'Merge result is not symetric'
 
     def test_merge_data_feeds__data_mismatch(self, file1, file2):
         pass
