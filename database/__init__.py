@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import enum
 import pandas as pd
+from typing import Optional, Union
 
 PREFIX = 'database/data/'
 
@@ -46,33 +47,31 @@ def diff_data_feed_csv(file1, file2, columns=['open', 'low', 'high', 'close',]):
     compare = df11[df11.eq(df22).all(axis=1) == False]
     print(comparison.to_string(index=True))
 
-def merge_data_feeds(file1, file2, export_path=None):
-    dataframe1 = pd.read_csv(file1)
-    dataframe2 = pd.read_csv(file2)
+
+def merge_data_feeds_csv(file1, file2, export_path=None) -> Optional[pd.DataFrame]:
+    dataframe1 = pd.read_csv(file1, parse_dates=[0])
+    dataframe2 = pd.read_csv(file2, parse_dates=[0])
+    merged = merge_data_feeds(dataframe1, dataframe2)
+    if export_path:
+        pass # TODO write to file
+    return merged
+
+def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame):
     if _pre_merge_validation(dataframe1, dataframe2):
         merged = _merge_data_frames(dataframe1, dataframe2)
-        if export_path:
-            pass
-            # save to file
         return merged
+    else:
+        raise Exception('Feeds contains conflict data and cannot be merged')
     
 def _pre_merge_validation(dataframe1, dataframe2):
     '''Verify that there are no conflicts of data of the same dates'''
-    headers = headers_match(dataframe1 ,dataframe2)
-    beginnig = beginning_match(dataframe1 ,dataframe2)
-    # return True
-
-def _merge_data_frames(feed1, feed2):
-    pass
+    return _headers_match(dataframe1 ,dataframe2) and _values_match(dataframe1 ,dataframe2)
     
-def headers_match(df1, df2):
+def _headers_match(dataframe1, dataframe2):
     return True
 
-def beginning_match(base_df, extra_df):
-    pass
+def _values_match(dataframe1, dataframe2):
+    return True
 
-
-
-#%%
-
-# %%
+def _merge_data_frames(dataframe1, dataframe2):
+    return pd.merge(dataframe1, dataframe2, how='outer')
