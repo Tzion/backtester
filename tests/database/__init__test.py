@@ -1,7 +1,8 @@
 from database import DataSource, diff_data_feed_csv, get_feed_file_path
 from tests.test_common import *
-from database import merge_data_feeds_csv, merge_data_feeds
+from database import merge_data_feeds_csv, merge_data_feeds, FeedMergeException
 from random import random, randrange
+from logger import *
 
 
 class TestDataFeeds:
@@ -11,6 +12,7 @@ class TestDataFeeds:
         print(get_feed_file_path(symbol, DataSource.TRADING_VIEW))
         #TODO
 
+class TestMergeDataFeeds:
     @pytest.mark.parametrize('file1, file2', [('tests/database/merge_test_datapoints_0-22.csv', 
                                                'tests/database/merge_test_datapoints_0-20.csv'),
                                               ('tests/database/merge_test_datapoints_0-22.csv',
@@ -29,28 +31,37 @@ class TestDataFeeds:
         df1 = pd.read_csv(file1, parse_dates=[0])
         df2 = pd.read_csv(file2, parse_dates=[0])
         manipulate_random_value(df2)
-        with pytest.raises(Exception):  # TODO change to merge conflict exception
+        with pytest.raises(FeedMergeException):
             merge = merge_data_feeds(df1, df2)
     
-    def test_merge_data_feeds__columns_mismatch(self, file1, file2):
-        df1 = pd.read_csv(file1, parse_dates=[0])
-        df2 = pd.read_csv(file2, parse_dates=[0])
+    def test_merge_data_feeds__columns_mismatch(self, file='tests/database/merge_test_datapoints_0-22.csv'):
+        df1 = pd.read_csv(file, parse_dates=[0])
+        df2 = df1.copy()
         df2 = flip_columns(df2)
-        with pytest.raises(Exception):  # TODO change to merge conflict exception
-            merge = merge_data_feeds(df1, df2)
+        with pytest.raises(FeedMergeException):
+            merge = merge_data_feeds(df2, df1)
     
+    def test_merge_data_feeds__missing_rows(self, file='tests/database/merge_test_datapoints_0-22.csv'):
+        df1 = pd.read_csv(file, parse_dates=[0])
+        df2 = df1.drop(index=[len(df1)//2], inplace=False)
+        with pytest.raises(Exception):
+            merge = merge_data_feeds(df1, df2)
+         
+        
     #TODO test columns with case-sensetive keys
     #TODO test tables with extra columns
-    #TODO test tables with missing rows in different places
 
 
 def flip_columns(dataframe: pd.DataFrame):
-    # TODO
-    pass
+    col2 = dataframe[dataframe.columns[2]]
+    dataframe = dataframe.drop(columns=dataframe.columns[2])
+    dataframe = dataframe.join(col2)
+    return dataframe
 
 def manipulate_random_value(dataframe: pd.DataFrame):
     x = randrange(1, dataframe.shape[0])
     y = randrange(1, dataframe.shape[1])
+    logdebug(f'changing value at location ({x},{y})')
     dataframe.iloc[x,y] = dataframe.iloc[x,y] + 0.01
 
 # A try to manipulate the test arguments

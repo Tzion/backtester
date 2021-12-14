@@ -61,17 +61,28 @@ def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame):
         merged = _merge_data_frames(dataframe1, dataframe2)
         return merged
     else:
-        raise Exception('Feeds contains conflict data and cannot be merged')
+        raise FeedMergeException('Feeds contains conflict data and cannot be merged')
     
 def _pre_merge_validation(dataframe1, dataframe2):
     '''Verify that there are no conflicts of data of the same dates'''
     return _headers_match(dataframe1 ,dataframe2) and _values_match(dataframe1 ,dataframe2)
     
 def _headers_match(dataframe1, dataframe2):
-    return True
+    return (dataframe1.columns == dataframe2.columns).all()
 
 def _values_match(dataframe1, dataframe2):
     return True
 
 def _merge_data_frames(dataframe1, dataframe2):
-    return pd.merge(dataframe1, dataframe2, how='outer')
+    merged = pd.merge(dataframe1, dataframe2, how='outer')  # for debugging do merge(..., indicator=True)
+    def no_conflicts(dataframe): 
+        same_date = merged.eq(dataframe)
+        same_date = same_date[same_date['Date'] == True]  # TODO get rid of this hardcoded string
+        return same_date.all().all()  # rows of the same date contain similar values as the merge result -> no coflicts
+    if not no_conflicts(dataframe2) or not no_conflicts(dataframe1):
+        raise FeedMergeException('Feeds value mismatch')
+    return merged
+
+
+class FeedMergeException(Exception):
+    pass
