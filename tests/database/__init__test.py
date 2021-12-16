@@ -47,9 +47,18 @@ class TestMergeDataFeeds:
         with pytest.raises(Exception):
             merge = merge_data_feeds(df1, df2)
          
+    def test_merge_data_feeds__columns_case_sensetive(self, file='tests/database/merge_test_datapoints_0-22.csv'):
+        df1 = pd.read_csv(file, parse_dates=[0])
+        df2 = df1.rename(columns=str.lower, copy=True)
+        with pytest.raises(Exception):
+            merge = merge_data_feeds(df1, df2)
         
-    #TODO test columns with case-sensetive keys
-    #TODO test tables with extra columns
+    def test_merge_data_feeds__extra_column(self, file='tests/database/merge_test_datapoints_0-22.csv'):
+        df1 = pd.read_csv(file, parse_dates=[0])
+        df2 = df1.copy()
+        df2 = df1.join(df1[df1.columns[3]].rename('columnX'))
+        with pytest.raises(Exception):
+            merge = merge_data_feeds(df1, df2)
 
 
 def flip_columns(dataframe: pd.DataFrame):
