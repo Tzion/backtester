@@ -41,12 +41,6 @@ class TestMergeDataFeeds:
         with pytest.raises(FeedMergeException):
             merge = merge_data_feeds(df2, df1)
     
-    def test_merge_data_feeds__missing_rows(self, file='tests/database/merge_test_datapoints_0-22.csv'):
-        df1 = pd.read_csv(file, parse_dates=[0])
-        df2 = df1.drop(index=[len(df1)//2], inplace=False)
-        with pytest.raises(Exception):
-            merge = merge_data_feeds(df1, df2)
-         
     def test_merge_data_feeds__columns_case_sensetive(self, file='tests/database/merge_test_datapoints_0-22.csv'):
         df1 = pd.read_csv(file, parse_dates=[0])
         df2 = df1.rename(columns=str.lower, copy=True)
