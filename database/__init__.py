@@ -2,7 +2,6 @@ from pathlib import Path
 import os
 import enum
 import pandas as pd
-from typing import Optional, Union
 
 PREFIX = 'database/data/'
 

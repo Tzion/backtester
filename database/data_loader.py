@@ -7,6 +7,8 @@ import numpy as np
 from logger import *
 import database
 from database.data_writer import DataWriter
+from typing import Optional
+from database import DataSource
 
 class DataLoader(ABC):
 
@@ -60,7 +62,6 @@ class HistoricalLoader(DataLoader):
                 data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date)
             
             self.cerebro.adddata(data, symbol)
-
 
     '''
     load_data

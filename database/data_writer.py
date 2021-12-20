@@ -25,13 +25,13 @@ class DataWriter():
         
 def store(data, filepath):
     if os.path.exists(filepath) and os.path.isfile(filepath):
-        temp_filepath = filepath + '.unmerged'
+        temp_filepath = filepath + '.premerged'
         write_to_file(data, temp_filepath)
         try:
             merged = merge_data_feeds_csv(filepath, temp_filepath)
             pd.DataFrame.to_csv(merged, filepath)
         except FeedMergeException as exp:
-            logerror(f'Storing data of {filepath} failed. Reason: {exp}')
+            logerror(f'Storing data feed failed, path={filepath}. Reason: {exp}')
             return
         os.remove(temp_filepath) 
 

@@ -6,7 +6,6 @@ from datetime import datetime
 import pytest
 
 
-
 def assert_prices(feed, datetime, open, high, low, close, ago=0):
     assert feed.datetime.date(ago) == datetime.date()
     assert feed.open[ago] == open
@@ -41,17 +40,18 @@ class TestHistoricalLoader:
         assert len(cerebro.datas[0]) == 0, 'data should be empty - since it\'s weekend'
         assert len(cerebro.datas[1]) == 5, 'data should have full business week - 5 days'
         
-
     def test_backfill_one_bar(self, cerebro, loader):
         """Load data feed from file, fill missing bar from live data server"""
         loader.load_feeds(['NVDA'], start_date=datetime(2021, 11, 19), end_date=datetime(2021, 11, 23), backfill_from_database=True)
         cerebro.addstrategy(DummyStrategy)
         cerebro.run()
         assert len(cerebro.datas[0]) == 2
-        # assert_prices(cerebro.datas[0], datetime(2021, 11, 19), 44.44, 66.66, 33.33, 55.55)
-        # assert_prices(cerebro.datas[0], datetime(2021, 11, 22), 335.17, 346.47, 333.50, 0)
+        assert_prices(cerebro.datas[0], datetime(2021, 11, 19), 44.44, 66.66, 33.33, 55.55)
+        assert_prices(cerebro.datas[0], datetime(2021, 11, 22), 335.17, 346.47, 333.50, 0)
 
 
+
+#TODO delete below section
 class St(bt.Strategy):
     def next(self):
         pass
