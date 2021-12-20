@@ -48,12 +48,10 @@ def diff_data_feed_csv(file1, file2, columns=['open', 'low', 'high', 'close',]):
     print(comparison.to_string(index=True))
 
 
-def merge_data_feeds_csv(file1, file2, export_path=None) -> Optional[pd.DataFrame]:
+def merge_data_feeds_csv(file1, file2) -> pd.DataFrame:
     dataframe1 = pd.read_csv(file1, parse_dates=[0])
     dataframe2 = pd.read_csv(file2, parse_dates=[0])
     merged = merge_data_feeds(dataframe1, dataframe2)
-    if export_path:
-        pass # TODO write to file
     return merged
 
 def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame):
@@ -67,7 +65,7 @@ def _validate_headers(dataframe1, dataframe2):
         raise FeedMergeException('Feeds have different headers and cannot be merged')
 
 def _merge_data_frames(dataframe1, dataframe2):
-    merged = pd.merge(dataframe1, dataframe2, how='outer')  # for debugging do merge(..., indicator=True)
+    merged = pd.merge(dataframe1, dataframe2, how='outer')  # for debugging do pd.merge(..., indicator=True)
     def no_conflicts(dataframe): 
         same_date = merged.eq(dataframe)
         same_date = same_date[same_date['Date'] == True]  # TODO get rid of this hardcoded string

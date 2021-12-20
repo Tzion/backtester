@@ -7,7 +7,7 @@ from logger import *
 
 class TestDataFeeds:
 
-    @pytest.mark.parametrize('symbol', ('AAL', 'GME', 'GLD'))
+    @pytest.mark.parametrize('symbol', ('BATS_AAL, 1D', 'GME', 'GLD'))
     def test_diff_in_data_feeds_from_different_sources(self, symbol):
         print(get_feed_file_path(symbol, DataSource.TRADING_VIEW))
         #TODO
