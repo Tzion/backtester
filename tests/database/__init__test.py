@@ -4,6 +4,7 @@ from database import merge_data_feeds_csv, merge_data_feeds, FeedMergeException
 from random import random, randrange
 from logger import *
 
+TEST_DATA_DIR = 'tests/database/data/'
 
 class TestDataFeeds:
 
@@ -13,41 +14,42 @@ class TestDataFeeds:
         #TODO
 
 class TestMergeDataFeeds:
-    @pytest.mark.parametrize('file1, file2', [('tests/database/merge_test_datapoints_0-22.csv', 
-                                               'tests/database/merge_test_datapoints_0-20.csv'),
-                                              ('tests/database/merge_test_datapoints_0-22.csv',
-                                               'tests/database/merge_test_datapoints_2-20.csv'),
-                                              ('tests/database/merge_test_datapoints_0-20.csv',
-                                               'tests/database/merge_test_datapoints_20-22.csv'), ])
+    FULL_DATA = TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'
+    @pytest.mark.parametrize('file1, file2', [(TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv', 
+                                               TEST_DATA_DIR + 'merge_test_datapoints_0-20.csv'),
+                                              (TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv',
+                                              TEST_DATA_DIR +  'merge_test_datapoints_2-20.csv'),
+                                              (TEST_DATA_DIR + 'merge_test_datapoints_0-20.csv',
+                                               TEST_DATA_DIR + 'merge_test_datapoints_20-22.csv'), ])
     def test_merge_data_feeds(self, file1, file2):
         merged = merge_data_feeds_csv(file1, file2)
         assert len(merged) == 23, 'Length of merged result is shorted than expected'
-        entire_data = pd.read_csv('tests/database/merge_test_datapoints_0-22.csv')
+        entire_data = pd.read_csv(TestMergeDataFeeds.FULL_DATA)
         assert all(entire_data.eq(merged)), 'Data of merged result is different than the completed data'
         merged_opposite = merge_data_feeds_csv(file2, file1)
         assert all(merged.eq(merged_opposite)), 'Merge result is not symetric'
 
-    def test_merge_data_feeds__values_mismatch(self, file1='tests/database/merge_test_datapoints_0-22.csv', file2='tests/database/merge_test_datapoints_0-20.csv'):
+    def test_merge_data_feeds__values_mismatch(self, file1=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv', file2=TEST_DATA_DIR + 'merge_test_datapoints_0-20.csv'):
         df1 = pd.read_csv(file1, parse_dates=[0])
         df2 = pd.read_csv(file2, parse_dates=[0])
         manipulate_random_value(df2)
         with pytest.raises(FeedMergeException):
             merge = merge_data_feeds(df1, df2)
     
-    def test_merge_data_feeds__columns_mismatch(self, file='tests/database/merge_test_datapoints_0-22.csv'):
+    def test_merge_data_feeds__columns_mismatch(self, file=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'):
         df1 = pd.read_csv(file, parse_dates=[0])
         df2 = df1.copy()
         df2 = flip_columns(df2)
         with pytest.raises(FeedMergeException):
             merge = merge_data_feeds(df2, df1)
     
-    def test_merge_data_feeds__columns_case_sensetive(self, file='tests/database/merge_test_datapoints_0-22.csv'):
+    def test_merge_data_feeds__columns_case_sensetive(self, file=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'):
         df1 = pd.read_csv(file, parse_dates=[0])
         df2 = df1.rename(columns=str.lower, copy=True)
         with pytest.raises(Exception):
             merge = merge_data_feeds(df1, df2)
         
-    def test_merge_data_feeds__extra_column(self, file='tests/database/merge_test_datapoints_0-22.csv'):
+    def test_merge_data_feeds__extra_column(self, file=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'):
         df1 = pd.read_csv(file, parse_dates=[0])
         df2 = df1.copy()
         df2 = df1.join(df1[df1.columns[3]].rename('columnX'))

@@ -20,8 +20,11 @@ class TestHistoricalLoader:
     def loader(self, cerebro):
         return HistoricalLoader(cerebro)
 
-    def test_request_feed_data(self, cerebro, loader):
+    def test_request_feed_data(self, cerebro, loader, mocker):
         """Request data of specific stock in known dates and verify the prices received """
+        def f(prefix):
+            return prefix+ 'hello'
+        mocker.patch('database.get_feed_file_path', return_value=f('your name is'))
         loader.load_feeds(['ZION'], datetime(2020,7,31), datetime(2020,8,1), backfill_from_database=False)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
