@@ -24,6 +24,7 @@ defusedxml==0.7.1
 entrypoints==0.3
 Flask==2.0.1
 Flask-Compress==1.10.1
+ibapi==9.76.1
 IbPy2==0.8.0
 idna==2.10
 iniconfig==1.1.1
@@ -75,6 +76,7 @@ Pygments==2.8.1
 pyparsing==2.4.7
 pyrsistent==0.17.3
 pytest==6.2.4
+pytest-mock==3.6.1
 python-dateutil==2.8.1
 pytz==2021.1
 PyYAML==5.4.1
