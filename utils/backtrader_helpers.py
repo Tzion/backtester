@@ -3,6 +3,8 @@ import backtrader as bt
 from backtrader.analyzers.tradeanalyzer import TradeAnalyzer
 from backtrader.utils.dateintern import num2date
 from charts import charts, translate
+import pandas
+from backtrader import num2date
 
 def extract_trades(strategy: bt.Strategy) -> dict[bt.DataBase, list[bt.Trade]]:
     '''
@@ -84,6 +86,18 @@ def plotinfo_to_plotly_metadata(plotinfo) -> dict:
             plot_attributes[new_key] = new_val
     return plot_attributes
 
+def convert_to_dataframe(feed: bt.DataBase, date='datetime', columns=['open', 'high', 'low', 'close', 'volume']) -> pandas.DataFrame:
+    if not columns or len(columns) == 0:
+        columns = list(feed.lines._getlines())
+        columns.remove(date)
+    values = {}
+    for column in columns:
+        values[column] = feed.lines.__getattribute__(column).getzero(idx=0, size=len(feed))
+    index = feed.lines.__getattribute__(date).getzero(idx=0, size=len(feed)) 
+    values['timestamp'] = index
+    index = map(num2date, index)
+    return pandas.DataFrame(index=index, data=values)
+    
 
 
 def get_alias(line: bt.LineSeries):
