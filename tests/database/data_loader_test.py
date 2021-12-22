@@ -4,6 +4,7 @@ import test_common
 from database.data_loader import HistoricalLoader
 from datetime import datetime
 import pytest
+from __init__test import TEST_DATA_DIR
 
 
 def assert_prices(feed, datetime, open, high, low, close, ago=0):
@@ -13,6 +14,22 @@ def assert_prices(feed, datetime, open, high, low, close, ago=0):
     assert feed.low[ago] == low
     assert feed.close[ago] == close
 
+def get_feed_file_path_mock(symbol):
+    return TEST_DATA_DIR + symbol + '.csv'
+
+def compare_feed(feed, dataframe):
+    report = []
+    for i in range(len(feed), -1, -1):
+        date = str(feed.datetime.date(-i))
+        data = dataframe.loc[date]
+        if feed.open[-i] != data.open:
+            report.append(f'Mismatch at {date}: open price, feed={feed.open[-i]}, data={data.open}\n')
+    if report:
+        print(''.join(report))
+        return False
+    return True
+    
+
 class TestHistoricalLoader:
     """IB Gateway or TWS must be connected prior to these tests"""
         
@@ -20,16 +37,25 @@ class TestHistoricalLoader:
     def loader(self, cerebro):
         return HistoricalLoader(cerebro)
 
-    def test_request_feed_data(self, cerebro, loader, mocker):
-        """Request data of specific stock in known dates and verify the prices received """
-        def f(prefix):
-            return prefix+ 'hello'
-        mocker.patch('database.get_feed_file_path', return_value=f('your name is'))
-        loader.load_feeds(['ZION'], datetime(2020,7,31), datetime(2020,8,1), backfill_from_database=False)
+    def test_request_feed_data(self, cerebro, loader):
+        """Request data of specific stock and date and verify the prices received """
+        loader.load_feeds(['ZION'], datetime(2020,7,21), datetime(2020,8,4), backfill_from_database=False)
+        loader.load_feeds(['NVDA'], start_date=datetime(2021, 11, 19), end_date=datetime(2021, 11, 23), backfill_from_database=False, store=False)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
-        assert_prices(cerebro.datas[0], datetime(2020,7,31), 32.6, 32.69, 31.94, 32.47)
+        d = cerebro.datas[0]
+        print([(str(d.datetime.datetime(ago=-i)), d.open[-i]) for i in range(len(d)-1, -1,-1)])
+        assert_prices(cerebro.datas[0], datetime(2020,7,31), 32.6, 32.69, 31.94, 32.47), 'Data mismatch'
     
+
+    def test_request_feed_data_for_period(self, cerebro, loader, start=datetime(2020,10,20), end=datetime(2020,10,31)):
+        loader.load_feeds(['ZION'], start_date=start, end_date=end, backfill_from_database=False, store=False)
+        cerebro.addstrategy(test_common.DummyStrategy)
+        cerebro.run()
+        dataframe = pd.read_csv(TEST_DATA_DIR+'ZION_BATS_TRADINGVIEW_1D.csv', index_col=0, converters={0:lambda long_date:long_date[:10]})
+        assert compare_feed(cerebro.datas[0], dataframe), 'Data mismatch'
+
+        
     def test_request_feed_data_on_weekend(self, cerebro, loader):
         """Request data over the weekend when there is no trading of the contract"""
         weekend_start = datetime(2021,11,13)
@@ -37,20 +63,23 @@ class TestHistoricalLoader:
         weekend_end = datetime(2021, 11,15)
         assert weekend_end.isoweekday() == 1
         loader.load_feeds(['ZION'], weekend_start, weekend_end, backfill_from_database=False)
-        loader.load_feeds(['ZION'], datetime(2021,11,15), datetime(2021,11,22), backfill_from_database=False)
+        loader.load_feeds(['NVDA'], datetime(2021,11,15), datetime(2021,11,22), backfill_from_database=False)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
         assert len(cerebro.datas[0]) == 0, 'data should be empty - since it\'s weekend'
         assert len(cerebro.datas[1]) == 5, 'data should have full business week - 5 days'
         
-    def test_backfill_one_bar(self, cerebro, loader):
+    def test_backfill_one_bar(self, cerebro, loader, mocker):
         """Load data feed from file, fill missing bar from live data server"""
-        loader.load_feeds(['NVDA'], start_date=datetime(2021, 11, 19), end_date=datetime(2021, 11, 23), backfill_from_database=True)
+        mocker.patch('database.get_feed_file_path', return_value=TEST_DATA_DIR + 'backfill_test.csv')
+        loader.load_feeds(['NVDA'], start_date=datetime(2021, 10, 28), end_date=datetime(2021, 11, 10), backfill_from_database=False, store=False)
         cerebro.addstrategy(DummyStrategy)
         cerebro.run()
-        assert len(cerebro.datas[0]) == 2
-        assert_prices(cerebro.datas[0], datetime(2021, 11, 19), 44.44, 66.66, 33.33, 55.55)
-        assert_prices(cerebro.datas[0], datetime(2021, 11, 22), 335.17, 346.47, 333.50, 0)
+        d = cerebro.datas[0]
+        print([(str(d.datetime.datetime(ago=-i)), d.open[-i]) for i in range(len(d)-1, -1,-1)])
+        assert len(cerebro.datas[0]) == 3
+        assert_prices(cerebro.datas[0], datetime(2021, 11, 19), 44.44, 66.66, 33.33, 55.55, ago=1), 'Mismatch with data from file'
+        assert_prices(cerebro.datas[0], datetime(2021, 11, 22), 335.17, 346.47, 319.0, 319.56, ago=0), 'Mismatch with data from server'
 
 
 
