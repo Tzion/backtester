@@ -45,7 +45,8 @@ class HistoricalLoader(DataLoader):
         timeframe=bt.TimeFrame.Days,
         historical=True,  # only historical download
         what = 'TRADES',
-        useRTH = True,  # request data of Regular Trading Hours
+        useRTH = True,  # request data of Regular Trading Hours,
+        timeoffset=False,
     )
     
 

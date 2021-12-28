@@ -5,6 +5,9 @@ from database.data_loader import HistoricalLoader
 from datetime import datetime
 import pytest
 from __init__test import TEST_DATA_DIR
+from backtrader import date2num, num2date
+from utils.backtrader_helpers import convert_to_dataframe
+from database import diff_data_feed
 
 
 def assert_prices(feed, datetime, open, high, low, close, ago=0):
@@ -17,6 +20,7 @@ def assert_prices(feed, datetime, open, high, low, close, ago=0):
 def get_feed_file_path_mock(symbol):
     return TEST_DATA_DIR + symbol + '.csv'
 
+# redundant TODO remove
 def compare_feed(feed, dataframe):
     report = []
     for i in range(len(feed), -1, -1):
@@ -29,7 +33,6 @@ def compare_feed(feed, dataframe):
         return False
     return True
     
-
 class TestHistoricalLoader:
     """IB Gateway or TWS must be connected prior to these tests"""
         
@@ -39,22 +42,27 @@ class TestHistoricalLoader:
 
     def test_request_feed_data(self, cerebro, loader):
         """Request data of specific stock and date and verify the prices received """
-        loader.load_feeds(['ZION'], datetime(2020,7,21), datetime(2020,8,4), backfill_from_database=False)
-        loader.load_feeds(['NVDA'], start_date=datetime(2021, 11, 19), end_date=datetime(2021, 11, 23), backfill_from_database=False, store=False)
+        loader.load_feeds(['ZION'], datetime(2020,7,31), datetime(2020,8,1), backfill_from_database=False)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
-        d = cerebro.datas[0]
-        print([(str(d.datetime.datetime(ago=-i)), d.open[-i]) for i in range(len(d)-1, -1,-1)])
+        # d = cerebro.datas[0]
+        # print([(str(d.datetime.datetime(ago=-i)), d.open[-i]) for i in range(len(d)-1, -1,-1)])
         assert_prices(cerebro.datas[0], datetime(2020,7,31), 32.6, 32.69, 31.94, 32.47), 'Data mismatch'
     
 
-    def test_request_feed_data_for_period(self, cerebro, loader, start=datetime(2020,10,20), end=datetime(2020,10,31)):
+    def test_request_feed_data_for_period(self, cerebro, loader, start=datetime(2020,7,1), end=datetime(2020,8,1)):
         loader.load_feeds(['ZION'], start_date=start, end_date=end, backfill_from_database=False, store=False)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
-        dataframe = pd.read_csv(TEST_DATA_DIR+'ZION_BATS_TRADINGVIEW_1D.csv', index_col=0, converters={0:lambda long_date:long_date[:10]})
-        assert compare_feed(cerebro.datas[0], dataframe), 'Data mismatch'
+        requested_data = cerebro.datas[0]
+        df = pd.read_csv(TEST_DATA_DIR+'ZION_BATS_TRADINGVIEW_1D.csv', index_col=0, converters={0:lambda long_date:long_date[:10]}, parse_dates=[0])
+        requested_df = convert_to_dataframe(requested_data)
+        requested_df.index = requested_df.index.map(lambda dt: dt.date)
+        diffs = diff_data_feed(requested_df, df.loc[requested_df.index[0]:requested_df.index[-1]])
+        assert diffs.all().all(), f'There are differences between the requested data and the static data:\n {diffs.to_string(index=True)}'
+        # assert compare_feed(requested_data, df), 'Data mismatch'
 
+    # TODO test to compare volumes of requested feed and static
         
     def test_request_feed_data_on_weekend(self, cerebro, loader):
         """Request data over the weekend when there is no trading of the contract"""

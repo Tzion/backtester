@@ -86,16 +86,18 @@ def plotinfo_to_plotly_metadata(plotinfo) -> dict:
             plot_attributes[new_key] = new_val
     return plot_attributes
 
-def convert_to_dataframe(feed: bt.DataBase, date='datetime', columns=['open', 'high', 'low', 'close', 'volume']) -> pandas.DataFrame:
+def convert_to_dataframe(feed: bt.DataBase, time='datetime', columns=['open', 'high', 'low', 'close', 'volume']) -> pandas.DataFrame:
+    # TODO generelize (all the specific variables)
     if not columns or len(columns) == 0:
         columns = list(feed.lines._getlines())
-        columns.remove(date)
+        columns.remove(time)
     values = {}
     for column in columns:
         values[column] = feed.lines.__getattribute__(column).getzero(idx=0, size=len(feed))
-    index = feed.lines.__getattribute__(date).getzero(idx=0, size=len(feed)) 
+    time_line = feed.lines.__getattribute__(time)
+    index = time_line.getzero(idx=0, size=len(feed)) 
     values['timestamp'] = index
-    index = map(num2date, index)
+    index = map(lambda timestamp: num2date(timestamp, time_line._tz), index)
     return pandas.DataFrame(index=index, data=values)
     
 
