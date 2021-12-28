@@ -33,13 +33,14 @@ class TestHistoricalLoader:
         loader.load_feeds(['ZION'], datetime(2020,7,31), datetime(2020,8,1), backfill_from_database=False)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
-        # d = cerebro.datas[0]
-        # print([(str(d.datetime.datetime(ago=-i)), d.open[-i]) for i in range(len(d)-1, -1,-1)])
         assert_prices(cerebro.datas[0], datetime(2020,7,31), 32.6, 32.69, 31.94, 32.47), 'Data mismatch'
     
 
-    def test_request_feed_data_for_period(self, cerebro, loader, start=datetime(2020,7,1), end=datetime(2020,8,1)):
-        loader.load_feeds(['ZION'], start_date=start, end_date=end, backfill_from_database=False, store=False)
+    # @pytest.mark.parametrize('start, end', [('2020-07-02', '2020-07-31'), ('2020-10-30', '2020-11-05'), ('2021-11-11', '2021-12-21'), ('2021-03-02', '2021-03-28')])
+    # @pytest.mark.parametrize('start, end', [('2021-03-04', '2021-03-05')])
+    @pytest.mark.parametrize('start, end', [('2019-01-11', '2021-04-15')])
+    def test_request_feed_data_for_period(self, cerebro, loader, start, end):
+        loader.load_feeds(['ZION'], start_date=datetime.fromisoformat(start), end_date=datetime.fromisoformat(end), backfill_from_database=False, store=False)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
         requested_data = cerebro.datas[0]
@@ -47,9 +48,11 @@ class TestHistoricalLoader:
         requested_df = convert_to_dataframe(requested_data)
         requested_df.index = requested_df.index.map(lambda dt: dt.date)
         diffs = diff_data_feed(requested_df, df.loc[requested_df.index[0]:requested_df.index[-1]])
-        assert diffs.all().all(), f'There are differences between the requested data and the static data:\n {diffs.to_string(index=True)}'
+        assert diffs.empty, f'There are differences between the requested data and the static data:\n{diffs.to_string(index=True)}\n'
 
     # TODO test to compare volumes of requested feed and static
+
+    #TODO delete ZION.csv from the test folder
         
     def test_request_feed_data_on_weekend(self, cerebro, loader):
         """Request data over the weekend when there is no trading of the contract"""
@@ -67,12 +70,10 @@ class TestHistoricalLoader:
     def test_backfill_one_bar(self, cerebro, loader, mocker):
         """Load data feed from file, fill missing bar from live data server"""
         mocker.patch('database.get_feed_file_path', return_value=TEST_DATA_DIR + 'backfill_test.csv')
-        loader.load_feeds(['NVDA'], start_date=datetime(2021, 10, 28), end_date=datetime(2021, 11, 10), backfill_from_database=False, store=False)
+        loader.load_feeds(['NVDA'], start_date=datetime(2021, 11, 19), end_date=datetime(2021, 11, 23), backfill_from_database=False, store=False)
         cerebro.addstrategy(DummyStrategy)
         cerebro.run()
-        d = cerebro.datas[0]
-        print([(str(d.datetime.datetime(ago=-i)), d.open[-i]) for i in range(len(d)-1, -1,-1)])
-        assert len(cerebro.datas[0]) == 3
+        assert len(cerebro.datas[0]) == 2
         assert_prices(cerebro.datas[0], datetime(2021, 11, 19), 44.44, 66.66, 33.33, 55.55, ago=1), 'Mismatch with data from file'
         assert_prices(cerebro.datas[0], datetime(2021, 11, 22), 335.17, 346.47, 319.0, 319.56, ago=0), 'Mismatch with data from server'
 
