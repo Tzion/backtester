@@ -19,19 +19,6 @@ def assert_prices(feed, datetime, open, high, low, close, ago=0):
 
 def get_feed_file_path_mock(symbol):
     return TEST_DATA_DIR + symbol + '.csv'
-
-# redundant TODO remove
-def compare_feed(feed, dataframe):
-    report = []
-    for i in range(len(feed), -1, -1):
-        date = str(feed.datetime.date(-i))
-        data = dataframe.loc[date]
-        if feed.open[-i] != data.open:
-            report.append(f'Mismatch at {date}: open price, feed={feed.open[-i]}, data={data.open}\n')
-    if report:
-        print(''.join(report))
-        return False
-    return True
     
 class TestHistoricalLoader:
     """IB Gateway or TWS must be connected prior to these tests"""
@@ -40,6 +27,7 @@ class TestHistoricalLoader:
     def loader(self, cerebro):
         return HistoricalLoader(cerebro)
 
+    # maybe redundant TODO
     def test_request_feed_data(self, cerebro, loader):
         """Request data of specific stock and date and verify the prices received """
         loader.load_feeds(['ZION'], datetime(2020,7,31), datetime(2020,8,1), backfill_from_database=False)
@@ -60,7 +48,6 @@ class TestHistoricalLoader:
         requested_df.index = requested_df.index.map(lambda dt: dt.date)
         diffs = diff_data_feed(requested_df, df.loc[requested_df.index[0]:requested_df.index[-1]])
         assert diffs.all().all(), f'There are differences between the requested data and the static data:\n {diffs.to_string(index=True)}'
-        # assert compare_feed(requested_data, df), 'Data mismatch'
 
     # TODO test to compare volumes of requested feed and static
         
@@ -90,27 +77,3 @@ class TestHistoricalLoader:
         assert_prices(cerebro.datas[0], datetime(2021, 11, 22), 335.17, 346.47, 319.0, 319.56, ago=0), 'Mismatch with data from server'
 
 
-
-#TODO delete below section
-class St(bt.Strategy):
-    def next(self):
-        pass
-
-
-def query_data():
-    from samples.ibtest.ibtest import TestStrategy
-    cerebro = bt.Cerebro()
-    istore = bt.stores.IBStore(port=7497, notifyall=False, _debug=True)
-    # exchanges =['SMART','AMEX','NYSE','CBOE','PHLX','ISE','CHX','ARCA','ISLAND','DRCTEDGE',
-    #             'BEX','BATS','EDGEA','CSFBALGO','JEFFALGO','BYX','IEX','EDGX','FOXRIVER','PEARL','NYSENAT','LTSE','MEMX','PSX']
-    exchanges =['SMART']
-    for exc in exchanges:
-        data = istore.getdata(dataname=f'NVDA-STK-{exc}-USD', fromdate=datetime(2021,11,16), what='TRADES', historical=True, useRTH=True)
-        cerebro.adddata(data)
-    cerebro.addstrategy(St)
-    strat = cerebro.run()[0]
-    pass
-    
-    
-if __name__ == '__main__':
-    query_data()
