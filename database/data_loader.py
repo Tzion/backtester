@@ -1,14 +1,12 @@
 from abc import ABC, abstractmethod
 import backtrader as bt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import os
 import sys
 import numpy as np
 from logger import *
 import database
 from database.data_writer import DataWriter
-from typing import Optional
-from database import DataSource
 
 class DataLoader(ABC):
 
@@ -46,7 +44,8 @@ class HistoricalLoader(DataLoader):
         historical=True,  # only historical download
         what = 'TRADES',
         useRTH = True,  # request data of Regular Trading Hours,
-        timeoffset=False,
+        # timeoffset=True,
+        sessionend = time(23, 00)  # the default sessionend suffers from precission error which may cause shift to next day
     )
     
 
@@ -60,7 +59,7 @@ class HistoricalLoader(DataLoader):
                 if store:
                     data = DataWriter.decorate_writing(data, data.p.backfill_from._dataname)
             else:
-                data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date)
+                data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date,)
             
             self.cerebro.adddata(data, symbol)
 

@@ -37,18 +37,12 @@ def diff_data_feed_csv(file1, file2, columns=['open', 'low', 'high', 'close',]):
     return diff_data_feed(df1, df2, columns)
 
 def diff_data_feed(dataframe1, dataframe2, columns=['open', 'low', 'high', 'close',]):
-    # columns.insert(0,dataframe1.columns[0])
     df1 = pd.DataFrame(dataframe1, columns=columns)
     df2 = pd.DataFrame(dataframe2, columns=columns)
-    equal = df1.eq(df2)
-    if equal.all().all():
-        return equal # no diffs between dataframes
-    else:
-        diffs_indexes = df1.eq(df2).all(axis=1) == False
-        difference = df1[diffs_indexes] - df2[diffs_indexes]
-        difference = difference.applymap(lambda v: v or '') # convert 0 to '' just to make it easier to read
-        return difference
-
+    diffs_indexes = df1.eq(df2).all(axis=1) == False
+    difference = df1[diffs_indexes] - df2[diffs_indexes]
+    difference = difference.applymap(lambda v: v or '') # convert 0 to '' just to make it easier to read
+    return difference
 
 def merge_data_feeds_csv(file1, file2) -> pd.DataFrame:
     dataframe1 = pd.read_csv(file1, parse_dates=[0])
