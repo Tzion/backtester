@@ -37,7 +37,7 @@ class TestHistoricalLoader:
     
 
     # @pytest.mark.parametrize('start, end', [('2020-06-02', '2020-07-31'), ('2020-10-20', '2020-11-10'), ('2021-01-20', '2021-02-10')])
-    @pytest.mark.parametrize('start, end', [('2020-06-02', '2021-02-10')])
+    @pytest.mark.parametrize('start, end', [('2020-11-02', '2021-03-19')])
     def test_request_feed_data_for_period(self, cerebro, loader, start, end):
         loader.load_feeds(['ZION'], start_date=datetime.fromisoformat(start), end_date=datetime.fromisoformat(end), backfill_from_database=True, store=True)
         cerebro.addstrategy(test_common.DummyStrategy)

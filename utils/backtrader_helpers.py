@@ -100,7 +100,6 @@ def convert_to_dataframe(feed: bt.DataBase, columns=['open', 'high', 'low', 'clo
         values['timestamp'] = index
     index = map(lambda timestamp: num2date(timestamp, time_line._tz), index)  # equal alternative: index = [time_line.datetime(ago=-i) for i in range(len(time_line)-1, -1, -1)]
     return pandas.DataFrame(index=index, data=values)
-    
 
 
 def get_alias(line: bt.LineSeries):

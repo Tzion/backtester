@@ -1,7 +1,7 @@
 from database import DataSource, diff_data_feed_csv, get_feed_file_path
 from tests.test_common import *
 from database import merge_data_feeds_csv, merge_data_feeds, FeedMergeException
-from random import random, randrange
+from random import randrange
 from logger import *
 
 TEST_DATA_DIR = 'tests/database/data/'
@@ -55,6 +55,10 @@ class TestMergeDataFeeds:
         df2 = df1.join(df1[df1.columns[3]].rename('columnX'))
         with pytest.raises(Exception):
             merge = merge_data_feeds(df1, df2)
+        
+    def test_merge_data_feeds__duplicate_dates(self,):
+        pass
+        #TODO 
 
 
 def flip_columns(dataframe: pd.DataFrame):

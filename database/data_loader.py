@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 import backtrader as bt
-from datetime import datetime, timedelta, time, timezone
+from datetime import datetime, timedelta, time
 import os
 import sys
 import numpy as np
 from logger import *
 import database
 from database.data_writer import DataWriter
+from backtrader.feeds import GenericCSVData
 
 class DataLoader(ABC):
 
@@ -30,7 +31,7 @@ class StaticLoader(DataLoader):
         stocks = stocks[:limit or len(stocks)]
         logdebug(f'adding {len(stocks)} data feeds: {stocks}')
         for i, stock in enumerate(stocks):
-            feed = bt.feeds.GenericCSVData(
+            feed = GenericCSVData(
                 dataname=os.path.join(dirpath, stock2file(stock)), fromdate=start_date,
                 todate=end_date, dtformat=dtformat,
                 high=high_idx, low=low_idx, open=open_idx, close=close_idx, volume=volume_idx, plot=False)
@@ -45,7 +46,7 @@ class HistoricalLoader(DataLoader):
         historical=True,  # only historical download
         what = 'TRADES',
         useRTH = True,  # request data of Regular Trading Hours,
-        sessionend = end_of_day  # the default sessionend suffers from precission error which may cause shift to next day
+        sessionend = end_of_day  # the default sessionend suffers from precission error which may cause shift to next day - this is workaround to that bug, until pr approved in the infra
     )
 
     def load_feeds(self, symbols=[], start_date=None, end_date=datetime.today(), backfill_from_database=True, store=False):
@@ -53,7 +54,7 @@ class HistoricalLoader(DataLoader):
         data_store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True) # make it singleton
         for symbol in symbols:
             if backfill_from_database:
-                file_data = bt.feeds.GenericCSVData(dataname=database.get_feed_file_path(symbol), fromdate=start_date, todate=end_date, 
+                file_data = GenericCSVData(dataname=database.get_feed_file_path(symbol), fromdate=start_date, todate=end_date, 
                                                     dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5, tz='US/Eastern', sessionend=HistoricalLoader.end_of_day)
                 data = data_store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date, backfill_from=file_data)
                 if store:
