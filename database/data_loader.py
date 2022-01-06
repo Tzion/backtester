@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import backtrader as bt
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, timezone
 import os
 import sys
 import numpy as np
@@ -39,27 +39,27 @@ class StaticLoader(DataLoader):
 
 class HistoricalLoader(DataLoader):
 
+    end_of_day = time(23,00)
     config = dict(
         timeframe=bt.TimeFrame.Days,
         historical=True,  # only historical download
         what = 'TRADES',
         useRTH = True,  # request data of Regular Trading Hours,
-        # timeoffset=True,
-        sessionend = time(23, 00)  # the default sessionend suffers from precission error which may cause shift to next day
+        sessionend = end_of_day  # the default sessionend suffers from precission error which may cause shift to next day
     )
-    
 
-    def load_feeds(self, symbols=[], start_date=None, end_date=datetime.today(), backfill_from_database=True, store=True):
+    def load_feeds(self, symbols=[], start_date=None, end_date=datetime.today(), backfill_from_database=True, store=False):
         start_date = start_date or end_date - timedelta(days=100)
-        store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True) # make it singleton
+        data_store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True) # make it singleton
         for symbol in symbols:
             if backfill_from_database:
-                file_data = bt.feeds.GenericCSVData(dataname=database.get_feed_file_path(symbol), fromdate=start_date, todate=end_date, dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
-                data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date, backfill_from=file_data)
+                file_data = bt.feeds.GenericCSVData(dataname=database.get_feed_file_path(symbol), fromdate=start_date, todate=end_date, 
+                                                    dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5, tz='US/Eastern', sessionend=HistoricalLoader.end_of_day)
+                data = data_store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date, backfill_from=file_data)
                 if store:
                     data = DataWriter.decorate_writing(data, data.p.backfill_from._dataname)
             else:
-                data = store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date,)
+                data = data_store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date,)
             
             self.cerebro.adddata(data, symbol)
 

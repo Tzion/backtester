@@ -11,11 +11,11 @@ from database import diff_data_feed
 
 
 def assert_prices(feed, datetime, open, high, low, close, ago=0):
-    assert feed.datetime.date(ago) == datetime.date()
-    assert feed.open[ago] == open
-    assert feed.high[ago] == high
-    assert feed.low[ago] == low
-    assert feed.close[ago] == close
+    assert feed.datetime.date(-ago) == datetime.date()
+    assert feed.open[-ago] == open
+    assert feed.high[-ago] == high
+    assert feed.low[-ago] == low
+    assert feed.close[-ago] == close
 
 def get_feed_file_path_mock(symbol):
     return TEST_DATA_DIR + symbol + '.csv'
@@ -36,11 +36,10 @@ class TestHistoricalLoader:
         assert_prices(cerebro.datas[0], datetime(2020,7,31), 32.6, 32.69, 31.94, 32.47), 'Data mismatch'
     
 
-    # @pytest.mark.parametrize('start, end', [('2020-07-02', '2020-07-31'), ('2020-10-30', '2020-11-05'), ('2021-11-11', '2021-12-21'), ('2021-03-02', '2021-03-28')])
-    # @pytest.mark.parametrize('start, end', [('2021-03-04', '2021-03-05')])
-    @pytest.mark.parametrize('start, end', [('2019-01-11', '2021-04-15')])
+    # @pytest.mark.parametrize('start, end', [('2020-06-02', '2020-07-31'), ('2020-10-20', '2020-11-10'), ('2021-01-20', '2021-02-10')])
+    @pytest.mark.parametrize('start, end', [('2020-06-02', '2021-02-10')])
     def test_request_feed_data_for_period(self, cerebro, loader, start, end):
-        loader.load_feeds(['ZION'], start_date=datetime.fromisoformat(start), end_date=datetime.fromisoformat(end), backfill_from_database=False, store=False)
+        loader.load_feeds(['ZION'], start_date=datetime.fromisoformat(start), end_date=datetime.fromisoformat(end), backfill_from_database=True, store=True)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
         requested_data = cerebro.datas[0]
@@ -70,11 +69,9 @@ class TestHistoricalLoader:
     def test_backfill_one_bar(self, cerebro, loader, mocker):
         """Load data feed from file, fill missing bar from live data server"""
         mocker.patch('database.get_feed_file_path', return_value=TEST_DATA_DIR + 'backfill_test.csv')
-        loader.load_feeds(['NVDA'], start_date=datetime(2021, 11, 19), end_date=datetime(2021, 11, 23), backfill_from_database=False, store=False)
+        loader.load_feeds(['NVDA'], start_date=datetime(2021, 11, 19), end_date=datetime(2021, 11, 23), backfill_from_database=True, store=False)
         cerebro.addstrategy(DummyStrategy)
         cerebro.run()
         assert len(cerebro.datas[0]) == 2
         assert_prices(cerebro.datas[0], datetime(2021, 11, 19), 44.44, 66.66, 33.33, 55.55, ago=1), 'Mismatch with data from file'
         assert_prices(cerebro.datas[0], datetime(2021, 11, 22), 335.17, 346.47, 319.0, 319.56, ago=0), 'Mismatch with data from server'
-
-
