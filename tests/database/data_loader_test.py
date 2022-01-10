@@ -1,4 +1,3 @@
-import backtrader as bt
 from tests.test_common import *
 import test_common
 from database.data_loader import IBLoader
@@ -20,33 +19,25 @@ def assert_prices(feed, datetime, open, high, low, close, ago=0):
 def get_feed_file_path_mock(symbol):
     return TEST_DATA_DIR + symbol + '.csv'
     
-class TestHistoricalLoader:
+class TestDataLoader:
     """IB Gateway or TWS must be connected prior to these tests"""
         
     @pytest.fixture
     def loader(self, cerebro):
         return IBLoader(cerebro)
 
-    # maybe redundant TODO
-    def test_request_feed_data(self, cerebro, loader):
-        """Request data of specific stock and date and verify the prices received """
-        loader.load_feeds(['ZION'], datetime(2020,7,31), datetime(2020,8,1), backfill_from_database=False)
-        cerebro.addstrategy(test_common.DummyStrategy)
-        cerebro.run()
-        assert_prices(cerebro.datas[0], datetime(2020,7,31), 32.6, 32.69, 31.94, 32.47), 'Data mismatch'
-    
-
-    # @pytest.mark.parametrize('start, end', [('2020-06-02', '2020-07-31'), ('2020-10-20', '2020-11-10'), ('2021-01-20', '2021-02-10')])
     @pytest.mark.parametrize('start, end', [('2020-11-02', '2021-03-19')])
-    def test_request_feed_data_for_period(self, cerebro, loader, start, end):
-        loader.load_feeds(['ZION'], start_date=datetime.fromisoformat(start), end_date=datetime.fromisoformat(end), backfill_from_database=False, store=True)
+    def test_request_feed_data_for_period(self, cerebro, loader, start, end, mocker):
+        static_data = TEST_DATA_DIR + 'request_test-ZION-IB.csv'
+        mocker.patch.object(loader.source, 'get_feed_path', return_value=static_data)
+        loader.load_feeds(['ZION'], start_date=datetime.fromisoformat(start), end_date=datetime.fromisoformat(end), backfill_from_database=False, store=False)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
         requested_data = cerebro.datas[0]
-        df = pd.read_csv(TEST_DATA_DIR+'ZION_BATS_TRADINGVIEW_1D.csv', index_col=0, converters={0:lambda long_date:long_date[:10]}, parse_dates=[0])
+        df = pd.read_csv(static_data, index_col=0, parse_dates=[0])
         requested_df = convert_to_dataframe(requested_data)
         requested_df.index = requested_df.index.map(lambda dt: dt.date)
-        diffs = diff_data_feed(requested_df, df.loc[requested_df.index[0]:requested_df.index[-1]])
+        diffs = diff_data_feed(requested_df, df.loc[requested_df.index[0]:requested_df.index[-1]], columns=['open', 'low', 'high', 'close','volume'])
         assert diffs.empty, f'There are differences between the requested data and the static data:\n{diffs.to_string(index=True)}\n'
 
     # TODO test to compare volumes of requested feed and static

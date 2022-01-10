@@ -6,7 +6,6 @@ import sys
 import numpy as np
 from database.data_source import DataSource, IBDataSource
 from logger import *
-import database
 from database.data_writer import DataWriter
 from backtrader.feeds import GenericCSVData
 

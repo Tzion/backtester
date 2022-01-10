@@ -1,4 +1,4 @@
-from database import DataSource, diff_data_feed_csv, get_feed_file_path
+from database import diff_data_feed_csv
 from tests.test_common import *
 from database import merge_data_feeds_csv, merge_data_feeds, FeedMergeException
 from random import randrange
@@ -10,7 +10,8 @@ class TestDataFeeds:
 
     @pytest.mark.parametrize('symbol', ('BATS_AAL, 1D', 'GME', 'GLD'))
     def test_diff_in_data_feeds_from_different_sources(self, symbol):
-        print(get_feed_file_path(symbol, DataSource.TRADING_VIEW))
+        # print(get_feed_file_path(symbol, DataSource.TRADING_VIEW))
+        pass
         #TODO
 
 class TestMergeDataFeeds:
