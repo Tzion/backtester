@@ -1,6 +1,5 @@
 import backtrader as bt
 from logger import *
-from backtrader.feeds import IBData
 import io
 from functools import reduce
 from . import merge_data_feeds_csv, FeedMergeException

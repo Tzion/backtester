@@ -4,7 +4,6 @@ from database.data_loader import IBLoader
 from datetime import datetime
 import pytest
 from __init__test import TEST_DATA_DIR
-from backtrader import date2num, num2date
 from utils.backtrader_helpers import convert_to_dataframe
 from database import diff_data_feed
 
@@ -16,11 +15,8 @@ def assert_prices(feed, datetime, open, high, low, close, ago=0):
     assert feed.low[-ago] == low
     assert feed.close[-ago] == close
 
-def get_feed_file_path_mock(symbol):
-    return TEST_DATA_DIR + symbol + '.csv'
-    
-class TestDataLoader:
-    """IB Gateway or TWS must be connected prior to these tests"""
+class TestIBLoader:
+    """TWS or IB Gateway MUST BE CONNECTED prior to these tests"""
         
     @pytest.fixture
     def loader(self, cerebro):
@@ -40,17 +36,13 @@ class TestDataLoader:
         diffs = diff_data_feed(requested_df, df.loc[requested_df.index[0]:requested_df.index[-1]], columns=['open', 'low', 'high', 'close','volume'])
         assert diffs.empty, f'There are differences between the requested data and the static data:\n{diffs.to_string(index=True)}\n'
 
-    # TODO test to compare volumes of requested feed and static
-
-    #TODO delete ZION.csv from the test folder
-        
     def test_request_feed_data_on_weekend(self, cerebro, loader):
         """Request data over the weekend when there is no trading of the contract"""
         weekend_start = datetime(2021,11,13)
         assert weekend_start.isoweekday() == 6  # making sure it's Saturday
         weekend_end = datetime(2021, 11,15)
         assert weekend_end.isoweekday() == 1
-        loader.load_feeds(['ZION'], weekend_start, weekend_end, backfill_from_database=False)
+        loader.load_feeds(['ZION'], weekend_start, weekend_end, backfill_from_database=False, store=False)
         loader.load_feeds(['NVDA'], datetime(2021,11,15), datetime(2021,11,22), backfill_from_database=False)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
