@@ -1,7 +1,7 @@
 import backtrader as bt
 from tests.test_common import *
 import test_common
-from database.data_loader import HistoricalLoader
+from database.data_loader import IBLoader
 from datetime import datetime
 import pytest
 from __init__test import TEST_DATA_DIR
@@ -25,7 +25,7 @@ class TestHistoricalLoader:
         
     @pytest.fixture
     def loader(self, cerebro):
-        return HistoricalLoader(cerebro)
+        return IBLoader(cerebro)
 
     # maybe redundant TODO
     def test_request_feed_data(self, cerebro, loader):
@@ -39,7 +39,7 @@ class TestHistoricalLoader:
     # @pytest.mark.parametrize('start, end', [('2020-06-02', '2020-07-31'), ('2020-10-20', '2020-11-10'), ('2021-01-20', '2021-02-10')])
     @pytest.mark.parametrize('start, end', [('2020-11-02', '2021-03-19')])
     def test_request_feed_data_for_period(self, cerebro, loader, start, end):
-        loader.load_feeds(['ZION'], start_date=datetime.fromisoformat(start), end_date=datetime.fromisoformat(end), backfill_from_database=True, store=True)
+        loader.load_feeds(['ZION'], start_date=datetime.fromisoformat(start), end_date=datetime.fromisoformat(end), backfill_from_database=False, store=True)
         cerebro.addstrategy(test_common.DummyStrategy)
         cerebro.run()
         requested_data = cerebro.datas[0]
@@ -68,7 +68,7 @@ class TestHistoricalLoader:
         
     def test_backfill_one_bar(self, cerebro, loader, mocker):
         """Load data feed from file, fill missing bar from live data server"""
-        mocker.patch('database.get_feed_file_path', return_value=TEST_DATA_DIR + 'backfill_test.csv')
+        mocker.patch.object(loader.source, 'get_feed_path', return_value=TEST_DATA_DIR + 'backfill_test.csv')
         loader.load_feeds(['NVDA'], start_date=datetime(2021, 11, 19), end_date=datetime(2021, 11, 23), backfill_from_database=True, store=False)
         cerebro.addstrategy(DummyStrategy)
         cerebro.run()

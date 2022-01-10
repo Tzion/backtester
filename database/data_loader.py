@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, time
 import os
 import sys
 import numpy as np
+from database.data_source import DataSource, IBDataSource
 from logger import *
 import database
 from database.data_writer import DataWriter
@@ -20,6 +21,7 @@ class DataLoader(ABC):
 
 
 class StaticLoader(DataLoader):
+    # TODO rename to yahooLoader
     """Load data feeds from static files solely"""
 
     def load_feeds(self, start_date: datetime, end_date: datetime, limit=0, dtformat='%Y-%m-%d', dirpath='data_feeds', stock_names=None, high_idx=1, low_idx=2, open_idx=3, close_idx=4, volume_idx=5, stock2file= lambda s:s, random=False):
@@ -38,7 +40,9 @@ class StaticLoader(DataLoader):
             self.cerebro.adddata(feed, name=stock.strip('.csv'))
 
 
-class HistoricalLoader(DataLoader):
+class IBLoader(DataLoader):
+
+    source : DataSource = IBDataSource()
 
     end_of_day = time(23,00)
     config = dict(
@@ -51,19 +55,16 @@ class HistoricalLoader(DataLoader):
 
     def load_feeds(self, symbols=[], start_date=None, end_date=datetime.today(), backfill_from_database=True, store=False):
         start_date = start_date or end_date - timedelta(days=100)
-        data_store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True) # make it singleton
+        data_store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True) # TODO make it singleton
         for symbol in symbols:
+            backfill_data = None
             if backfill_from_database:
-                file_data = GenericCSVData(dataname=database.get_feed_file_path(symbol), fromdate=start_date, todate=end_date, 
-                                                    dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5, tz='US/Eastern', sessionend=HistoricalLoader.end_of_day)
-                data = data_store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date, backfill_from=file_data)
-                if store:
-                    data = DataWriter.decorate_writing(data, data.p.backfill_from._dataname)
-            else:
-                data = data_store.getdata(dataname=symbol+'-STK-SMART-USD', **HistoricalLoader.config, fromdate=start_date, todate=end_date,)
-            
+                backfill_data = GenericCSVData(dataname=IBLoader.source.get_feed_path(symbol), fromdate=start_date, todate=end_date, dtformat='%Y-%m-%d', tz='US/Eastern', sessionend=IBLoader.end_of_day)
+            data = data_store.getdata(dataname=symbol, **IBLoader.config, fromdate=start_date, todate=end_date, backfill_from=backfill_data)
+            if store:
+                data = DataWriter.decorate_writing(data, IBLoader.source.get_feed_path(symbol))
             self.cerebro.adddata(data, symbol)
-
+    
     '''
     load_data
     fetch

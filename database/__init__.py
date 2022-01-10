@@ -1,35 +1,5 @@
-from pathlib import Path
-import os
-import enum
 import pandas as pd
 
-PREFIX = 'database/data/'
-
-class DataSource(enum.Enum):
-    INTERACTIVE_BROKERS = 1
-    TRADING_VIEW = 2
-    YAHOO = 3
-
-    def get_name(self):
-        return self.name.lower()
-
-
-def get_feed_file_path(symbol, source: DataSource=DataSource.INTERACTIVE_BROKERS):
-    def find_file(symbol, dir):
-        matches = list(Path(dir).glob(f'{symbol}.csv')) # TODO bug - ambiguous for symbols A AA
-        if len(matches) > 1:
-            raise Exception('Ambiguous search results: more than 1 files matches the symbol')
-        if not matches:
-            raise FileNotFoundError(f'No csv file {symbol}.csv in {dir}')
-        return str(matches[0])
-        
-    dir = f'{PREFIX}{source.get_name()}/'
-    path = find_file(symbol, dir)
-    if os.path.isfile(path):
-        return path
-    return None
-
-    
 def diff_data_feed_csv(file1, file2, columns=['open', 'low', 'high', 'close',]):
     # TODO support date range
     df1 = pd.read_csv(file1, parse_dates=[0])
