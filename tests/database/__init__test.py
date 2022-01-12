@@ -46,7 +46,7 @@ class TestMergeDataFeeds:
     def test_merge_data_feeds__columns_case_sensetive(self, file=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'):
         df1 = pd.read_csv(file, parse_dates=[0], index_col=0)
         df2 = df1.rename(columns=str.lower, copy=True)
-        with pytest.raises(Exception):
+        with pytest.raises(FeedMergeException):
             merge = merge_data_feeds(df1, df2)
         
     def test_merge_data_feeds__extra_column(self, file=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'):
@@ -57,17 +57,17 @@ class TestMergeDataFeeds:
             merge = merge_data_feeds(df1, df2)
         
     def test_merge_data_feeds__duplicate_date_middle(self, file=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'):
-        df1 = pd.read_csv(file, parse_dates=[0]).iloc[:8]
+        df1 = pd.read_csv(file, parse_dates=[0], index_col=0).iloc[:8]
         df2 = df1.copy()
         df2 = pd.concat([df2.iloc[:4], df2.iloc[3:]])
-        with pytest.raises(Exception):
+        with pytest.raises(FeedMergeException):
             merge = merge_data_feeds(df1, df2)
 
     def test_merge_data_feeds__duplicate_date_overlap(self, file=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'):
-        df1 = pd.read_csv(file, ).iloc[:10]
+        df1 = pd.read_csv(file, parse_dates=[0], index_col=0).iloc[:10]
         df2 = df1.copy().iloc[6:]
         df1 = df1.iloc[:7]
-        with pytest.raises(Exception):
+        with pytest.raises(FeedMergeException):
             merge = merge_data_feeds(df1, df2)
 
 
