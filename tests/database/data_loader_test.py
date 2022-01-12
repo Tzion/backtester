@@ -22,6 +22,8 @@ class TestIBLoader:
     def loader(self, cerebro):
         return IBLoader(cerebro)
 
+    #TODO add exception message to check the connectivity
+    
     @pytest.mark.parametrize('start, end', [('2020-11-02', '2021-03-19')])
     def test_request_feed_data_for_period(self, cerebro, loader, start, end, mocker):
         static_data = TEST_DATA_DIR + 'request_test-ZION-IB.csv'

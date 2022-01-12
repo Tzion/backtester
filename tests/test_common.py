@@ -22,6 +22,12 @@ def strategy_fixture(strategy, datas):
     return run_strategy(strategy, datas)
 
 @pytest.fixture
+def data_fixture(data):
+    '''Initiize the data object via the execution of the strategy'''
+    strategy = run_strategy(DummyStrategy, data)
+    return strategy.data
+
+@pytest.fixture
 def cerebro():
     return bt.cerebro.Cerebro()
 
