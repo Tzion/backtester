@@ -1,13 +1,11 @@
 import pandas as pd
 
 def diff_data_feed_csv(file1, file2, columns=None):
-    # TODO default value of colums is all columns of dataframe
     df1 = pd.read_csv(file1, parse_dates=[0], index_col=0)
     df2 = pd.read_csv(file2, parse_dates=[0], index_col=0)
     return diff_data_feed(df1, df2, columns)
 
 def diff_data_feed(dataframe1, dataframe2, columns=None):
-    # TODO fix
     df1 = pd.DataFrame(dataframe1, columns=columns)
     df2 = pd.DataFrame(dataframe2, columns=columns)
     diffs_indexes = df1.eq(df2).all(axis=1) == False
