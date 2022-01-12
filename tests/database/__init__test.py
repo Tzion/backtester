@@ -1,4 +1,3 @@
-from database import diff_data_feed_csv
 from tests.test_common import *
 from database import merge_data_feeds_csv, merge_data_feeds, FeedMergeException
 from random import randrange
@@ -25,8 +24,8 @@ class TestMergeDataFeeds:
     def test_merge_data_feeds(self, file1, file2):
         merged = merge_data_feeds_csv(file1, file2)
         assert len(merged) == 23, 'Length of merged result is shorted than expected'
-        entire_data = pd.read_csv(TestMergeDataFeeds.FULL_DATA)
-        assert all(entire_data.eq(merged)), 'Data of merged result is different than the completed data'
+        entire_data = pd.read_csv(TestMergeDataFeeds.FULL_DATA, parse_dates=[0],)
+        assert entire_data.eq(merged).all(axis=None), 'Data of merged result is different than the completed data'
         merged_opposite = merge_data_feeds_csv(file2, file1)
         assert all(merged.eq(merged_opposite)), 'Merge result is not symetric'
 
