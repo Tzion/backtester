@@ -22,6 +22,15 @@ class DataWriter():
             stop_func()
         return store_and_stop
         
+'''
+TODO Design Cahgne Required:
+All of the merging mechanisms should be uniform and based on dataframes;
+Now the merging process is based on writing to file line-by-line, but the validations 
+are using dataframes. This is to expenssive since writing complete files is overkill when
+usually only few lines are need to be added.
+Inaddition this creates mismatch when using function like convert_to_dataframe) and 
+merge_data_feeds(df1, df2).
+'''
 def store(data, filepath):
     if os.path.exists(filepath) and os.path.isfile(filepath):
         temp_filepath = filepath + '.premerged'
@@ -29,6 +38,7 @@ def store(data, filepath):
         try:
             merged = merge_data_feeds_csv(filepath, temp_filepath)
             pd.DataFrame.to_csv(merged, filepath)
+            # to append csv use binary file: dataframe.to_csv(io.open(filepath+'1', 'ab'), headers=False)
         except FeedMergeException as exp:
             logerror(f'Storing data feed failed, path={filepath}. Reason: {exp}')
             return

@@ -10,6 +10,8 @@ data_path = TEST_DATA_DIR+'/writer_test.csv'
 
 #TODO files in tmpdir are not cleaned!
 
+#TODO unfiy 3 tests to one as: write to new file, add new data point and rewrite. 
+# The added value is that we're validate that the write and append, keep on the same format
 @pytest.mark.parametrize('data', [([bt.feeds.GenericCSVData(dataname=data_path, dtformat='%Y-%m-%d', 
                                                             fromdate=datetime(2020, 11, 2), todate=datetime(2020,11,14))])])
 def test_store_to_new_file(data_fixture: bt.feed.FeedBase, tmpdir):
