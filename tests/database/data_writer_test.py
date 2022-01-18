@@ -41,23 +41,6 @@ class TestStore:
         data_fixture, tmpfile = write_safe_data_copy
 
 
-@pytest.mark.parametrize('data', [([bt.feeds.GenericCSVData(dataname=data_path, dtformat='%Y-%m-%d', 
-                                                            fromdate=datetime(2020, 11, 2), todate=datetime(2020,11,14))])])
-@pytest.fixture
-def write_safe_data(data_fixture, tmpdir):
-    '''Provies initialized data and writable filepath'''
-    tmp_path = tmpdir.join("StoreTest_tempfile.csv")
-    return data_fixture, tmp_path
-
-@pytest.mark.parametrize('data', [([bt.feeds.GenericCSVData(dataname=data_path, dtformat='%Y-%m-%d', 
-                                                            fromdate=datetime(2020, 11, 2), todate=datetime(2020,11,14))])])
-@pytest.fixture
-def write_safe_data_copy(data_fixture, tmpdir):
-    '''Provies initialized data and writable filepath with copy of the data'''
-    tmp_path = tmpdir.join("StoreTest_tempfile_copy.csv")
-    copy(data_path, str(tmp_path))
-    return data_fixture, tmp_path
-
 def extend_last_datapoint_by1(data_fixture):
     data_fixture.forward()
     data_point = {} 
