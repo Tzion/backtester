@@ -11,24 +11,27 @@ data_path = TEST_DATA_DIR+'/writer_test.csv'
 
 #TODO files in tmpdir are not cleaned!
 
+@pytest.mark.parametrize('data', [([bt.feeds.GenericCSVData(dataname=data_path, dtformat='%Y-%m-%d', 
+                                                            fromdate=datetime(2020, 11, 2), todate=datetime(2020,11,14))])])
 class TestStore:
-    def test_store_and_add_new_datapoint(self, write_safe_data):
-        data, tmpfile = write_safe_data
-        store(data, tmpfile)
+    def test_store_and_add_new_datapoint(self, data_fixture: bt.feed.FeedBase, tmpdir):
+        tmpfile = tmpdir.join("tmpfile.csv")
+        store(data_fixture, tmpfile)
         diffs = diff_data_feed_csv(data_path, tmpfile)
         assert diffs.empty, f'There are differences between the files:\n{diffs.to_string(index=True)}\n'
         # add new data point and rewrite
-        new_datapoint = extend_last_datapoint_by1(data)
-        store(data, tmpfile)
+        new_datapoint = extend_last_datapoint_by1(data_fixture)
+        store(data_fixture, tmpfile)
         diffs = diff_data_feed_csv(data_path, tmpfile)
         assert len(diffs) == 1, f'Expecting one additional datapoint'
         assert contains_datapoint(new_datapoint, tmpfile), f'Datapoint is not found in the file'
 
 
-    def test_store_merge_conflict(self, write_safe_data_copy):
-        data, tmpfile = write_safe_data_copy
-        data.open[0] = 0
-        store(data, tmpfile)
+    def test_store_merge_conflict(self, data_fixture: bt.feed.FeedBase, tmpdir):
+        tmpfile = tmpdir.join("tmpfile.csv")
+        copy(data_path, str(tmpfile))
+        data_fixture.open[0] = 0
+        store(data_fixture, tmpfile)
         diffs = diff_data_feed_csv(data_path, tmpfile)
         assert diffs.empty, f'Manipulated data should not be written \n{diffs.to_string(index=True)}\n'
 
