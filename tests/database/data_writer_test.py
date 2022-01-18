@@ -36,11 +36,6 @@ class TestStore:
         assert diffs.empty, f'Manipulated data should not be written \n{diffs.to_string(index=True)}\n'
 
 
-    def test_store_weekend_datapoint(self, write_safe_data_copy):
-        return
-        data_fixture, tmpfile = write_safe_data_copy
-
-
 def extend_last_datapoint_by1(data_fixture):
     data_fixture.forward()
     data_point = {} 
