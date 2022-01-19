@@ -53,7 +53,7 @@ class TestMergeDataFeeds:
         df1 = pd.read_csv(file, parse_dates=[0], index_col=0)
         df2 = df1.copy()
         df2 = df1.join(df1[df1.columns[3]].rename('columnX'))
-        with pytest.raises(Exception):
+        with pytest.raises(FeedMergeException):
             merge = merge_data_feeds(df1, df2)
         
     def test_merge_data_feeds__duplicate_date_middle(self, file=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'):

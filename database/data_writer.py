@@ -1,3 +1,4 @@
+from genericpath import exists
 import backtrader as bt
 from logger import *
 import io
@@ -40,12 +41,21 @@ def store(data, filepath):
             pd.DataFrame.to_csv(merged, filepath)
             # to append csv use binary file: dataframe.to_csv(io.open(filepath+'1', 'ab'), headers=False)
         except FeedMergeException as exp:
-            logerror(f'Storing data feed failed, path={filepath}. Reason: {exp}')
+            logerror(f'Storing data feed {data._name} failed, path={filepath}. Reason: {exp}')
             return
         os.remove(temp_filepath) 
 
     else:
         write_to_file(data, filepath)
+
+'''
+def store_2(data, filepath):
+        data_as_df = feed_to_dataframe(data)
+        file_as_df = file_to_dataframe(filepath)
+        merged, new_line = merge_data_feeds(data_as_df, file_as_df)
+        append(filepath, merged[:new_line])
+'''
+    
         
 def write_to_file(data, filepath):
     with io.open(filepath, 'w') as file:
