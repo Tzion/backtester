@@ -5,15 +5,13 @@ from shutil import copy
 from database.data_writer import store
 from database import diff_data_feed_csv
 from backtrader import num2date
-from database import FeedMergeException
     
 data_path = TEST_DATA_DIR+'/writer_test.csv'
 
-#TODO files in tmpdir are not cleaned!
 
 @pytest.mark.parametrize('data', [([bt.feeds.GenericCSVData(dataname=data_path, dtformat='%Y-%m-%d', 
                                                             fromdate=datetime(2020, 11, 2), todate=datetime(2020,11,14))])])
-class TestStore:
+class TestStoreData:
     def test_store_and_add_new_datapoint(self, data_fixture: bt.feed.FeedBase, tmpdir):
         tmpfile = tmpdir.join("tmpfile.csv")
         store(data_fixture, tmpfile)
@@ -34,7 +32,6 @@ class TestStore:
         diffs = diff_data_feed_csv(data_path, tmpfile)
         assert diffs.empty, f'Manipulated data should not be written (hence no diffs with the untouched original file)\n{diffs.to_string(index=True)}\n'
 
-
     def test_fails_store_weekend_datapoint(self, data_fixture: bt.feed.FeedBase, tmpdir):
         tmpfile = tmpdir.join("tmpfile.csv")
         copy(data_path, str(tmpfile))
@@ -44,6 +41,7 @@ class TestStore:
         store(data_fixture, tmpfile)
         diffs = diff_data_feed_csv(tmpfile, data_path)
         assert diffs.empty, f'Manipulated data should not be written (hence no diffs with the untouched original file)\n{diffs.to_string(index=True)}\n'
+
 
 def extend_last_datapoint_by_1(data_fixture):
     data_fixture.forward()
