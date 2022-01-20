@@ -4,8 +4,7 @@ from database.data_loader import IBLoader
 from datetime import datetime
 import pytest
 from __init__test import TEST_DATA_DIR
-from utils.backtrader_helpers import convert_to_dataframe
-from database import diff_data_feed
+from database import diff_data_feed, convert_to_dataframe
 
 
 def assert_prices(feed, datetime, open, high, low, close, ago=0):
@@ -34,7 +33,6 @@ class TestIBLoader:
         requested_data = cerebro.datas[0]
         df = pd.read_csv(static_data, index_col=0, parse_dates=[0])
         requested_df = convert_to_dataframe(requested_data)
-        requested_df.index = requested_df.index.map(lambda dt: dt.date)
         diffs = diff_data_feed(requested_df, df.loc[requested_df.index[0]:requested_df.index[-1]], columns=['open', 'low', 'high', 'close','volume'])
         assert diffs.empty, f'There are differences between the requested data and the static data:\n{diffs.to_string(index=True)}\n'
 

@@ -86,22 +86,6 @@ def plotinfo_to_plotly_metadata(plotinfo) -> dict:
             plot_attributes[new_key] = new_val
     return plot_attributes
 
-def convert_to_dataframe(feed: bt.DataBase, columns=['open', 'high', 'low', 'close', 'volume'], raw_timestamp=True) -> pandas.DataFrame:
-    time_attr = 'datetime'
-    if not columns or len(columns) == 0:
-        columns = list(feed.lines._getlines())
-        columns.remove(time_attr)
-    values = {}
-    for column in columns:
-        values[column] = feed.lines.__getattribute__(column).getzero(idx=0, size=len(feed))
-    time_line = feed.lines.__getattribute__(time_attr)
-    index = time_line.getzero(idx=0, size=len(feed)) 
-    if raw_timestamp:
-        values['timestamp'] = index
-    index = map(lambda timestamp: num2date(timestamp, time_line._tz), index)  # equal alternative: index = [time_line.datetime(ago=-i) for i in range(len(time_line)-1, -1, -1)]
-    return pandas.DataFrame(index=index, data=values)
-
-
 def get_alias(line: bt.LineSeries):
     if len(line.alias) > 0:
         return line.alias[0]

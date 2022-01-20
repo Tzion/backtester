@@ -1,4 +1,6 @@
 import pandas as pd
+import backtrader as bt
+from backtrader import num2date
 
 def diff_data_feed_csv(file1, file2, columns=None):
     df1 = pd.read_csv(file1, parse_dates=[0], index_col=0)
@@ -44,3 +46,15 @@ def _merge_data_frames(dataframe1, dataframe2):
 
 class FeedMergeException(Exception):
     pass
+
+
+def convert_to_dataframe(feed: bt.DataBase, idx_line='datetime', lines=['open', 'high', 'low', 'close', 'volume'], date_only=True)-> pd.DataFrame:
+    if not lines or len(lines) == 0:
+        lines = list(feed.lines._getlines())
+        lines.remove(idx_line)
+    index = getattr(feed.lines, idx_line).getzero(idx=0, size=len(feed))
+    values = {line: getattr(feed.lines, line).getzero(idx=-0, size=len(feed)) for line in lines}
+    df = pd.DataFrame(index=pd.Series(index, name=idx_line), data=values)
+    df.index = df.index.map(lambda timestamp: num2date(timestamp, feed._tz))
+    df.index = df.index.map(lambda datetime: datetime.date()) if date_only else df.index
+    return df
