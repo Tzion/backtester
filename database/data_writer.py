@@ -1,9 +1,8 @@
-from genericpath import exists
 import backtrader as bt
 from logger import *
 import io
 from functools import reduce
-from . import merge_data_feeds_csv, FeedMergeException
+from . import merge_data_feeds, FeedMergeException, feed_to_dataframe, csv_to_dataframe
 import pandas as pd
 import os
 
@@ -33,20 +32,19 @@ Inaddition this creates mismatch when using function like convert_to_dataframe) 
 merge_data_feeds(df1, df2).
 '''
 def store(data, filepath):
+    live_data = feed_to_dataframe(data)
     if os.path.exists(filepath) and os.path.isfile(filepath):
-        temp_filepath = filepath + '.premerged'
-        write_to_file(data, temp_filepath)
+        static_data = csv_to_dataframe(filepath)
         try:
-            merged = merge_data_feeds_csv(filepath, temp_filepath)
-            pd.DataFrame.to_csv(merged, filepath)
+            merged = merge_data_feeds(live_data, static_data)
+            pd.DataFrame.to_csv(merged, filepath, index=True)
             # to append csv use binary file: dataframe.to_csv(io.open(filepath+'1', 'ab'), headers=False)
         except FeedMergeException as exp:
             logerror(f'Storing data feed {data._name} failed, path={filepath}. Reason: {exp}')
+            live_data.to_csv(filepath+'.premerged')
             return
-        os.remove(temp_filepath) 
-
     else:
-        write_to_file(data, filepath)
+        pd.DataFrame.to_csv(live_data, filepath, index=True)
 
 '''
 def store_2(data, filepath):

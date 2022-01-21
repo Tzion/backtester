@@ -2,6 +2,8 @@ import pandas as pd
 import backtrader as bt
 from backtrader import num2date
 
+DATETIME_LABEL = 'datetime'
+
 def diff_data_feed_csv(file1, file2, columns=None):
     df1 = pd.read_csv(file1, parse_dates=[0], index_col=0)
     df2 = pd.read_csv(file2, parse_dates=[0], index_col=0)
@@ -26,13 +28,12 @@ def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame):
     return _merge_data_frames(dataframe1, dataframe2)
     
 def _validate_headers(dataframe1, dataframe2):
-    if (dataframe1.columns == dataframe2.columns).all():
+    if set(dataframe1.columns) == set(dataframe2.columns):
         return True
     else:
         raise FeedMergeException('Feeds have different headers and cannot be merged')
 
 def _merge_data_frames(dataframe1, dataframe2):
-    merged = pd.merge(dataframe1, dataframe2, how='outer')  # for debugging do pd.merge(..., indicator=True)
     merge_on = [dataframe1.index.name] + list(dataframe1.columns.intersection(dataframe2.columns))
     merged = pd.merge(dataframe1, dataframe2, how='outer', on=merge_on)  # for debugging do pd.merge(..., indicator=True)
     def no_conflicts(dataframe): 
@@ -48,13 +49,17 @@ class FeedMergeException(Exception):
     pass
 
 
-def convert_to_dataframe(feed: bt.DataBase, idx_line='datetime', lines=['open', 'high', 'low', 'close', 'volume'], date_only=True)-> pd.DataFrame:
+def feed_to_dataframe(feed: bt.DataBase, idx_line=DATETIME_LABEL, lines=['open', 'high', 'low', 'close', 'volume'], date_only=True)-> pd.DataFrame:
     if not lines or len(lines) == 0:
         lines = list(feed.lines._getlines())
         lines.remove(idx_line)
     index = getattr(feed.lines, idx_line).getzero(idx=0, size=len(feed))
     values = {line: getattr(feed.lines, line).getzero(idx=-0, size=len(feed)) for line in lines}
     df = pd.DataFrame(index=pd.Series(index, name=idx_line), data=values)
-    df.index = df.index.map(lambda timestamp: num2date(timestamp, feed._tz))
+    df.index = df.index.map(lambda timestamp: num2date(timestamp, feed._tz)) # convert to datetime.datetime
     df.index = df.index.map(lambda datetime: datetime.date()) if date_only else df.index
+    df.index = pd.to_datetime(df.index) # since pandas force the index type to be pandas.datetime on read_csv(), I have to align with that here.
     return df
+
+def csv_to_dataframe(file) -> pd.DataFrame:
+    return pd.read_csv(file, index_col=[0], parse_dates=True)

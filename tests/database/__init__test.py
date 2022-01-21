@@ -1,5 +1,5 @@
 from tests.test_common import *
-from database import convert_to_dataframe, merge_data_feeds_csv, merge_data_feeds, FeedMergeException
+from database import csv_to_dataframe, feed_to_dataframe, merge_data_feeds_csv, merge_data_feeds, FeedMergeException
 from random import randrange
 from logger import *
 
@@ -74,11 +74,14 @@ class TestMergeDataFeeds:
 @pytest.mark.parametrize('data', [([bt.feeds.GenericCSVData(dataname=TEST_DATA_DIR+'convert_test.csv', dtformat='%Y-%m-%d', 
                                                             fromdate=datetime(2020, 11, 2), todate=datetime(2020,11,14))])])
 def test_convert_to_dataframe(data_fixture):
-    df_converted = convert_to_dataframe(data_fixture, lines=['openinterest','open','high','low','close','volume'])
-    df_source = pd.read_csv(TEST_DATA_DIR+'convert_test.csv', index_col=[0], parse_dates=True)
-    assert df_converted.eq(df_source).all().all()
+    df_converted = feed_to_dataframe(data_fixture, lines=['openinterest','open','high','low','close','volume'])
+    df_source = csv_to_dataframe(TEST_DATA_DIR+'convert_test.csv')
+    assert df_converted.eq(df_source).all().all(), 'Conversions are not equal'
+    try:
+        merge_data_feeds(df_converted, df_source)
+    except Exception as e:
+        pytest.fail(f'Conversions are not mergable. Exception: {e}')
     
-
 
 def flip_columns(dataframe: pd.DataFrame):
     col2 = dataframe[dataframe.columns[2]]

@@ -3,14 +3,14 @@ from __init__test import TEST_DATA_DIR
 from test_common import *
 from shutil import copy
 from database.data_writer import store
-from database import diff_data_feed_csv
+from database import DATETIME_LABEL, diff_data_feed_csv
 from backtrader import num2date
     
 data_path = TEST_DATA_DIR+'/writer_test.csv'
 
 
 @pytest.mark.parametrize('data', [([bt.feeds.GenericCSVData(dataname=data_path, dtformat='%Y-%m-%d', 
-                                                            fromdate=datetime(2020, 11, 2), todate=datetime(2020,11,14))])])
+                                                            fromdate=datetime(2020, 11, 2), todate=datetime(2020,11,14), openinterest=-1)])])
 class TestStoreData:
     def test_store_and_add_new_datapoint(self, data_fixture: bt.feed.FeedBase, tmpdir):
         tmpfile = tmpdir.join("tmpfile.csv")
@@ -48,15 +48,16 @@ def extend_last_datapoint_by_1(data_fixture):
     data_point = {} 
     for alias in data_fixture.lines.getlinealiases():
         line = getattr(data_fixture.lines, alias)
-        line[0] = line[-1] + 1
-        data_point[alias] = line[-1] + 1
+        if line[-1] == line[-1]:
+            line[0] = line[-1] + 1
+            data_point[alias] = line[-1] + 1
     return data_point
 
 def extend_enough_datapoints_to_reach_weekend(data_fixture):
     [extend_last_datapoint_by_1(data_fixture) for _ in range(5)]
     
 def contains_datapoint(datapoint, file):
-    index_label = 'datetime'
+    index_label = DATETIME_LABEL
     dataframe = pd.read_csv(file, index_col=index_label,)
     datapoint_date = str(num2date(datapoint.pop(index_label)).date())
     file_datapoint = dataframe.loc[datapoint_date]
