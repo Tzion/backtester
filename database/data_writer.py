@@ -53,20 +53,3 @@ def store_2(data, filepath):
         merged, new_line = merge_data_feeds(data_as_df, file_as_df)
         append(filepath, merged[:new_line])
 '''
-    
-        
-def write_to_file(data, filepath):
-    with io.open(filepath, 'w') as file:
-        write_header(data, file)
-        write_values(data, file)
-        file.close()
-    
-def write_header(data, file):
-    file.write(reduce(lambda a,b: a + ',' + b, data.getwriterheaders()[2:]) + '\n')
-
-def write_values(data, file):
-    data.home()
-    while len(data) < data.buflen():
-        data.next()
-        line = data.getwritervalues()
-        file.write(str(line[2].date()) + ',' + str(line[3:])[1:-1].replace('\'', '').replace(' ','') + '\n')

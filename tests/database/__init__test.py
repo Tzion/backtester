@@ -25,9 +25,17 @@ class TestMergeDataFeeds:
         merged = merge_data_feeds_csv(file1, file2)
         assert len(merged) == 23, 'Length of merged result is shorted than expected'
         entire_data = pd.read_csv(TestMergeDataFeeds.FULL_DATA, parse_dates=[0], index_col=0)
-        assert entire_data.eq(merged).all(axis=None), 'Data of merged result is different than the completed data'
+        assert entire_data.equals(merged), 'Data of merged result is different than the completed data'
         merged_opposite = merge_data_feeds_csv(file2, file1)
-        assert all(merged.eq(merged_opposite)), 'Merge result is not symetric'
+        assert merged.equals(merged_opposite), 'Merge result is not symetric'
+    
+    def test_merge_intervals(self, file1=TEST_DATA_DIR+'merge_test_datapoints_0-22.csv', file2=TEST_DATA_DIR+'merge_test_datapoints_2-20.csv'):
+       intervals = merge_data_feeds_csv(file1, file2, include_intervals=True)[1]
+       assert intervals[0] == (0,1)
+       assert intervals[1] == (21,22)
+       intervals = merge_data_feeds_csv(file2, file1, include_intervals=True)[1]
+       assert intervals[0] == (0,1), 'merge_data_feeds is expected to be a Symetric Relation'
+       assert intervals[1] == (21,22), 'merge_data_feeds is expected to be a Symetric Relation'
 
     def test_merge_data_feeds__values_mismatch(self, file1=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv', file2=TEST_DATA_DIR + 'merge_test_datapoints_0-20.csv'):
         df1 = pd.read_csv(file1, parse_dates=[0], index_col=0)
@@ -74,9 +82,9 @@ class TestMergeDataFeeds:
 @pytest.mark.parametrize('data', [([bt.feeds.GenericCSVData(dataname=TEST_DATA_DIR+'convert_test.csv', dtformat='%Y-%m-%d', 
                                                             fromdate=datetime(2020, 11, 2), todate=datetime(2020,11,14))])])
 def test_convert_to_dataframe(data_fixture):
-    df_converted = feed_to_dataframe(data_fixture, lines=['openinterest','open','high','low','close','volume'])
+    df_converted = feed_to_dataframe(data_fixture, lines=['open','high','low','close','volume', 'openinterest'])
     df_source = csv_to_dataframe(TEST_DATA_DIR+'convert_test.csv')
-    assert df_converted.eq(df_source).all().all(), 'Conversions are not equal'
+    assert df_converted.equals(df_source), 'Conversions are not equal'
     try:
         merge_data_feeds(df_converted, df_source)
     except Exception as e:

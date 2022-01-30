@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy
 import backtrader as bt
 from backtrader import num2date
 
@@ -17,15 +18,15 @@ def diff_data_feed(dataframe1, dataframe2, columns=None):
     difference = difference.applymap(lambda v: v or '') # convert 0 to '' just to make it easier to read
     return difference
 
-def merge_data_feeds_csv(file1, file2) -> pd.DataFrame:
+def merge_data_feeds_csv(file1, file2, include_intervals=False) -> pd.DataFrame:
     dataframe1 = pd.read_csv(file1, parse_dates=[0], index_col=0)
     dataframe2 = pd.read_csv(file2, parse_dates=[0], index_col=0)
-    merged = merge_data_feeds(dataframe1, dataframe2)
+    merged = merge_data_feeds(dataframe1, dataframe2, include_intervals)
     return merged
 
-def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame):
+def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame, include_intervals=False):
     _validate_headers(dataframe1, dataframe2)
-    return _merge_data_frames(dataframe1, dataframe2)
+    return _merge_data_frames(dataframe1, dataframe2, include_intervals)
     
 def _validate_headers(dataframe1, dataframe2):
     if set(dataframe1.columns) == set(dataframe2.columns):
@@ -33,17 +34,42 @@ def _validate_headers(dataframe1, dataframe2):
     else:
         raise FeedMergeException('Feeds have different headers and cannot be merged')
 
-def _merge_data_frames(dataframe1, dataframe2):
+def _merge_data_frames(dataframe1, dataframe2, include_intervals):
     merge_on = [dataframe1.index.name] + list(dataframe1.columns.intersection(dataframe2.columns))
-    merged = pd.merge(dataframe1, dataframe2, how='outer', on=merge_on)  # for debugging do pd.merge(..., indicator=True)
+    merged_and_intervals = pd.merge(dataframe1, dataframe2, how='outer', on=merge_on, indicator='intervals', sort=True)
+    merged = merged_and_intervals.drop('intervals', axis=1)
     def no_conflicts(dataframe): 
         intersect_dates = dataframe.index.intersection(merged.index)
         compare_same_dates = merged.eq(dataframe).loc[intersect_dates]
         return compare_same_dates.all().all()  # rows of the same date contain similar values as the merge result -> no coflicts
     if not no_conflicts(dataframe2) or not no_conflicts(dataframe1):
         raise FeedMergeException('Merge shows conflicts of values in dataframes')
+    if include_intervals:
+        intervals = _find_new_intervals(merged_and_intervals)
+        return merged, intervals
     return merged
 
+
+def _find_new_intervals(dataframe, column='intervals'):
+    new_interval_identifier = dataframe[column][-1] if dataframe[column][-1] != 'both' else dataframe[column][0]
+    if new_interval_identifier == 'both':
+        return
+    new_rows = numpy.where(dataframe['intervals'] == new_interval_identifier)[0]
+
+    def find_ascending_intervals(numbers):
+        intervals = []
+        interval = (numbers[0], numbers[0])
+        for row in numbers:
+            if row == interval[1] + 1:
+                interval = (interval[0], row)
+            if row > interval[1] + 1:
+                intervals.append(interval)
+                interval = (row, row)
+        if interval:
+            intervals.append(interval)
+        return intervals
+    return find_ascending_intervals(new_rows)
+    
 
 class FeedMergeException(Exception):
     pass
