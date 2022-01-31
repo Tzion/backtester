@@ -6,9 +6,7 @@ from backtrader import num2date
 DATETIME_LABEL = 'datetime'
 
 def diff_data_feed_csv(file1, file2, columns=None):
-    df1 = pd.read_csv(file1, parse_dates=[0], index_col=0)
-    df2 = pd.read_csv(file2, parse_dates=[0], index_col=0)
-    return diff_data_feed(df1, df2, columns)
+    return diff_data_feed(csv_to_dataframe(file1), csv_to_dataframe(file2), columns)
 
 def diff_data_feed(dataframe1, dataframe2, columns=None):
     df1 = pd.DataFrame(dataframe1, columns=columns)
@@ -18,14 +16,12 @@ def diff_data_feed(dataframe1, dataframe2, columns=None):
     difference = difference.applymap(lambda v: v or '') # convert 0 to '' just to make it easier to read
     return difference
 
-def merge_data_feeds_csv(file1, file2, include_intervals=False) -> pd.DataFrame:
-    dataframe1 = pd.read_csv(file1, parse_dates=[0], index_col=0)
-    dataframe2 = pd.read_csv(file2, parse_dates=[0], index_col=0)
-    merged = merge_data_feeds(dataframe1, dataframe2, include_intervals)
-    return merged
+def merge_data_feeds_csv(file1, file2, include_intervals=False):
+    return merge_data_feeds(csv_to_dataframe(file1), csv_to_dataframe(file2), include_intervals)
 
 def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame, include_intervals=False):
-    '''Returns dataframe which is the join merge result of the 2 dataframes.
+    '''
+    Returns dataframe which is the join merge result of the 2 dataframes.
     If include_interval is True, it returns tuple of (merge_result, intervals),
     intervals contains numberic indexies of the rows, of the merge result's dataframe,
     that exists in dataframe2 but not in dataframe1.

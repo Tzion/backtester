@@ -1,10 +1,9 @@
+import os
+import io
 import backtrader as bt
 from logger import *
-import io
-from functools import reduce
 from . import merge_data_feeds, FeedMergeException, feed_to_dataframe, csv_to_dataframe
 import pandas as pd
-import os
 
 class DataWriter():
     
@@ -21,16 +20,8 @@ class DataWriter():
             store(data, export_file)
             stop_func()
         return store_and_stop
+
         
-'''
-TODO Design Cahgne Required:
-All of the merging mechanisms should be uniform and based on dataframes;
-Now the merging process is based on writing to file line-by-line, but the validations 
-are using dataframes. This is to expenssive since writing complete files is overkill when
-usually only few lines are need to be added.
-Inaddition this creates mismatch when using function like convert_to_dataframe) and 
-merge_data_feeds(df1, df2).
-'''
 def store(data, filepath):
     live_data = feed_to_dataframe(data)
     if os.path.exists(filepath) and os.path.isfile(filepath):
@@ -44,14 +35,6 @@ def store(data, filepath):
         write_to_file(merged, intervals, filepath)
     else:
         pd.DataFrame.to_csv(live_data, filepath, index=True)
-
-'''
-def store_2(data, filepath):
-        data_as_df = feed_to_dataframe(data)
-        file_as_df = file_to_dataframe(filepath)
-        merged, new_line = merge_data_feeds(data_as_df, file_as_df)
-        append(filepath, merged[:new_line])
-'''
 
 
 def write_to_file(merged: pd.DataFrame, intervals, filepath):
