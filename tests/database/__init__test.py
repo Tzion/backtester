@@ -29,13 +29,12 @@ class TestMergeDataFeeds:
         merged_opposite = merge_data_feeds_csv(file2, file1)
         assert merged.equals(merged_opposite), 'Merge result is not symetric'
     
-    def test_merge_intervals(self, file1=TEST_DATA_DIR+'merge_test_datapoints_0-22.csv', file2=TEST_DATA_DIR+'merge_test_datapoints_2-20.csv'):
+    def test_merge_intervals(self, file1=TEST_DATA_DIR+'merge_test_datapoints_2-20.csv', file2=TEST_DATA_DIR+'merge_test_datapoints_0-22.csv'):
        intervals = merge_data_feeds_csv(file1, file2, include_intervals=True)[1]
        assert intervals[0] == (0,1)
        assert intervals[1] == (21,22)
        intervals = merge_data_feeds_csv(file2, file1, include_intervals=True)[1]
-       assert intervals[0] == (0,1), 'merge_data_feeds is expected to be a Symetric Relation'
-       assert intervals[1] == (21,22), 'merge_data_feeds is expected to be a Symetric Relation'
+       assert intervals == []
 
     def test_merge_data_feeds__values_mismatch(self, file1=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv', file2=TEST_DATA_DIR + 'merge_test_datapoints_0-20.csv'):
         df1 = pd.read_csv(file1, parse_dates=[0], index_col=0)

@@ -25,6 +25,11 @@ def merge_data_feeds_csv(file1, file2, include_intervals=False) -> pd.DataFrame:
     return merged
 
 def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame, include_intervals=False):
+    '''Returns dataframe which is the join merge result of the 2 dataframes.
+    If include_interval is True, it returns tuple of (merge_result, intervals),
+    intervals contains numberic indexies of the rows, of the merge result's dataframe,
+    that exists in dataframe2 but not in dataframe1.
+    '''
     _validate_headers(dataframe1, dataframe2)
     return _merge_data_frames(dataframe1, dataframe2, include_intervals)
     
@@ -51,9 +56,7 @@ def _merge_data_frames(dataframe1, dataframe2, include_intervals):
 
 
 def _find_new_intervals(dataframe, column='intervals'):
-    new_interval_identifier = dataframe[column][-1] if dataframe[column][-1] != 'both' else dataframe[column][0]
-    if new_interval_identifier == 'both':
-        return
+    new_interval_identifier = 'right_only'
     new_rows = numpy.where(dataframe['intervals'] == new_interval_identifier)[0]
 
     def find_ascending_intervals(numbers):
@@ -68,7 +71,7 @@ def _find_new_intervals(dataframe, column='intervals'):
         if interval:
             intervals.append(interval)
         return intervals
-    return find_ascending_intervals(new_rows)
+    return find_ascending_intervals(new_rows) if len(new_rows) else []
     
 
 class FeedMergeException(Exception):

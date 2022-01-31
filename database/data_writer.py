@@ -36,13 +36,12 @@ def store(data, filepath):
     if os.path.exists(filepath) and os.path.isfile(filepath):
         static_data = csv_to_dataframe(filepath)
         try:
-            merged = merge_data_feeds(live_data, static_data)
-            pd.DataFrame.to_csv(merged, filepath, index=True)
-            # to append csv use binary file: dataframe.to_csv(io.open(filepath+'1', 'ab'), headers=False)
+            merged, intervals = merge_data_feeds(static_data, live_data, include_intervals=True)
         except FeedMergeException as exp:
             logerror(f'Storing data feed {data._name} failed, path={filepath}. Reason: {exp}')
             live_data.to_csv(filepath+'.premerged')
             return
+        write_to_file(merged, intervals, filepath)
     else:
         pd.DataFrame.to_csv(live_data, filepath, index=True)
 
@@ -53,3 +52,12 @@ def store_2(data, filepath):
         merged, new_line = merge_data_feeds(data_as_df, file_as_df)
         append(filepath, merged[:new_line])
 '''
+
+
+def write_to_file(merged: pd.DataFrame, intervals, filepath):
+    if len(intervals) == 0:
+        return
+    if len(intervals) == 1 and intervals[0][1] == len(merged)-1:  # the new section is at the end - able to append
+        merged[intervals[0][0]:intervals[0][1]+1].to_csv(io.open(filepath, mode='a'), header=False)
+    else:
+        pd.DataFrame.to_csv(merged, filepath, index=True)
