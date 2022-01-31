@@ -27,7 +27,7 @@ def store(data, filepath):
     if os.path.exists(filepath) and os.path.isfile(filepath):
         static_data = csv_to_dataframe(filepath)
         try:
-            merged, intervals = merge_data_feeds(static_data, live_data, include_intervals=True)
+            merged, intervals = merge_data_feeds(static_data, live_data, include_intervals=True, validator=weeksdays_validator)
         except FeedMergeException as exp:
             logerror(f'Storing data feed {data._name} failed, path={filepath}. Reason: {exp}')
             live_data.to_csv(filepath+'.premerged')
@@ -44,3 +44,12 @@ def write_to_file(merged: pd.DataFrame, intervals, filepath):
         merged[intervals[0][0]:intervals[0][1]+1].to_csv(io.open(filepath, mode='a'), header=False)
     else:
         pd.DataFrame.to_csv(merged, filepath, index=True)
+
+
+
+def weeksdays_validator(dataframe: pd.DataFrame) -> bool:
+    days = dataframe.index.map(lambda dt: dt.dayofweek)
+    for day in days:
+        if day > 4:
+            return False
+    return True

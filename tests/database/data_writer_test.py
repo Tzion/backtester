@@ -18,7 +18,7 @@ class TestStoreData:
         diffs = diff_data_feed_csv(data_path, tmpfile)
         assert diffs.empty, f'There are differences between the files:\n{diffs.to_string(index=True)}\n'
         # add new data point and rewrite
-        new_datapoint = extend_last_datapoint_by_1(data_fixture)
+        new_datapoint = extend_last_datapoint_by_1(data_fixture, 3)
         store(data_fixture, tmpfile)
         diffs = diff_data_feed_csv(data_path, tmpfile)
         assert len(diffs) == 1, f'Expecting one additional datapoint'
@@ -29,10 +29,10 @@ class TestStoreData:
         tmpfile = tmpdir.join("tmpfile.csv")
         store(data_fixture, tmpfile)  # first store - to create the file
         new_datapoints =[]
-        new_datapoints.append(extend_first_datapoint(data_fixture))
-        new_datapoints.append(extend_first_datapoint(data_fixture))
-        new_datapoints.append(extend_last_datapoint_by_1(data_fixture))
-        new_datapoints.append(extend_last_datapoint_by_1(data_fixture))
+        new_datapoints.append(extend_first_datapoint(data_fixture, -3))
+        new_datapoints.append(extend_first_datapoint(data_fixture, -1))
+        new_datapoints.append(extend_last_datapoint_by_1(data_fixture, +3))
+        new_datapoints.append(extend_last_datapoint_by_1(data_fixture, 1))
         store(data_fixture, tmpfile)
         for datapoint in new_datapoints:
             assert contains_datapoint(datapoint, tmpfile), f'Datapoint {datapoint} was not written to file'

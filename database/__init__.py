@@ -2,6 +2,7 @@ import pandas as pd
 import numpy
 import backtrader as bt
 from backtrader import num2date
+from typing import Callable
 
 DATETIME_LABEL = 'datetime'
 
@@ -19,7 +20,7 @@ def diff_data_feed(dataframe1, dataframe2, columns=None):
 def merge_data_feeds_csv(file1, file2, include_intervals=False):
     return merge_data_feeds(csv_to_dataframe(file1), csv_to_dataframe(file2), include_intervals)
 
-def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame, include_intervals=False):
+def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame, include_intervals=False, validator:Callable[[pd.DataFrame],bool]=None):
     '''
     Returns dataframe which is the join merge result of the 2 dataframes.
     If include_interval is True, it returns tuple of (merge_result, intervals),
@@ -27,7 +28,10 @@ def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame, include
     that exists in dataframe2 but not in dataframe1.
     '''
     _validate_headers(dataframe1, dataframe2)
-    return _merge_data_frames(dataframe1, dataframe2, include_intervals)
+    merged, intervals = _merge_data_frames(dataframe1, dataframe2, include_intervals)
+    if validator and not validator(merged):
+        raise FeedMergeException(f'Merge result fails on validation of {validator}')
+    return (merged, intervals) if include_intervals else merged
     
 def _validate_headers(dataframe1, dataframe2):
     if set(dataframe1.columns) == set(dataframe2.columns):
@@ -48,7 +52,7 @@ def _merge_data_frames(dataframe1, dataframe2, include_intervals):
     if include_intervals:
         intervals = _find_new_intervals(merged_and_intervals)
         return merged, intervals
-    return merged
+    return merged, None
 
 
 def _find_new_intervals(dataframe, column='intervals'):
@@ -72,7 +76,6 @@ def _find_new_intervals(dataframe, column='intervals'):
 
 class FeedMergeException(Exception):
     pass
-
 
 def feed_to_dataframe(feed: bt.DataBase, idx_line=DATETIME_LABEL, lines=['open', 'high', 'low', 'close', 'volume'], date_only=True)-> pd.DataFrame:
     if not lines or len(lines) == 0:
