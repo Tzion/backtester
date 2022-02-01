@@ -9,8 +9,7 @@ class TestDataFeeds:
 
     @pytest.mark.parametrize('symbol', ('BATS_AAL, 1D', 'GME', 'GLD'))
     def test_diff_in_data_feeds_from_different_sources(self, symbol):
-        # print(get_feed_file_path(symbol, DataSource.TRADING_VIEW))
-        pass
+        assert False, 'Not implemented'
         #TODO
 
 class TestMergeDataFeeds:
@@ -63,20 +62,6 @@ class TestMergeDataFeeds:
         with pytest.raises(FeedMergeException):
             merge = merge_data_feeds(df1, df2)
         
-    def test_merge_data_feeds__duplicate_date_middle(self, file=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'):
-        df1 = csv_to_dataframe(file).iloc[:8]
-        df2 = df1.copy()
-        df2 = pd.concat([df2.iloc[:4], df2.iloc[3:]])
-        with pytest.raises(FeedMergeException):
-            merge = merge_data_feeds(df1, df2)
-
-    def test_merge_data_feeds__duplicate_date_overlap(self, file=TEST_DATA_DIR + 'merge_test_datapoints_0-22.csv'):
-        df1 = csv_to_dataframe(file).iloc[:10]
-        df2 = df1.copy().iloc[6:]
-        df1 = df1.iloc[:7]
-        with pytest.raises(FeedMergeException):
-            merge = merge_data_feeds(df1, df2)
-
 
 @pytest.mark.parametrize('data', [([bt.feeds.GenericCSVData(dataname=TEST_DATA_DIR+'convert_test.csv', dtformat='%Y-%m-%d', 
                                                             fromdate=datetime(2020, 11, 2), todate=datetime(2020,11,14))])])
@@ -93,6 +78,7 @@ def test_convert_to_dataframe(data_fixture):
 def flip_columns(dataframe: pd.DataFrame):
     col2 = dataframe[dataframe.columns[2]]
     dataframe = dataframe.drop(columns=dataframe.columns[2])
+    col2.name += '_RENAME'
     dataframe = dataframe.join(col2)
     return dataframe
 

@@ -34,6 +34,7 @@ def merge_data_feeds(dataframe1: pd.DataFrame, dataframe2: pd.DataFrame, include
     return (merged, intervals) if include_intervals else merged
     
 def _validate_headers(dataframe1, dataframe2):
+    # this validation if for verbose feedback - merge fails anyway due to header conflict
     if set(dataframe1.columns) == set(dataframe2.columns):
         return True
     else:

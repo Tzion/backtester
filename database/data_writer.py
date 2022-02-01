@@ -3,7 +3,7 @@ import io
 import backtrader as bt
 from logger import *
 from . import merge_data_feeds, FeedMergeException, feed_to_dataframe, csv_to_dataframe
-import pandas as pd
+from . import pd
 
 class DataWriter():
     
