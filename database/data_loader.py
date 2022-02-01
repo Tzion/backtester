@@ -52,14 +52,17 @@ class IBLoader(DataLoader):
         sessionend = end_of_day  # the default sessionend suffers from precission error which may cause shift to next day - this is workaround to that bug, until pr approved in the infra
     )
 
+    def __init__(self, cerebro:bt.Cerebro):
+        super().__init__(cerebro)
+        self.data_store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True)
+        
     def load_feeds(self, symbols=[], start_date=None, end_date=datetime.today(), backfill_from_database=True, store=False):
         start_date = start_date or end_date - timedelta(days=100)
-        data_store = bt.stores.ibstore.IBStore(port=7497, _debug=True, notifyall=True) # TODO make it singleton
         for symbol in symbols:
             backfill_data = None
             if backfill_from_database:
                 backfill_data = GenericCSVData(dataname=IBLoader.source.get_feed_path(symbol), fromdate=start_date, todate=end_date, dtformat='%Y-%m-%d', tz='US/Eastern', sessionend=IBLoader.end_of_day)
-            data = data_store.getdata(dataname=symbol, **IBLoader.config, fromdate=start_date, todate=end_date, backfill_from=backfill_data)
+            data = self.data_store.getdata(dataname=IBLoader.source.get_feed_fullname(symbol), **IBLoader.config, fromdate=start_date, todate=end_date, backfill_from=backfill_data)
             if store:
                 data = DataWriter.decorate_writing(data, IBLoader.source.get_feed_path(symbol))
             self.cerebro.adddata(data, symbol)
