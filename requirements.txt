@@ -29,7 +29,7 @@ IbPy2==0.8.0
 idna==2.10
 iniconfig==1.1.1
 ipykernel==6.5.1
-ipython==7.29.0
+ipython==8.10.0
 ipython-genutils==0.2.0
 ipywidgets==7.6.3
 itsdangerous==2.0.1
