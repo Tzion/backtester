@@ -4,8 +4,9 @@ async-generator==1.10
 attrs==21.2.0
 autopep8==1.5.6
 backcall==0.2.0
--e git+git@github.com:Tzion/backtrader.git@0fa63ef4a35dc53cc7320813f8b15480c8f85517#egg=backtrader
+-e git+ssh://git@github.com/Tzion/backtrader.git@0fa63ef4a35dc53cc7320813f8b15480c8f85517#egg=backtrader
 -e git+https://github.com/Tzion/backtrader_plotting.git@d859c1027cf2d3f686d464d3610531d4721d9aab#egg=backtrader_plotting
+beautifulsoup4==4.10.0
 bleach==3.3.0
 bokeh==2.3.2
 Brotli==1.0.9
@@ -86,6 +87,7 @@ QtPy==1.9.0
 requests==2.25.1
 Send2Trash==1.5.0
 six==1.15.0
+soupsieve==2.3.1
 TA-Lib==0.4.20
 tenacity==8.0.1
 terminado==0.10.0
@@ -100,4 +102,5 @@ webencodings==0.5.1
 Werkzeug==2.0.1
 widgetsnbextension==3.5.1
 xlrd==2.0.1
+yahoofinancials==1.6
 yfinance==0.1.63
