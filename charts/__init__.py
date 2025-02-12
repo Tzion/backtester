@@ -13,7 +13,9 @@ OBSERVERS_DIR = CHARTS_DIR + 'observers/'
     '''
 MATHPLOTLIB_TO_PLOTLY_ATTRIBUTES = {
     'marker': ('marker_symbol', {
-        'd': 'diamond'
+        'd': 'diamond',
+        'o': 'circle',
+        '*': 'star'
     }),
     'markersize': 'marker_size',
     'alpha': 'opacity',
@@ -22,6 +24,7 @@ MATHPLOTLIB_TO_PLOTLY_ATTRIBUTES = {
     'linecolor': 'line_color',
     'ls' : ('line_dash',
                         {'--': 'dash',
+                        '-': 'solid',
                         ':': 'dot'}
                         ),
     

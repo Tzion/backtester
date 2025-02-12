@@ -2,6 +2,7 @@ from backtrader.dataseries import TimeFrame
 from utils.backtrader_helpers import print_trades_length
 from analyzers.exposer import Exposer
 from strategies.candle_pattern_long import CandlePatternLong
+from strategies.classic_breakout import ClassicBreakout
 import backtrader as bt
 from datetime import datetime
 from analyzers.basic_trade_stats import BasicTradeStats
@@ -20,17 +21,26 @@ def main():
     global cerebro
     cerebro = gb.cerebro
     add_strategies(CandlePatternLong)
-    stock_for_testing = ['ABC.csv',   'BAC.csv',   'CDW.csv',   'CVX.csv',   'GD.csv',    'GPN.csv',   'IP.csv',    'JNJ.csv',   'LDOS.csv',  'MNST.csv',  'NKE.csv',   'OKE.csv', 'PNW.csv',   'RE.csv',    'STE.csv',   'UDR.csv',   'WELL.csv',  '^GSPC.csv', 'ADSK.csv',  'BR.csv','CNP.csv','EBAY.csv','GNRC.csv','HPQ.csv','JCI.csv','JNPR.csv', 'LNC.csv','MRO.csv', 'NVDA.csv', 'ORLY.csv', 'PVH.csv','SEE.csv','SWK.csv', 'VLO.csv',   'WHR.csv', 'ANSS.csv',  'CB.csv','CTAS.csv','EXR.csv','GOOG.csv', 'IFF.csv','JKHY.csv', 'JPM.csv','MCHP.csv','NFLX.csv','ODFL.csv', 'PKG.csv','PWR.csv','SNA.csv','TXT.csv', 'VRTX.csv',  'ZTS.csv']
-    load_data(StaticLoader(cerebro), limit=0, random=False, start_date=datetime(2016,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds', stock_names=stock_for_testing)
-    # disk_data = bt.feeds.GenericCSVData(dataname='data_feeds/NVDA.csv', fromdate=datetime(2018, 9, 1), todate=datetime(2019,4,26), dtformat='%Y-%m-%d', high=1, low=2, open=3, close=4, volume=5)
-    # cerebro.adddata(disk_data, name=disk_data._name)
-    # add_analyzers()
-    # add_observers()
+    # stock_for_testing = ['ABC.csv',   'BAC.csv',   'CDW.csv',   'CVX.csv',   'GD.csv',    'GPN.csv',   'IP.csv',    'JNJ.csv',   'LDOS.csv',  'MNST.csv',  'NKE.csv',   'OKE.csv', 'PNW.csv',   'RE.csv',    'STE.csv',   'UDR.csv',   'WELL.csv',  '^GSPC.csv', 'ADSK.csv',  'BR.csv','CNP.csv','EBAY.csv','GNRC.csv','HPQ.csv','JCI.csv','JNPR.csv', 'LNC.csv','MRO.csv', 'NVDA.csv', 'ORLY.csv', 'PVH.csv','SEE.csv','SWK.csv', 'VLO.csv',   'WHR.csv', 'ANSS.csv',  'CB.csv','CTAS.csv','EXR.csv','GOOG.csv', 'IFF.csv','JKHY.csv', 'JPM.csv','MCHP.csv','NFLX.csv','ODFL.csv', 'PKG.csv','PWR.csv','SNA.csv','TXT.csv', 'VRTX.csv',  'ZTS.csv']
+    stock_for_testing = ['SPY-1m.csv']
+    # load_data(StaticLoader(cerebro), limit=0, random=False, start_date=datetime(2018,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds', stock_names=stock_for_testing)
+    disk_data = bt.feeds.GenericCSVData(dataname='data_feeds/SPY-1m-5days.csv',
+                                        dtformat='%Y-%m-%d %H:%M:%S%z',
+                                        fromdate=datetime(25, 1, 2),
+                                        todate=datetime(2025, 1, 13),
+                                        high=2,
+                                        low=3,
+                                        open=1,
+                                        close=4,
+                                        volume=5)
+    cerebro.adddata(disk_data, name=disk_data._name)
+    add_analyzers()
+    add_observers()
     global strategies
     strategies = backtest()
     pass
-    # show_statistics(strategies)
-    # cerebro.plot(plotter=PlotlyPlotter(trades_only=True))
+    show_statistics(strategies)
+    cerebro.plot(plotter=PlotlyPlotter(trades_only=False))
 
 
 def add_strategies(strategy: bt.Strategy):
@@ -39,7 +49,7 @@ def add_strategies(strategy: bt.Strategy):
 
 def load_data(data_loader : DataLoader, **kwargs):
     data_loader.load_feeds(**kwargs)
-    
+
 
 def add_analyzers():
     cerebro.addanalyzer(BasicTradeStats, _name='basic_trade_stats', useStandardPrint=False)
@@ -84,5 +94,3 @@ def show_statistics(strategies):
 
 if __name__ == '__main__':
     main()
-
-

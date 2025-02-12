@@ -44,7 +44,7 @@ class ChartData:
     name: str
     dates: list[datetime]
     open: list[float]
-    high: list[float] 
+    high: list[float]
     low: list[float]
     close: list[float]
     volume: list[float]
