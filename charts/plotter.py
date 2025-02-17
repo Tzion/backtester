@@ -6,6 +6,7 @@ from globals import *
 from utils import backtrader_helpers as bh
 import logger
 
+
 class PlotlyPlotter():
     """
     This is an implementation of the plotter interface defined by backtrader (cerebro.plot(plotter, ...))
@@ -22,7 +23,7 @@ class PlotlyPlotter():
     def plot(self, strategy: bt.Strategy, figid=0, numfigs=0, iplot=None, start=None, end=None, use=None):
         logger.loginfo(f'plotting strategy: {strategy.__class__.__name__}')
         self.plot_strategy(strategy)
-    
+
     def show(self):
         """ Do nothing - needed as part of the interface """
         pass
@@ -32,15 +33,16 @@ class PlotlyPlotter():
             self.plot_observers(strategy)
         if self.pnl2duration:
             trades = bh.extract_trades_list(strategy)
-            charts.plot_duration_to_profit([trade.pnl for trade in trades], [trade.barlen for trade in trades], self.auto_open, self.save_to_file)
-        self.charts : dict[CSVDataBase, ChartData]
+            charts.plot_duration_to_profit([trade.pnl for trade in trades], [trade.barlen for trade in trades], self.auto_open,
+                                           self.save_to_file)
+        self.charts: dict[CSVDataBase, ChartData]
         self.select_charts(strategy)
         self.load_price_data(strategy)
         self.load_indicators(strategy)
         self.load_buysell_markers(strategy)
         for chart in self.charts.values():
             charts.plot_price_chart(chart, self.auto_open, self.save_to_file)
-    
+
     def select_charts(self, strategy):
         if self.trades_only:
             self.charts = dict((data, None) for data in bh.extract_trades(strategy).keys())
@@ -49,11 +51,22 @@ class PlotlyPlotter():
 
     def load_price_data(self, strategy):
         for data in self.charts:
-            chart = ChartData(data._name, eldd(data.datetime), open=eld(data.open), high=eld(data.high), low=eld(data.low), close=eld(data.close), volume=eld(data.volume), overlays_data=[], subplots_data=[])
+            chart = ChartData(data._name,
+                              eldd(data.datetime),
+                              open=eld(data.open),
+                              high=eld(data.high),
+                              low=eld(data.low),
+                              close=eld(data.close),
+                              volume=eld(data.volume),
+                              overlays_data=[],
+                              subplots_data=[])
             self.charts[data] = chart
-    
+
     def load_indicators(self, strategy):
-        data_keys = {key for key in strategy.datas} # required becuase we want to do __eq__ besed on the key and not based on the internal impl of __eq__ of strategy.datas
+        data_keys = {
+            key
+            for key in strategy.datas
+        }  # required becuase we want to do __eq__ besed on the key and not based on the internal impl of __eq__ of strategy.datas
         for ind in strategy.getindicators():
             if not hasattr(ind, 'plotinfo') or not ind.plotinfo.plot or ind.plotinfo.plotskip:
                 continue
@@ -70,7 +83,7 @@ class PlotlyPlotter():
                 self.charts[key].subplots_data.append(LinesData(get_indicator_label(ind), indicator_to_lines_data(ind)))
             else:
                 self.charts[key].overlays_data.append(LinesData(get_indicator_label(ind), indicator_to_lines_data(ind)))
-        
+
     def load_buysell_markers(self, strategy):
         for buysell in extract_buynsell_observers(strategy):
             if buysell.data in self.charts:
@@ -79,8 +92,5 @@ class PlotlyPlotter():
 
     def plot_observers(self, strategy, **kwargs):
         for obs in strategy.observers:
-            lines = {line: bh.extract_line_data(getattr(obs.lines,line)) for line in obs.lines.getlinealiases()}
+            lines = {line: bh.extract_line_data(getattr(obs.lines, line)) for line in obs.lines.getlinealiases()}
             charts.plot_lines(bh.get_alias(obs), self.auto_open, self.save_to_file, **lines)
-
-
-    

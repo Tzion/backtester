@@ -3,6 +3,7 @@ from utils.backtrader_helpers import print_trades_length
 from analyzers.exposer import Exposer
 from strategies.candle_pattern_long import CandlePatternLong
 from strategies.classic_breakout import ClassicBreakout
+from strategies.base_strategy import EmptyStrategy
 import backtrader as bt
 from datetime import datetime
 from analyzers.basic_trade_stats import BasicTradeStats
@@ -20,19 +21,20 @@ def main():
     utils.clean_previous_output()
     global cerebro
     cerebro = gb.cerebro
-    add_strategies(CandlePatternLong)
+    add_strategies(EmptyStrategy)
     # stock_for_testing = ['ABC.csv',   'BAC.csv',   'CDW.csv',   'CVX.csv',   'GD.csv',    'GPN.csv',   'IP.csv',    'JNJ.csv',   'LDOS.csv',  'MNST.csv',  'NKE.csv',   'OKE.csv', 'PNW.csv',   'RE.csv',    'STE.csv',   'UDR.csv',   'WELL.csv',  '^GSPC.csv', 'ADSK.csv',  'BR.csv','CNP.csv','EBAY.csv','GNRC.csv','HPQ.csv','JCI.csv','JNPR.csv', 'LNC.csv','MRO.csv', 'NVDA.csv', 'ORLY.csv', 'PVH.csv','SEE.csv','SWK.csv', 'VLO.csv',   'WHR.csv', 'ANSS.csv',  'CB.csv','CTAS.csv','EXR.csv','GOOG.csv', 'IFF.csv','JKHY.csv', 'JPM.csv','MCHP.csv','NFLX.csv','ODFL.csv', 'PKG.csv','PWR.csv','SNA.csv','TXT.csv', 'VRTX.csv',  'ZTS.csv']
     stock_for_testing = ['SPY-1m.csv']
     # load_data(StaticLoader(cerebro), limit=0, random=False, start_date=datetime(2018,11,30), end_date=datetime(2021, 4, 26), dirpath='data_feeds', stock_names=stock_for_testing)
-    disk_data = bt.feeds.GenericCSVData(dataname='data_feeds/SPY-1m-5days.csv',
+    disk_data = bt.feeds.GenericCSVData(dataname='data_feeds/SPY-1m.csv',
                                         dtformat='%Y-%m-%d %H:%M:%S%z',
-                                        fromdate=datetime(25, 1, 2),
-                                        todate=datetime(2025, 1, 13),
+                                        datetime=0,
+                                        open=1,
                                         high=2,
                                         low=3,
-                                        open=1,
                                         close=4,
-                                        volume=5)
+                                        volume=5,
+                                        timeframe=bt.TimeFrame.Minutes,
+                                        compression=1)
     cerebro.adddata(disk_data, name=disk_data._name)
     add_analyzers()
     add_observers()
@@ -47,7 +49,8 @@ def add_strategies(strategy: bt.Strategy):
     loginfo(f'backtesting strategy {strategy.__class__.__name__}')
     cerebro.addstrategy(strategy)
 
-def load_data(data_loader : DataLoader, **kwargs):
+
+def load_data(data_loader: DataLoader, **kwargs):
     data_loader.load_feeds(**kwargs)
 
 
@@ -59,6 +62,7 @@ def add_analyzers():
     cerebro.addanalyzer(bt.analyzers.SQN)
     cerebro.addanalyzer(bt.analyzers.SharpeRatio)
     cerebro.addanalyzer(bt.analyzers.SharpeRatio_A)
+
 
 def add_observers():
     cerebro.addobserver(bt.observers.DrawDown)

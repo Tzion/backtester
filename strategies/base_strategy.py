@@ -100,3 +100,17 @@ class BaseStrategy(bt.Strategy):
         if len(open_trades) > 1:
             raise Exception('Warning - more than one open position for %s, trades: %s'%(stock, open_trades))
         return open_trades[0]
+
+
+class EmptyStrategy(BaseStrategy):
+    def __init__(self):
+        super().__init__()
+
+    def prepare_stock(self, stock):
+        pass
+
+    def check_signals(self, stock):
+        pass
+
+    def manage_position(self, stock):
+        pass
