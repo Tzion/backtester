@@ -6,7 +6,7 @@ from backtrader_plotting.schemes.tradimo import Tradimo
 from test_common import *
 import backtrader as bt
 from datetime import datetime, time
-from charts.charts import LinesData, plot_price_chart, _plot_feed, ChartData
+from charts.charts import LinesData, plot_price_chart, render_price_chart, ChartData
 from utils.backtrader_helpers import indicator_to_lines_data, extract_line_data_datetime as eldd, extract_line_data as eld
 from backtrader import indicators
 import backtest
@@ -53,19 +53,19 @@ class TestChartsApi:
             datetime(year=2021, month=8, day=20),
             datetime(year=2021, month=8, day=23)
         ]
-        _plot_feed('sampled',
-                   dates,
-                   open_data,
-                   high_data,
-                   low_data,
-                   close_data,
-                   volume_data,
-                   buy_markers=buy_markers,
-                   show=True,
-                   save_to_file=False,
-                   overlays_data=None,
-                   subplots_data=None,
-                   sell_markers=None)
+        render_price_chart('sampled',
+                           dates,
+                           open_data,
+                           high_data,
+                           low_data,
+                           close_data,
+                           volume_data,
+                           buy_markers=buy_markers,
+                           show=True,
+                           save_to_file=False,
+                           overlays_data=None,
+                           subplots_data=None,
+                           sell_markers=None)
 
     def test_trade_markers_test(self):
         print('Plot chart with volume and buy&sell markers')
@@ -83,19 +83,19 @@ class TestChartsApi:
                                 ])
         data = strategy.data0
         buysell = strategy.observers.buysell[0]
-        _plot_feed(data._name,
-                   eldd(data.datetime),
-                   eld(data.open),
-                   eld(data.high),
-                   eld(data.low),
-                   eld(data.close),
-                   eld(data.volume),
-                   buy_markers=eld(buysell.buy),
-                   sell_markers=eld(buysell.sell),
-                   show=True,
-                   save_to_file=False,
-                   overlays_data=None,
-                   subplots_data=None)
+        render_price_chart(data._name,
+                           eldd(data.datetime),
+                           eld(data.open),
+                           eld(data.high),
+                           eld(data.low),
+                           eld(data.close),
+                           eld(data.volume),
+                           buy_markers=eld(buysell.buy),
+                           sell_markers=eld(buysell.sell),
+                           show=True,
+                           save_to_file=False,
+                           overlays_data=None,
+                           subplots_data=None)
 
     @pytest.mark.parametrize('strategy, datas', [(FourIndicators, [
         bt.feeds.GenericCSVData(dataname='tests/test_data.csv',
@@ -113,19 +113,19 @@ class TestChartsApi:
         data = strategy_fixture.data
         overlay = LinesData('overlay', indicator_to_lines_data(data.moving_average))
         subplots = [LinesData('subplot1', indicator_to_lines_data(data.atr)), LinesData('subplot2', indicator_to_lines_data(data.atr2))]
-        _plot_feed(data._name,
-                   eldd(data.datetime),
-                   eld(data.open),
-                   eld(data.high),
-                   eld(data.low),
-                   eld(data.close),
-                   eld(data.volume),
-                   overlays_data=[overlay],
-                   subplots_data=subplots,
-                   show=True,
-                   save_to_file=False,
-                   buy_markers=None,
-                   sell_markers=None)
+        render_price_chart(data._name,
+                           eldd(data.datetime),
+                           eld(data.open),
+                           eld(data.high),
+                           eld(data.low),
+                           eld(data.close),
+                           eld(data.volume),
+                           overlays_data=[overlay],
+                           subplots_data=subplots,
+                           show=True,
+                           save_to_file=False,
+                           buy_markers=None,
+                           sell_markers=None)
 
     @pytest.mark.parametrize('strategy, datas', [(FourIndicators, [
         bt.feeds.GenericCSVData(dataname='tests/test_data.csv',
@@ -143,53 +143,46 @@ class TestChartsApi:
         data = strategy_fixture.data
         overlay = LinesData('overlay', indicator_to_lines_data(data.moving_average))
         subplot = LinesData('subplot', indicator_to_lines_data(data.atr))
-        _plot_feed(data._name,
-                   eldd(data.datetime),
-                   eld(data.open),
-                   eld(data.high),
-                   eld(data.low),
-                   eld(data.close),
-                   eld(data.volume),
-                   overlays_data=[overlay],
-                   subplots_data=[subplot],
-                   show=True,
-                   save_to_file=False,
-                   buy_markers=None,
-                   sell_markers=None)
+        render_price_chart(data._name,
+                           eldd(data.datetime),
+                           eld(data.open),
+                           eld(data.high),
+                           eld(data.low),
+                           eld(data.close),
+                           eld(data.volume),
+                           overlays_data=[overlay],
+                           subplots_data=[subplot],
+                           show=True,
+                           save_to_file=False,
+                           buy_markers=None,
+                           sell_markers=None)
 
-    def test_intraday_chart(self):
-        """Test plotting 1-minute candles"""
+    @pytest.mark.parametrize('strategy, datas', [(bt.Strategy, [
+        bt.feeds.GenericCSVData(dataname='tests/intraday_1_minute_test_data.csv',
+                               dtformat='%Y-%m-%d %H:%M:%S%z',
+                            #    fromdate=datetime(2025,1,1),
+                               datetime=0,
+                               open=1,
+                               high=2,
+                               low=3,
+                               close=4,
+                               volume=5,
+                               timeframe=bt.TimeFrame.Minutes,
+                               compression=1)
+    ])])
+    def test_intraday_chart(self, strategy_fixture):
         print('Plotting 1-minute candles chart')
-
-        # Create cerebro instance
-        cerebro = bt.Cerebro()
-
-        # Create and add data
-        data = bt.feeds.GenericCSVData(dataname='data_feeds/SPY-1m-5days.csv',
-                                       dtformat='%Y-%m-%d %H:%M:%S%z',
-                                       datetime=0,
-                                       open=1,
-                                       high=2,
-                                       low=3,
-                                       close=4,
-                                       volume=5,
-                                       timeframe=bt.TimeFrame.Minutes,
-                                       compression=1)
-        cerebro.adddata(data)
-
-        # Run cerebro to load the data
-        cerebro.run()
-
-        # Now create chart data
+        
+        data = strategy_fixture.data
         chart_data = ChartData(name=data._name,
-                               dates=eldd(data.datetime),
-                               open=eld(data.open),
-                               high=eld(data.high),
-                               low=eld(data.low),
-                               close=eld(data.close),
-                               volume=eld(data.volume),
-                               overlays_data=[],
-                               subplots_data=[])
+                              dates=eldd(data.datetime),
+                              open=eld(data.open),
+                              high=eld(data.high),
+                              low=eld(data.low),
+                              close=eld(data.close),
+                              volume=eld(data.volume),
+                              overlays_data=[],
+                              subplots_data=[])
 
         plot_price_chart(chart_data, show=True, save_to_file=False)
 

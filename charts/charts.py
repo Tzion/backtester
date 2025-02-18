@@ -61,8 +61,8 @@ config = dict({'scrollZoom': True})
 
 def plot_price_chart(chart_data: ChartData, show, save_to_file):
     d = chart_data
-    figure = _plot_feed(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers,
-                        d.sell_markers, show, save_to_file)
+    figure = render_price_chart(d.name, d.dates, d.open, d.high, d.low, d.close, d.volume, d.overlays_data, d.subplots_data, d.buy_markers,
+                                d.sell_markers, show, save_to_file)
     return figure
 
 
@@ -84,7 +84,8 @@ def plot_lines(name, show, save_to_file, **lines):
     return fig
 
 
-def _plot_feed(name, dates, open, high, low, close, volume, overlays_data, subplots_data, buy_markers, sell_markers, show, save_to_file):
+def render_price_chart(name, dates, open, high, low, close, volume, overlays_data, subplots_data, buy_markers, sell_markers, show,
+                       save_to_file):
     dates = list(map(lambda datetime: datetime.replace(microsecond=0),
                      dates))  # trim microsecond to handle rounding error that cause the data point to have the date of the next day
     fig = _create_ohlcv_figure(name, dates, open, high, low, close, volume, subplots_data=subplots_data)
