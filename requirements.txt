@@ -4,8 +4,9 @@ async-generator==1.10
 attrs==21.2.0
 autopep8==1.5.6
 backcall==0.2.0
--e git+ssh://git@github.com/Tzion/backtrader.git@0fa63ef4a35dc53cc7320813f8b15480c8f85517#egg=backtrader
--e git+https://github.com/Tzion/backtrader_plotting.git@d859c1027cf2d3f686d464d3610531d4721d9aab#egg=backtrader_plotting
+-e git+https://github.com/Tzion/backtester.git@d0dea8f20a1dbd405e67ffa4a1b58533d76fc5b2#egg=backtester
+backtrader==1.9.78.123
+backtrader-plotting==2.0.0
 beautifulsoup4==4.10.0
 bleach==3.3.0
 bokeh==2.3.2
@@ -25,8 +26,6 @@ defusedxml==0.7.1
 entrypoints==0.3
 Flask==2.0.1
 Flask-Compress==1.10.1
-ibapi==9.76.1
-IbPy2==0.8.0
 idna==2.10
 iniconfig==1.1.1
 ipykernel==6.5.1
@@ -51,6 +50,7 @@ matplotlib==3.4.2
 matplotlib-inline==0.1.3
 mistune==0.8.4
 multitasking==0.0.9
+narwhals==1.27.1
 nbclient==0.5.3
 nbconvert==6.0.7
 nbformat==5.1.3
@@ -65,7 +65,7 @@ parso==0.8.2
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==8.3.2
-plotly==5.2.1
+plotly==6.0.0
 pluggy==0.13.1
 prometheus-client==0.11.0
 prompt-toolkit==3.0.18
@@ -80,7 +80,7 @@ pytest==6.2.4
 pytest-mock==3.6.1
 python-dateutil==2.8.1
 pytz==2021.1
-PyYAML==5.4.1
+PyYAML==5.3.1
 pyzmq==22.0.3
 qtconsole==5.1.0
 QtPy==1.9.0
@@ -88,7 +88,7 @@ requests==2.25.1
 Send2Trash==1.5.0
 six==1.15.0
 soupsieve==2.3.1
-TA-Lib==0.4.20
+TA-Lib==0.4.28
 tenacity==8.0.1
 terminado==0.10.0
 testpath==0.5.0
