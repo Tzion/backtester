@@ -11,7 +11,7 @@ export async function readCSVData(filePath) {
             .map(line => {
                 const [time, open, high, low, close] = line.split(',');
                 return {
-                    time: time,//.split(' ')[0], // Extract just the date part
+                    time: convertTimestampToUnixTime(time), // Convert to Unix timestamp
                     open: parseFloat(open),
                     high: parseFloat(high),
                     low: parseFloat(low),
@@ -23,6 +23,15 @@ export async function readCSVData(filePath) {
         console.error('Error reading CSV file:', error);
         return [];
     }
+}
+
+// Function to convert timestamp with timezone to Unix timestamp
+function convertTimestampToUnixTime(timestampWithTZ) {
+    // Parse the timestamp with timezone
+    const date = new Date(timestampWithTZ);
+    
+    // Convert to Unix timestamp (seconds since epoch)
+    return Math.floor(date.getTime() / 1000);
 }
 
 export function generateCandlestickData() {
