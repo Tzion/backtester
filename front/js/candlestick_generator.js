@@ -9,13 +9,14 @@ export async function readCSVData(filePath) {
         const parsedLines = lines
             .filter(line => line.trim() !== '') // Remove empty lines
             .map(line => {
-                const [time, open, high, low, close] = line.split(',');
+                const [time, open, high, low, close, volume] = line.split(',');
                 return {
                     time: convertTimestampToUnixTime(time), // Convert to Unix timestamp
                     open: parseFloat(open),
                     high: parseFloat(high),
                     low: parseFloat(low),
-                    close: parseFloat(close)
+                    close: parseFloat(close),
+                    volume: parseFloat(volume)
                 };
             });
         return parsedLines;
