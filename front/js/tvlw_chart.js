@@ -1,7 +1,9 @@
 import { generateCandlestickData, readCSVData } from './candlestick_generator.js';
+import { createChart, createSeriesMarkers, CandlestickSeries } from 'lightweight-charts';
+// import LightweightCharts from 'lightweight-charts';
 
 // Chart configuration with time scale options
-const chart = LightweightCharts.createChart(
+const chart = createChart(
     document.getElementById('container'),
     {
         timeScale: {
@@ -15,7 +17,7 @@ async function loadChartData() {
     const longData = await readCSVData('../../data_feeds/SPY-1m.csv');
 
     // Create the Main Series (Candlesticks)
-    const mainSeries = chart.addSeries(LightweightCharts.CandlestickSeries, {
+    const mainSeries = chart.addSeries(CandlestickSeries, {
         priceFormat: {
             type: 'price',
             precision: 2,
