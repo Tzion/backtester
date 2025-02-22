@@ -27,6 +27,19 @@ async function loadChartData() {
 
     mainSeries.setData(longData);
     chart.timeScale().fitContent();
+
+    // test of markers
+    const candleToMark = mainSeries.data().slice(-5)[4]
+    const marker = [{
+        time: candleToMark.time,
+        position: 'aboveBar',
+        color: '#f68410',
+        shape: 'circle',
+        text: 'A',
+    }]
+    const markers = createSeriesMarkers(mainSeries, marker)
+
+
 }
 
 loadChartData();
