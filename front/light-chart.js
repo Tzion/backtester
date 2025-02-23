@@ -7,24 +7,23 @@ const chart = createChart(
         timeScale: {
             timeVisible: true,
         },
-        width: window.innerWeight,
+        width: window.innerWidth,
         height: window.innerHeight
     }
 );
 
-let mainSeries;
 
 async function renderChart(symbol) {
     try {
         const data = await fetchOHLCV(symbol);
-        loadPrice(chart,data);
+        const mainSeries = loadPrice(chart, data);
 
         const volumeData = data.map(item => ({
             time: item.time,
             value: item.volume
         }));
         loadVolume(chart, volumeData);
-        createMarkers(chart);
+        // createMarkers_example(mainSeries);
         chart.timeScale().fitContent();
     } catch (error) {
         console.error(`Error rendering chart for symbol ${symbol}:`, error);
@@ -32,7 +31,7 @@ async function renderChart(symbol) {
 }
 
 function loadPrice(chart, priceData) {
-    mainSeries = chart.addSeries(CandlestickSeries, {
+    const mainSeries = chart.addSeries(CandlestickSeries, {
         priceFormat: {
             type: 'price',
             precision: 2,
@@ -41,12 +40,14 @@ function loadPrice(chart, priceData) {
     });
 
     mainSeries.setData(priceData);
+    return mainSeries;
 }
 
 
 function loadVolume(chart, volumeData) {
+    // TODO: color bars in red and green
     const volumeSeries = chart.addSeries(HistogramSeries, {
-        color: '#26a69a',
+        color: '#26a68c',
         priceFormat: {
             type: 'volume',
         },
@@ -62,8 +63,9 @@ function loadVolume(chart, volumeData) {
     volumeSeries.setData(volumeData);
 }
 
-function createMarkers(chart) {
-    const candleToMark = mainSeries.data().slice(-5)[4]
+// for documentsion - will later use with proper data
+function createMarkers_example(series) {
+    const candleToMark = series.data().slice(-5)[4]
     const marker = [{
         time: candleToMark.time,
         position: 'aboveBar',
@@ -71,9 +73,22 @@ function createMarkers(chart) {
         shape: 'circle',
         text: 'A',
     }]
-    const markers = createSeriesMarkers(mainSeries, marker)
+    const markers = createSeriesMarkers(series, marker)
 }
 
 export { renderChart };
 
+// usage example
 renderChart('SPY-1m');
+
+
+// TODO: use this handler for lazy loader. newVisibleLogicalRange.from and .to are indexes of visible data array
+// function myVisibleLogicalRangeChangeHandler(newVisibleLogicalRange) {
+//     if (newVisibleLogicalRange === null) {
+//         // handle null
+//     }
+
+//     // handle new logical range
+// }
+
+// chart.timeScale().subscribeVisibleLogicalRangeChange(myVisibleLogicalRangeChangeHandler);
