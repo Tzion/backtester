@@ -51,5 +51,27 @@
             "console": "integratedTerminal",
             "justMyCode": false,
         },
+        {
+            "name": "Deno: Frontend Server",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/frontend",
+            "runtimeExecutable": "deno",
+            "runtimeArgs": ["run", "--allow-net", "--allow-read", "--allow-env", "--inspect-brk", "dev_server.ts"],
+            "attachSimplePort": 9229
+        },
+        {
+            "name": "Python: Backend",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/main.py",
+            "console": "integratedTerminal"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Frontend + Backend",
+            "configurations": ["Deno: Frontend Server", "Python: Backend"]
+        }
     ]
 }

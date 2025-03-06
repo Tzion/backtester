@@ -1,0 +1,19 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-env --watch dev_server.ts",
+    "build": "deno bundle src/main.ts dist/main.js",
+    "test": "deno test"
+  },
+  "imports": {
+    "vue": "https://esm.sh/vue@3.3.4",
+    "vue-router": "https://esm.sh/vue-router@4.2.5",
+    "lightweight-charts": "https://esm.sh/lightweight-charts@5.0.2",
+    "std/": "https://deno.land/std@0.177.0/"
+  },
+  "compilerOptions": {
+    "jsx": "vue",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"]
+  }
+} 
