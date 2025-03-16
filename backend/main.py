@@ -16,19 +16,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/trades")
 def list_trades():
     """List all trade files with metadata"""
     trades = []
     for filename in os.listdir(TRADES_DIR):
         filepath = os.path.join(TRADES_DIR, filename)
-        trades.append({
-            "filename": filename,
-            "path": filepath,
-            "size": os.path.getsize(filepath),
-            "created": os.path.getctime(filepath)
-        })
+        trades.append({"filename": filename, "path": filepath, "size": os.path.getsize(filepath), "created": os.path.getctime(filepath)})
     return trades
+
 
 @app.get("/trades/{trade_name}")
 def get_trade_details(trade_name: str):
@@ -36,14 +33,12 @@ def get_trade_details(trade_name: str):
     filepath = os.path.join(TRADES_DIR, trade_name)
     if not os.path.exists(filepath):
         return {"error": "Trade not found"}
-    
+
     with open(filepath, 'r') as f:
         content = f.read()
-    
-    return {
-        "filename": trade_name,
-        "content": content
-    }
+
+    return {"filename": trade_name, "content": content}
+
 
 @app.get("/observers")
 def list_observer_charts():
@@ -58,14 +53,16 @@ def list_observer_charts():
         })
     return charts
 
+
 @app.get("/observers/{chart_name}")
 def get_observer_chart(chart_name: str):
     """Serve a specific observer chart"""
     filepath = os.path.join(OBSERVERS_DIR, chart_name)
     if not os.path.exists(filepath):
         return {"error": "Chart not found"}
-    
+
     return FileResponse(filepath)
+
 
 @app.get("/chart-data")
 def get_chart_data(chart_type: str = None):
@@ -77,6 +74,7 @@ def get_chart_data(chart_type: str = None):
     # Could read from files, database, or other data sources
     return {"message": "Chart data retrieval not implemented"}
 
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
