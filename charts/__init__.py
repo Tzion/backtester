@@ -9,7 +9,6 @@ OBSERVERS_DIR = os.path.join(CHARTS_DIR, "observers")
 # Ensure directories exist
 os.makedirs(TRADES_DIR, exist_ok=True)
 os.makedirs(OBSERVERS_DIR, exist_ok=True)
-
 ''' put in this table attributes of mathplotlib need to be converted to plotly convention
     format is one of the follow:
     1. mathplotlib_key: plotly_key
@@ -26,13 +25,13 @@ MATHPLOTLIB_TO_PLOTLY_ATTRIBUTES = {
     'markercolor': 'marker_color',
     'linewidth': 'line_width',
     'linecolor': 'line_color',
-    'ls' : ('line_dash',
-                        {'--': 'dash',
-                        '-': 'solid',
-                        ':': 'dot'}
-                        ),
-    
+    'ls': ('line_dash', {
+        '--': 'dash',
+        '-': 'solid',
+        ':': 'dot'
+    }),
 }
+
 
 def translate(plotlib_key, plotlib_value) -> tuple:
     table = MATHPLOTLIB_TO_PLOTLY_ATTRIBUTES
@@ -45,4 +44,3 @@ def translate(plotlib_key, plotlib_value) -> tuple:
         return key, value
     else:
         return key, plotlib_value
-
