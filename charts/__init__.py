@@ -1,10 +1,14 @@
-from globals import OUTPUT_DIR
+import os
 
-CHARTS_DIR = OUTPUT_DIR + 'charts/'
-TRADES_DIR = CHARTS_DIR + 'trades/'
-OBSERVERS_DIR = CHARTS_DIR + 'observers/'
+# Define directories
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CHARTS_DIR = os.path.join(BASE_DIR, "output", "charts")
+TRADES_DIR = os.path.join(CHARTS_DIR, "trades")
+OBSERVERS_DIR = os.path.join(CHARTS_DIR, "observers")
 
-
+# Ensure directories exist
+os.makedirs(TRADES_DIR, exist_ok=True)
+os.makedirs(OBSERVERS_DIR, exist_ok=True)
 
 ''' put in this table attributes of mathplotlib need to be converted to plotly convention
     format is one of the follow:
