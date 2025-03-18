@@ -28,8 +28,7 @@ export class PriceChart {
       },
     })
 
-    this.mainSeries = this.chart.addSeries({
-      type: 'Candlestick',
+    this.mainSeries = this.chart.addSeries(CandlestickSeries, {
       priceFormat: {
         type: 'price',
         precision: 2,
@@ -37,8 +36,7 @@ export class PriceChart {
       },
     })
 
-    this.volumeSeries = this.chart.addSeries({
-      type: 'Histogram',
+    this.volumeSeries = this.chart.addSeries(HistogramSeries, {
       color: '#26a69a',
       priceFormat: {
         type: 'volume',
