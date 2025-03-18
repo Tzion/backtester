@@ -24,9 +24,11 @@ const error = ref(null)
 
 onMounted(async () => {
   try {
-    charts.value = await api.listObserverCharts()
+    const observers = await api.listObserverCharts()
+    charts.value = observers
     loading.value = false
   } catch (err) {
+    console.error('Failed to load charts:', err)
     error.value = 'Failed to load charts'
     loading.value = false
   }
@@ -36,7 +38,7 @@ onMounted(async () => {
 <style scoped>
 .chart-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 }
 
@@ -44,5 +46,6 @@ onMounted(async () => {
   border: 1px solid #eee;
   border-radius: 4px;
   overflow: hidden;
+  aspect-ratio: 1 / 1;
 }
 </style> 

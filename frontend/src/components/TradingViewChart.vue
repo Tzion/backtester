@@ -1,7 +1,7 @@
 <template>
   <div class="trading-view-chart">
     <div class="chart-controls">
-      <select v-model="selectedSymbol" @change="loadChart">
+      <select v-model="selectedSymbol" @change="handleSymbolChange">
         <option value="SPY-1m">SPY (1m)</option>
         <option value="AAPL-1m">AAPL (1m)</option>
         <!-- Add more symbols as needed -->
@@ -13,99 +13,33 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { createChart, CandlestickSeries, HistogramSeries } from 'lightweight-charts'
-import { generateCandlestickData } from '../utils/candlestick-generator'
+import { PriceChart } from '@/services/PriceChart'
 
-const chartContainer = ref(null)
+const chartContainer = ref<HTMLElement | null>(null)
 const selectedSymbol = ref('SPY-1m')
-let chart: any = null
-let mainSeries: any = null
-let volumeSeries: any = null
+const priceChart = new PriceChart()
 
 onMounted(() => {
-  initChart()
-  loadChart()
-  
-  window.addEventListener('resize', handleResize)
+  if (chartContainer.value) {
+    priceChart.initChart(chartContainer.value)
+    priceChart.loadChart(selectedSymbol.value)
+    
+    window.addEventListener('resize', handleResize)
+  }
 })
 
 onUnmounted(() => {
-  if (chart) {
-    chart.remove()
-    chart = null
-  }
+  priceChart.remove()
   window.removeEventListener('resize', handleResize)
 })
 
-function initChart() {
-  if (!chartContainer.value) return
-  
-  chart = createChart(chartContainer.value, {
-    width: chartContainer.value.clientWidth,
-    height: 500,
-    timeScale: {
-      timeVisible: true,
-      secondsVisible: false,
-    },
-    layout: {
-      background: { color: '#ffffff' },
-      textColor: '#333',
-    },
-    grid: {
-      vertLines: { color: '#f0f0f0' },
-      horzLines: { color: '#f0f0f0' },
-    },
-  })
-  
-  mainSeries = chart.addSeries({
-    type: 'Candlestick',
-    priceFormat: {
-      type: 'price',
-      precision: 2,
-      minMove: 0.01,
-    },
-  })
-  
-  volumeSeries = chart.addSeries({
-    type: 'Histogram',
-    color: '#26a69a',
-    priceFormat: {
-      type: 'volume',
-    },
-    priceScaleId: '',
-  })
-  
-  volumeSeries.priceScale().applyOptions({
-    scaleMargins: {
-      top: 0.8,
-      bottom: 0,
-    },
-  })
-}
-
-function loadChart() {
-  if (!mainSeries || !volumeSeries) return
-  
-  // In a real app, you would fetch data from API based on selectedSymbol
-  const candleData = generateCandlestickData()
-  
-  const volumeData = candleData.map(item => ({
-    time: item.time,
-    value: Math.random() * 1000000, // Mock volume data
-    color: item.close >= item.open ? '#26a69a' : '#ef5350'
-  }))
-  
-  mainSeries.setData(candleData)
-  volumeSeries.setData(volumeData)
-  
-  chart.timeScale().fitContent()
+function handleSymbolChange() {
+  priceChart.loadChart(selectedSymbol.value)
 }
 
 function handleResize() {
-  if (chart && chartContainer.value) {
-    chart.applyOptions({
-      width: chartContainer.value.clientWidth,
-    })
+  if (chartContainer.value) {
+    priceChart.resize(chartContainer.value.clientWidth)
   }
 }
 </script>

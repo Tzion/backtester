@@ -2,6 +2,10 @@
   <div class="dashboard">
     <h1>Trading Dashboard</h1>
     
+    <section class="trading-view">
+      <h2>Trading View</h2>
+      <TradingViewChart />
+    </section>
     <section class="observer-charts">
       <h2>Observer Charts</h2>
       <ObserverCharts />
@@ -12,10 +16,6 @@
       <TradesList />
     </section>
 
-    <section class="trading-view">
-      <h2>Trading View</h2>
-      <TradingViewChart />
-    </section>
   </div>
 </template>
 
