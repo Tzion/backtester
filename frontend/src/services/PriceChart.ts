@@ -1,10 +1,11 @@
-import { createChart, IChartApi, CandlestickSeries, HistogramSeries, ISeriesApi } from 'lightweight-charts'
-import { generateCandlestickData } from '@/utils/candlestick-generator'
+import { createChart, IChartApi, CandlestickSeries, HistogramSeries, ISeriesApi, createSeriesMarkers } from 'lightweight-charts'
+import { generateCandlestickData } from '../utils/candlestick-generator'
 
 export class PriceChart {
   private chart: IChartApi | null = null
   private mainSeries: ISeriesApi<'Candlestick'> | null = null
   private volumeSeries: ISeriesApi<'Histogram'> | null = null
+  
 
   constructor() { }
 
@@ -71,6 +72,15 @@ export class PriceChart {
     this.mainSeries.setData(candleData)
     this.volumeSeries.setData(volumeData)
 
+    const candleToMark = this.mainSeries.data().slice(-5)[4]
+    const marker = [{
+      time: candleToMark.time,
+      position: 'aboveBar',
+      color: '#f68410',
+      shape: 'circle',
+      text: 'A',
+    }]
+    createSeriesMarkers(this.mainSeries, marker)
     this.chart?.timeScale().fitContent()
   }
 
