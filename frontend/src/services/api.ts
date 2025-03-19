@@ -21,5 +21,12 @@ export default {
   async getObserverChart(chartName: string) {
     const response = await axios.get(`${API_BASE_URL}/observers/${chartName}`)
     return response.data
-  }
+  },
+
+  async fetchOHLCVData(symbol: string, interval: string, from?: number, to?: number): Promise<any> {
+    const response = await axios.get(`${API_BASE_URL}/ohlcv`, {
+      params: { symbol, interval, from, to }
+    })
+    return response.data
+  },
 } 

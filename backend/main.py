@@ -64,16 +64,16 @@ def get_observer_chart(chart_name: str):
     return FileResponse(filepath)
 
 
-@app.get("/chart-data")
-def get_chart_data(chart_type: str = None):
-    """
-    Fetch chart data based on type
-    This is a placeholder - you'll need to implement actual data retrieval
-    """
-    # Implement data fetching logic based on chart_type
-    # Could read from files, database, or other data sources
-    return {"message": "Chart data retrieval not implemented"}
 
+@app.get("/ohlcv")
+def get_ohlcv_data(symbol: str, interval: str, since: int = None, to: int = None):
+    """
+    Fetch OHLCV data for a specific symbol and interval
+    """
+    # Implement data fetching logic based on symbol, interval, since, and to
+    # Could read from files, database, or other data sources
+
+    return {"message": "OHLCV data retrieval not implemented"}
 
 if __name__ == "__main__":
     import uvicorn

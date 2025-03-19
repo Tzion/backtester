@@ -9,3 +9,4 @@ __pycache__
 output/
 playground/
 **/node_modules/
+frontend/.vite/
