@@ -1,3 +1,94 @@
+export function generateIntradayData() {
+    return [
+        {
+            time: Math.floor(new Date("2024-03-20 09:00:00").getTime() / 1000),
+            open: 100,
+            high: 105,
+            low: 95,
+            close: 102,
+            volume: 1000,
+        },
+        {
+            time: Math.floor(new Date("2024-03-20 09:01:00").getTime() / 1000),
+            open: 102,
+            high: 107,
+            low: 98,
+            close: 104,
+        },
+        {
+            time: Math.floor(new Date("2024-03-20 09:02:00").getTime() / 1000),
+            open: 104,
+            high: 106,
+            low: 101,
+            close: 103,
+            volume: 1200,
+        },
+        {
+            time: Math.floor(new Date("2024-03-20 09:03:00").getTime() / 1000),
+            open: 103,
+            high: 108,
+            low: 102,
+            close: 107,
+            volume: 1500,
+        },
+        {
+            time: Math.floor(new Date("2024-03-20 09:04:00").getTime() / 1000),
+            open: 107,
+            high: 110,
+            low: 105,
+            close: 109,
+            volume: 1800,
+        },
+        {
+            time: Math.floor(new Date("2024-03-20 09:05:00").getTime() / 1000),
+            open: 109,
+            high: 112,
+            low: 108,
+            close: 110,
+            volume: 1600,
+        },
+        {
+            time: Math.floor(new Date("2024-03-20 09:06:00").getTime() / 1000),
+            open: 110,
+            high: 111,
+            low: 107,
+            close: 108,
+            volume: 1400,
+        },
+        {
+            time: Math.floor(new Date("2024-03-20 09:07:00").getTime() / 1000),
+            open: 108,
+            high: 109,
+            low: 105,
+            close: 106,
+            volume: 1300,
+        },
+        {
+            time: Math.floor(new Date("2024-03-20 09:08:00").getTime() / 1000),
+            open: 106,
+            high: 108,
+            low: 104,
+            close: 107,
+            volume: 1100,
+        },
+        {
+            time: Math.floor(new Date("2024-03-20 09:09:00").getTime() / 1000),
+            open: 107,
+            high: 110,
+            low: 106,
+            close: 109,
+            volume: 1700,
+        },
+        {
+            time: Math.floor(new Date("2024-03-20 09:10:00").getTime() / 1000),
+            open: 109,
+            high: 113,
+            low: 108,
+            close: 112,
+            volume: 2000,
+        }
+    ];
+}
 export function generateCandlestickData() {
     return [
         {

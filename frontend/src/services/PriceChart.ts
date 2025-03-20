@@ -1,5 +1,5 @@
 import { createChart, IChartApi, CandlestickSeries, HistogramSeries, ISeriesApi, createSeriesMarkers } from 'lightweight-charts'
-import { generateCandlestickData } from '../utils/candlestick-generator'
+import { generateCandlestickData, generateIntradayData } from '../utils/candlestick-generator'
 
 export class PriceChart {
   private chart: IChartApi | null = null
