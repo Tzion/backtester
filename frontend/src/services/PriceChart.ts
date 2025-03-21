@@ -1,5 +1,5 @@
 import { createChart, IChartApi, CandlestickSeries, HistogramSeries, ISeriesApi, createSeriesMarkers } from 'lightweight-charts'
-import { generateCandlestickData, generateIntradayData } from '../utils/candlestick-generator'
+import { generateCandlestickData, generateIntradayData } from '@/utils/candlestick-generator'
 
 export class PriceChart {
   private chart: IChartApi | null = null
@@ -60,7 +60,6 @@ export class PriceChart {
   loadChart(symbol: string) {
     if (!this.mainSeries || !this.volumeSeries) return
 
-    // In a real app, you would fetch data from API based on symbol
     const candleData = generateCandlestickData()
 
     const volumeData = candleData.map(item => ({

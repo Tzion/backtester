@@ -10,3 +10,4 @@ output/
 playground/
 **/node_modules/
 frontend/.vite/
+*storybook.log
